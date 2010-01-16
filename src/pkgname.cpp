@@ -1,10 +1,10 @@
 /*
  * pkgname.cpp
  *
- * $Id: pkgname.cpp,v 1.1 2009/11/23 20:44:25 keithmarshall Exp $
+ * $Id: pkgname.cpp,v 1.2 2010/01/16 20:49:57 keithmarshall Exp $
  *
  * Written by Keith Marshall <keithmarshall@users.sourceforge.net>
- * Copyright (C) 2009, MinGW Project
+ * Copyright (C) 2009, 2010, MinGW Project
  *
  *
  * Implementation for the non-inherited components of the pkgXmlNode
@@ -32,6 +32,7 @@
 
 #include "dmh.h"
 #include "pkgbase.h"
+#include "pkgkeys.h"
 
 static
 const char *pkgArchiveName( pkgXmlNode *rel, const char *tag, unsigned opt )
@@ -74,7 +75,7 @@ const char *pkgArchiveName( pkgXmlNode *rel, const char *tag, unsigned opt )
 	 * ...else emit a warning, and ignore this one...
 	 */
 	dmh_notify( DMH_WARNING, "%s: archive name reassignment ignored\n",
-	    rel->GetPropVal( "tarname", "<unknown>" )
+	    rel->GetPropVal( tarname_key, "<unknown>" )
 	);
       else
 	/* ...ok; this is the first "tag" specification,
@@ -90,7 +91,7 @@ const char *pkgArchiveName( pkgXmlNode *rel, const char *tag, unsigned opt )
   /* "rel" now points to the XML element having the appropriate
    * "tarname" specification; return a pointer to it's value.
    */
-  return (opt || matched) ? rel->GetPropVal( "tarname", NULL ) : NULL;
+  return (opt || matched) ? rel->GetPropVal( tarname_key, NULL ) : NULL;
 }
 
 const char *pkgXmlNode::SourceArchiveName()

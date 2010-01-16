@@ -1,3 +1,17 @@
+2010-01-16  Keith Marshall  <keithmarshall@users.sourceforge.net>
+
+	Assign standardised keys for XML database lookup.
+
+	* src/pkgkeys.h: New file; provide public key declarations.
+	* src/pkgkeys.c: New file; implement them.
+
+	* src/pkgbind.cpp: Use them; update copyright notice.
+	* src/pkgexec.cpp, src/pkgfind.cpp, src/pkginet.cpp: Likewise.
+	* src/pkgname.cpp, src/pkgspec.cpp: Likewise.
+
+	* Makfile.in (CORE_DLL_OBJECTS): Add pkgkeys.$(OBJEXT); update all
+	dependencies accordingly.
+
 2010-01-08  Keith Marshall  <keithmarshall@users.sourceforge.net>
 
 	Add CLI version reporting option.

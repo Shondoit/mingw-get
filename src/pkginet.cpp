@@ -1,10 +1,10 @@
 /*
  * pkginet.cpp
  *
- * $Id: pkginet.cpp,v 1.2 2009/12/16 20:09:00 keithmarshall Exp $
+ * $Id: pkginet.cpp,v 1.3 2010/01/16 20:49:57 keithmarshall Exp $
  *
  * Written by Keith Marshall <keithmarshall@users.sourceforge.net>
- * Copyright (C) 2009, MinGW Project
+ * Copyright (C) 2009, 2010, MinGW Project
  *
  *
  * Implementation of the package download machinery for mingw-get.
@@ -36,6 +36,7 @@
 #include "mkpath.h"
 
 #include "pkgbase.h"
+#include "pkgkeys.h"
 #include "pkgtask.h"
 
 class pkgInternetAgent
@@ -176,7 +177,7 @@ static const char *get_host_info
   {
     /* Starting from the "ref" package entry in the catalogue...
      */
-    pkgXmlNode *host = ref->FindFirstAssociate( "download-host" );
+    pkgXmlNode *host = ref->FindFirstAssociate( download_host_key );
     while( host != NULL )
     {
       /* Examine its associate tags; if we find one of type
@@ -189,7 +190,7 @@ static const char *get_host_info
       /* Otherwise, we look for any other candidate tags
        * associated with the same catalogue entry...
        */
-      host = host->FindNextAssociate( "download-host" );
+      host = host->FindNextAssociate( download_host_key );
     }
     /* Failing an immediate match, extend the search to the
      * ancestors of the initial reference entry...
@@ -296,13 +297,13 @@ void pkgActionItem::DownloadArchiveFiles( pkgActionItem *current )
       {
 	/* ...if not, ask the download agent to fetch it...
 	 */
-	const char *url_template = get_host_info( current->selection, "uri" );
+	const char *url_template = get_host_info( current->selection, uri_key );
 	if( url_template != NULL )
 	{
 	  /* ...from the URL constructed from the template specified in
 	   * the package repository catalogue (configuration database)...
 	   */
-	  const char *mirror = get_host_info( current->selection, "mirror" );
+	  const char *mirror = get_host_info( current->selection, mirror_key );
 	  char package_url[mkpath( NULL, url_template, package_name, mirror )];
 	  mkpath( package_url, url_template, package_name, mirror );
 	  if( ! (download.Get( package_url ) > 0) )
@@ -409,7 +410,7 @@ static const char *serial_number( const char *catalogue )
   pkgXmlDocument src( catalogue );
 
   if(   src.IsOk()
-  &&  ((issue = src.GetRoot()->GetPropVal( "issue", NULL )) != NULL)  )
+  &&  ((issue = src.GetRoot()->GetPropVal( issue_key, NULL )) != NULL)  )
     /*
      * Found an issue number; return a copy...
      */
@@ -431,7 +432,7 @@ void pkgXmlDocument::SyncRepository( const char *name, pkgXmlNode *repository )
    * "name" argument passed to this pkgXmlDocument class method.
    */ 
   const char *url_template;
-  if( (url_template = repository->GetPropVal( "uri", NULL )) != NULL )
+  if( (url_template = repository->GetPropVal( uri_key, NULL )) != NULL )
   {
     /* Initialise a streaming agent, to manage the catalogue download;
      * (note that we must include the "%/M" placeholder in the template
@@ -443,7 +444,7 @@ void pkgXmlDocument::SyncRepository( const char *name, pkgXmlNode *repository )
       /* Construct the full URI for the master catalogue, and stream it to
        * a locally cached, decompressed copy of the XML file.
        */
-      const char *mirror = repository->GetPropVal( "mirror", NULL );
+      const char *mirror = repository->GetPropVal( mirror_key, NULL );
       char catalogue_url[mkpath( NULL, url_template, name, mirror )];
       mkpath( catalogue_url, url_template, name, mirror );
       if( download.Get( catalogue_url ) <= 0 )

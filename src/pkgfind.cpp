@@ -1,10 +1,10 @@
 /*
  * pkgfind.cpp
  *
- * $Id: pkgfind.cpp,v 1.1 2009/11/23 20:44:25 keithmarshall Exp $
+ * $Id: pkgfind.cpp,v 1.2 2010/01/16 20:49:57 keithmarshall Exp $
  *
  * Written by Keith Marshall <keithmarshall@users.sourceforge.net>
- * Copyright (C) 2009, MinGW Project
+ * Copyright (C) 2009, 2010, MinGW Project
  *
  *
  * Implementation of search routines for locating specified records
@@ -28,6 +28,7 @@
 #include <string.h>
 
 #include "pkgbase.h"
+#include "pkgkeys.h"
 
 static inline
 bool pkgHasMatchingName( pkgXmlNode *pkg, const char *wanted )
@@ -36,13 +37,13 @@ bool pkgHasMatchingName( pkgXmlNode *pkg, const char *wanted )
    * returns "true" if the XML node under consideration defines
    * a "package", having the "wanted" name; else "false".
    */
-  return pkg->IsElementOfType( "package" )
+  return pkg->IsElementOfType( package_key )
     /*
      * subject to the canonical name of the package matching
      * the "wanted" name, or any assigned package name alias...
      */
-    &&( (strcmp( wanted, pkg->GetPropVal( "name", "" )) == 0)
-        || (has_keyword( pkg->GetPropVal( "alias", NULL ), wanted ) != 0)
+    &&( (strcmp( wanted, pkg->GetPropVal( name_key, "" )) == 0)
+        || (has_keyword( pkg->GetPropVal( alias_key, NULL ), wanted ) != 0)
       );
 }
 
@@ -60,8 +61,8 @@ pkgXmlDocument::FindPackageByName( const char *name, const char *subsystem )
   {
     /* Select only "package-collection" elements...
      */
-    if( dir->IsElementOfType( "package-collection" )
-    &&  match_if_explicit( subsystem, dir->GetPropVal( "subsystem", NULL )) )
+    if( dir->IsElementOfType( package_collection_key )
+    &&  match_if_explicit( subsystem, dir->GetPropVal( subsystem_key, NULL )) )
     {
       /* ...inspect the content of each...
        */

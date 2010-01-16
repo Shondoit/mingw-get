@@ -1,10 +1,10 @@
 /*
  * pkgspec.cpp
  *
- * $Id: pkgspec.cpp,v 1.1 2009/11/16 21:54:30 keithmarshall Exp $
+ * $Id: pkgspec.cpp,v 1.2 2010/01/16 20:49:57 keithmarshall Exp $
  *
  * Written by Keith Marshall <keithmarshall@users.sourceforge.net>
- * Copyright (C) 2009, MinGW Project
+ * Copyright (C) 2009, 2010, MinGW Project
  *
  *
  * Implementation for the "pkgTarName" class, as declared in header
@@ -26,6 +26,7 @@
  *
  */
 #include "pkginfo.h"
+#include "pkgkeys.h"
 #include "vercmp.h"
 
 #include <string.h>
@@ -45,7 +46,7 @@ pkgSpecs::pkgSpecs( pkgXmlNode *release )
   /* Retrieve the "tarname" from an XML "release" specification,
    * then construct the "pkgSpecs" as if it were specified directly.
    */
-  const char *tarname = release ? release->GetPropVal( "tarname", NULL ) : NULL;
+  const char *tarname = release ? release->GetPropVal( tarname_key, NULL ) : NULL;
   content = get_pkginfo( tarname ? tarname : "", specs );
 }
 

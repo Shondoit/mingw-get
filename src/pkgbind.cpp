@@ -1,10 +1,10 @@
 /*
  * pkgbind.cpp
  *
- * $Id: pkgbind.cpp,v 1.2 2009/12/17 17:35:12 keithmarshall Exp $
+ * $Id: pkgbind.cpp,v 1.3 2010/01/16 20:49:50 keithmarshall Exp $
  *
  * Written by Keith Marshall <keithmarshall@users.sourceforge.net>
- * Copyright (C) 2009, MinGW Project
+ * Copyright (C) 2009, 2010, MinGW Project
  *
  *
  * Implementation of repository binding for the pkgXmlDocument class.
@@ -31,6 +31,7 @@
 
 #include "dmh.h"
 #include "pkgbase.h"
+#include "pkgkeys.h"
 
 pkgXmlNode *pkgXmlDocument::BindRepositories( bool force_update )
 {
@@ -44,13 +45,13 @@ pkgXmlNode *pkgXmlDocument::BindRepositories( bool force_update )
    * Verify that this XML database defines an application profile,
    * and that the associated application is "mingw-get"...
    */
-  if( (strcmp( dbase->GetName(), "profile" ) == 0)
-  &&  (strcmp( dbase->GetPropVal( "application", "?" ), "mingw-get") == 0) )
+  if( (strcmp( dbase->GetName(), profile_key ) == 0)
+  &&  (strcmp( dbase->GetPropVal( application_key, "?" ), "mingw-get") == 0) )
   {
     /* Sanity check passed...
      * Walk the XML data tree, selecting "repository" specifications...
      */
-    pkgXmlNode *repository = dbase->FindFirstAssociate( "repository" );
+    pkgXmlNode *repository = dbase->FindFirstAssociate( repository_key );
     while( repository != NULL )
     {
       /* For each "repository" specified, identify its "catalogues"...
@@ -61,12 +62,12 @@ pkgXmlNode *pkgXmlDocument::BindRepositories( bool force_update )
        * named "repository-index" file identified via the repository
        * URI template, and hosted by the download server itself.
        */
-      pkgXmlNode *catalogue = repository->FindFirstAssociate( "package-list" );
+      pkgXmlNode *catalogue = repository->FindFirstAssociate( package_list_key );
       while( catalogue != NULL )
       {
 	/* ...and for each named "catalogue"...
 	 */
-	const char *dfile, *dname = catalogue->GetPropVal( "catalogue", NULL );
+	const char *dfile, *dname = catalogue->GetPropVal( catalogue_key, NULL );
 	if( (dname != NULL) && ((dfile = xmlfile( dname )) != NULL) )
 	{
 	  /* Check for a locally cached copy of the "package-list" file...
@@ -94,7 +95,7 @@ pkgXmlNode *pkgXmlDocument::BindRepositories( bool force_update )
 	      /* ...read it, selecting each of the "package-collection"
 	       * records contained within it...
 	       */
-	      pkglist = pkglist->FindFirstAssociate( "package-collection" );
+	      pkglist = pkglist->FindFirstAssociate( package_collection_key );
 	      while( pkglist != NULL )
 	      {
 		/* ...and append a copy of each to the active profile...
@@ -104,7 +105,7 @@ pkgXmlNode *pkgXmlDocument::BindRepositories( bool force_update )
 		/* Move on to the next "package-collection" (if any)
 		 * within the current catalogue...
 		 */
-		pkglist = pkglist->FindNextAssociate( "package-collection" );
+		pkglist = pkglist->FindNextAssociate( package_collection_key );
 	      }
 	    }
 	  }
@@ -122,14 +123,14 @@ pkgXmlNode *pkgXmlDocument::BindRepositories( bool force_update )
 	 * catalogues; move on, to process the next catalogue (if any) in
 	 * the current repository collection.
 	 */
-	catalogue = catalogue->FindNextAssociate( "package-list" );
+	catalogue = catalogue->FindNextAssociate( package_list_key );
       }
 
       /* Similarly, a complete distribution may draw from an arbitrary set
        * of distinct repositories; move on, to process the next repository
        * specified (if any).
        */
-      repository = repository->FindNextAssociate( "repository" );
+      repository = repository->FindNextAssociate( repository_key );
     }
 
     /* On successful completion, return a pointer to the root node

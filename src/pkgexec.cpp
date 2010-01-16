@@ -1,10 +1,10 @@
 /*
  * pkgexec.cpp
  *
- * $Id: pkgexec.cpp,v 1.2 2009/12/17 17:35:12 keithmarshall Exp $
+ * $Id: pkgexec.cpp,v 1.3 2010/01/16 20:49:57 keithmarshall Exp $
  *
  * Written by Keith Marshall <keithmarshall@users.sourceforge.net>
- * Copyright (C) 2009, MinGW Project
+ * Copyright (C) 2009, 2010, MinGW Project
  *
  *
  * Implementation of package management task scheduler and executive.
@@ -28,6 +28,7 @@
 #include "mkpath.h"
 
 #include "pkgbase.h"
+#include "pkgkeys.h"
 #include "pkginfo.h"
 #include "pkgtask.h"
 
@@ -236,7 +237,7 @@ const char * pkgActionItem::SetRequirements( pkgXmlNode *req )
 
   /* First check for a strict equality requirement...
    */
-  if( (min_wanted = req->GetPropVal( "eq", NULL )) != NULL )
+  if( (min_wanted = req->GetPropVal( eq_key, NULL )) != NULL )
     /*
      * ...and if specified, set the selection range such that
      * only the one specific release can match.
@@ -248,8 +249,8 @@ const char * pkgActionItem::SetRequirements( pkgXmlNode *req )
      * minimum requirement (release "greater" than) specification,
      * setting the minimum release selector...
      */
-    if( ((min_wanted = req->GetPropVal( "ge", NULL )) == NULL)
-    &&  ((min_wanted = req->GetPropVal( "gt", NULL )) != NULL)  )
+    if( ((min_wanted = req->GetPropVal( ge_key, NULL )) == NULL)
+    &&  ((min_wanted = req->GetPropVal( gt_key, NULL )) != NULL)  )
       /*
        * ...and its selection mode flag accordingly.
        */
@@ -259,8 +260,8 @@ const char * pkgActionItem::SetRequirements( pkgXmlNode *req )
      * maximum requirement (release "less" than) specification,
      * setting the maximum release selector...
      */
-    if( ((max_wanted = req->GetPropVal( "le", NULL )) == NULL)
-    &&  ((max_wanted = req->GetPropVal( "lt", NULL )) != NULL)  )
+    if( ((max_wanted = req->GetPropVal( le_key, NULL )) == NULL)
+    &&  ((max_wanted = req->GetPropVal( lt_key, NULL )) != NULL)  )
       /*
        * ...and its selection mode flag accordingly.
        */
