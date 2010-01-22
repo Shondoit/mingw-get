@@ -1,10 +1,10 @@
 /*
  * climain.cpp
  *
- * $Id: climain.cpp,v 1.3 2009/12/17 17:35:11 keithmarshall Exp $
+ * $Id: climain.cpp,v 1.4 2010/01/22 17:11:48 keithmarshall Exp $
  *
  * Written by Keith Marshall <keithmarshall@users.sourceforge.net>
- * Copyright (C) 2009, MinGW Project
+ * Copyright (C) 2009, 2010, MinGW Project
  *
  *
  * Implementation of the main program function, which is invoked by
@@ -81,28 +81,30 @@ EXTERN_C int climain( int argc, char **argv )
        */
       dmh_notify( DMH_FATAL, "%s: invalid application profile\n", dbase.Value() );
 
-#if 0
     /* If the requested action was "update", then we've already done it,
      * as a side effect of binding the cached repository catalogues...
      */
     if( action != ACTION_UPDATE )
     {
-      /* ...otherwise, we still need to schedule and execute the action request...
-       *
-       * so, schedule the specified action for each additionally specified command
-       * line argument, (each of which is assumed to represent a package name)...
+      /* ...otherwise, we need to load the system map...
+       */
+      dbase.LoadSystemMap();
+
+#if 0
+      /* ...schedule the specified action for each additional command line
+       * argument, (each of which is assumed to represent a package name)...
        */
       while( --argc )
 	dbase.Schedule( (unsigned long)(action), *++argv );
 
-      /* ...and finally, execute all scheduled actions...
+      /* ...and finally, execute all scheduled actions.
        */
       dbase.ExecuteActions();
-    }
 #endif
+    }
 
     /* If we get this far, then all actions completed successfully;
-     * we are done...
+     * we are done.
      */
     return EXIT_SUCCESS;
   }

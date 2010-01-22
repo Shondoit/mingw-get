@@ -1,3 +1,27 @@
+2010-01-22  Keith Marshall  <keithmarshall@users.sourceforge.net>
+
+	Add subsystem specific sysroot mapping facility.
+
+	* src/pkghash.c: New file; required by...
+	* src/sysroot.cpp: New file; it implements...
+	(pkgXmlDocument::LoadSystemMap, pkgXmlNode::GetSysRoot): New methods.
+
+	* src/pkgbase.h: Update copyright notice.
+	(pkgXmlDocument::LoadSystemMap): Declare it.
+	(pkgXmlDocument::AddDeclaration): New inline method.
+	(pkgXmlDocument::SetRoot, pkgXmlDocument::Save): Likewise.
+	(pkgXmlNode::GetSysRoot): Declare it.
+	(pkgXmlNode::GetDocumentRoot): New inline method.
+	(pkgXmlNode::AddChild, pkgXmlNode::DeleteChild): Likewise.
+
+	* src/climain.cpp: Update copyright notice.
+	(climain): Invoke pkgXmlDocument::LoadSystemMap() as required.
+
+	* Makefile.in (CORE_DLL_OBJECTS): Add ...
+	(pkghash.$(OBJEXT), sysroot.$(OBJEXT)): ...these; upate dependencies.
+	(DEBUGLEVEL): New macro; define it.
+	(CPPFLAGS): Use it.
+
 2010-01-16  Keith Marshall  <keithmarshall@users.sourceforge.net>
 
 	Assign standardised keys for XML database lookup.

@@ -2,10 +2,10 @@
 /*
  * pkgbase.h
  *
- * $Id: pkgbase.h,v 1.2 2009/12/17 17:35:12 keithmarshall Exp $
+ * $Id: pkgbase.h,v 1.3 2010/01/22 17:11:48 keithmarshall Exp $
  *
  * Written by Keith Marshall <keithmarshall@users.sourceforge.net>
- * Copyright (C) 2009, MinGW Project
+ * Copyright (C) 2009, 2010, MinGW Project
  *
  *
  * Public interface for the package directory management routines;
@@ -93,9 +93,31 @@ class pkgXmlNode : public TiXmlElement
       const char* retval = Attribute( name );
       return retval ? retval : subst;
     }
+    inline pkgXmlNode* AddChild( TiXmlNode *child )
+    {
+      /* This is wxXmlNode's method for adding a child node, it is
+       * equivalent to tinyxml's LinkEndChild() method.
+       */
+      return (pkgXmlNode*)(LinkEndChild( child ));
+    }
+    inline bool DeleteChild( pkgXmlNode *child )
+    {
+      /* Both TiXmlNode and wxXmlNode have RemoveChild methods, but the
+       * implementations are semantically different; for tinyxml, we may
+       * simply use the RemoveChild method here, where for wxXmlNode, we
+       * would use RemoveChild followed by `delete child'.
+       */
+      return RemoveChild( child );
+    }
 
     /* Additional methods specific to the application.
      */
+    inline pkgXmlNode *GetDocumentRoot()
+    {
+      /* Convenience method to retrieve a pointer to the document root.
+       */
+      return (pkgXmlNode*)(GetDocument()->RootElement());
+    }
     inline bool IsElementOfType( const char* tagname )
     {
       /* Confirm if the owner XML node represents a data element
@@ -103,6 +125,11 @@ class pkgXmlNode : public TiXmlElement
        */
       return strcmp( GetName(), tagname ) == 0;
     }
+
+    /* Method for retrieving the system root management records
+     * for a specified installed subsystem.
+     */
+    pkgXmlNode *GetSysRoot( const char *subsystem );
 
     /* The following pair of methods provide an iterator
      * for enumerating the contained nodes, within the owner,
@@ -219,6 +246,33 @@ class pkgXmlDocument : public TiXmlDocument
        */
       return (pkgXmlNode *)(RootElement());
     }
+    inline void AddDeclaration
+    ( const char *version, const char *encoding, const char *standalone )
+    {
+      /* Not a standard method of either wxXmlDocumemnt or TiXmlDocument;
+       * this is a convenience method for setting up a new XML database.
+       */
+      TiXmlDeclaration decl( version, encoding, standalone );
+      LinkEndChild( &decl );
+    }
+    inline void SetRoot( TiXmlNode* root )
+    {
+      /* tinyxml has no direct equivalent for this wxXmlDocument method;
+       * to emulate it, we must first explicitly delete an existing root
+       * node, if any, then link the new root node as a document child.
+       */
+      pkgXmlNode *oldroot;
+      if( (oldroot = GetRoot()) != NULL )
+	delete oldroot;
+      LinkEndChild( root );
+    }
+    inline bool Save( const char *filename )
+    {
+      /* This wxXmlDocument method for saving the database is equivalent
+       * to the corresponding tinyxml SaveFile( const char* ) method.
+       */
+      return SaveFile( filename );
+    }
 
   private:
     /* Properties specifying the schedule of actions.
@@ -236,6 +290,11 @@ class pkgXmlDocument : public TiXmlDocument
      * into the central XML package database.
      */
     pkgXmlNode* BindRepositories( bool );
+
+    /* Method to load the system map, and the lists of installed
+     * packages associated with each specified sysroot.
+     */
+    void LoadSystemMap();
 
     /* Method to locate the XML database entry for a named package.
      */

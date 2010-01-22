@@ -1,6 +1,6 @@
 # @configure_input@
 #
-# $Id: Makefile.in,v 1.6 2010/01/16 20:49:43 keithmarshall Exp $
+# $Id: Makefile.in,v 1.7 2010/01/22 17:11:47 keithmarshall Exp $
 #
 # Written by Keith Marshall <keithmarshall@users.sourceforge.net>
 # Copyright (C) 2009, 2010, MinGW Project
@@ -26,9 +26,11 @@ srcdir = @srcdir@
 
 VPATH = ${srcdir}/src ${srcdir}/src/pkginfo ${srcdir}/tinyxml
 
+DEBUGLEVEL = 0
+
 CC = @CC@
 CFLAGS = @CFLAGS@
-CPPFLAGS = @CPPFLAGS@ $(INCLUDES)
+CPPFLAGS = @CPPFLAGS@ -D DEBUGLEVEL=$(DEBUGLEVEL) $(INCLUDES)
 
 CXX = @CXX@
 CXXFLAGS = $(CFLAGS)
@@ -49,7 +51,7 @@ LIBS = -Wl,-Bstatic -lz -lbz2 -llzma -Wl,-Bdynamic -lwininet
 CORE_DLL_OBJECTS = climain.$(OBJEXT) \
    pkgbind.$(OBJEXT) pkginet.$(OBJEXT) pkgstrm.$(OBJEXT) pkgname.$(OBJEXT) \
    pkgexec.$(OBJEXT) pkgfind.$(OBJEXT) pkginfo.$(OBJEXT) pkgspec.$(OBJEXT) \
-   pkgkeys.$(OBJEXT) \
+   sysroot.$(OBJEXT) pkghash.$(OBJEXT) pkgkeys.$(OBJEXT) \
    mkpath.$(OBJEXT)  xmlfile.$(OBJEXT) keyword.$(OBJEXT) \
    tinyxml.$(OBJEXT) tinyxmlparser.$(OBJEXT) \
    tinystr.$(OBJEXT) tinyxmlerror.$(OBJEXT) \
@@ -74,6 +76,7 @@ mingw-get-0.dll: $(CORE_DLL_OBJECTS)
 
 dmh.$(OBJEXT):     dmh.h
 climain.$(OBJEXT): pkgbase.h pkgtask.h tinyxml.h tinystr.h dmh.h
+sysroot.$(OBJEXT): pkgbase.h pkgkeys.h tinyxml.h tinystr.h mkpath.h dmh.h
 
 pkgname.$(OBJEXT): pkgbase.h pkgkeys.h dmh.h
 pkgfind.$(OBJEXT): pkgbase.h pkgkeys.h tinyxml.h tinystr.h
