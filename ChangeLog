@@ -1,5 +1,11 @@
 2010-01-22  Keith Marshall  <keithmarshall@users.sourceforge.net>
 
+	Remove bzip2 sources from trunk.
+	(Application builders should use free standing implementation of
+	 bzip2, from MinGW's package distribution page on SourceForge).
+
+2010-01-22  Keith Marshall  <keithmarshall@users.sourceforge.net>
+
 	Add subsystem specific sysroot mapping facility.
 
 	* src/pkghash.c: New file; required by...
