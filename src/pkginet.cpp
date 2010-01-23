@@ -1,7 +1,7 @@
 /*
  * pkginet.cpp
  *
- * $Id: pkginet.cpp,v 1.3 2010/01/16 20:49:57 keithmarshall Exp $
+ * $Id: pkginet.cpp,v 1.4 2010/01/23 17:01:53 keithmarshall Exp $
  *
  * Written by Keith Marshall <keithmarshall@users.sourceforge.net>
  * Copyright (C) 2009, 2010, MinGW Project
@@ -374,7 +374,17 @@ public pkgInternetStreamingAgent, public pkgLzmaArchiveStream
 pkgInternetLzmaStreamingAgent::pkgInternetLzmaStreamingAgent
 ( const char *local_name, const char *dest_specification ):
 pkgInternetStreamingAgent( local_name, dest_specification ),
-pkgLzmaArchiveStream( -1 ){}
+/*
+ * Note that, when we come to initialise the lzma streaming component
+ * of this derived class, we will be streaming directly from the internet,
+ * rather than from a file stream, so we don't require a file descriptor
+ * for the input stream; however, the class semantics still expect one.
+ * To avoid accidental association with an existing file stream, we
+ * use a negative value, (which is never a valid file descriptor);
+ * however, we must not choose -1, since the class implementation
+ * will decline to process the stream; hence, we choose -2.
+ */
+pkgLzmaArchiveStream( -2 ){}
 
 int pkgInternetLzmaStreamingAgent::GetRawData( int fd, uint8_t *buf, size_t max )
 {

@@ -1,10 +1,10 @@
 /*
  * pkgstrm.cpp
  *
- * $Id: pkgstrm.cpp,v 1.1 2009/11/23 20:44:25 keithmarshall Exp $
+ * $Id: pkgstrm.cpp,v 1.2 2010/01/23 17:01:53 keithmarshall Exp $
  *
  * Written by Keith Marshall <keithmarshall@users.sourceforge.net>
- * Copyright (C) 2009, MinGW Project
+ * Copyright (C) 2009, 2010, MinGW Project
  *
  *
  * Implementation of the streaming data filters, which will be used
@@ -241,8 +241,11 @@ pkgLzmaArchiveStream::pkgLzmaArchiveStream( int fileno ):fd( fileno )
   /* ...then set up the lzma decoder, in appropriately
    * initialised state...
    */
-  lzma_stream_initialise( &stream );
-  status = lzma_alone_decoder( &stream, memlimit() );
+  if( fd != -1 )
+  {
+    lzma_stream_initialise( &stream );
+    status = lzma_alone_decoder( &stream, memlimit() );
+  }
 }
 
 pkgLzmaArchiveStream::~pkgLzmaArchiveStream()
@@ -255,15 +258,26 @@ pkgLzmaArchiveStream::~pkgLzmaArchiveStream()
    * ignore any such residual data; (it is likely to be garbage anyway).
    * Should we handle it any more explicitly?
    */
-  lzma_end( &stream );
-  close( fd );
+  if( fd != -1 )
+  {
+    lzma_end( &stream );
+    close( fd );
+  }
 }
 
 int pkgLzmaArchiveStream::Read( char *buf, size_t max )
 {
   /* Read an lzma compressed data stream; store up to "max" bytes of
    * decompressed data into "buf".
-   * 
+   */
+  if( fd == -1 )
+    /*
+     * We cannot read from a stream with an invalid descriptor;
+     * in this circumstance, just say "nothing was read"...
+     */
+    return fd;
+
+  /* Otherwise the stream is ready to read...
    * Start by directing the decoder to use "buf", initially marking it 
    * as "empty".
    */
@@ -344,15 +358,26 @@ pkgXzArchiveStream::~pkgXzArchiveStream()
    * case of the lzma_alone_decoder, the lzma_stream_decoder guarantees
    * that there is no trailing garbage remaining from the input stream.
    */
-  lzma_end( &stream );
-  close( fd );
+  if( fd != -1 )
+  {
+    lzma_end( &stream );
+    close( fd );
+  }
 }
 
 int pkgXzArchiveStream::Read( char *buf, size_t max )
 {
   /* Read an xz compressed data stream; store up to "max" bytes of
    * decompressed data into "buf".
-   * 
+   */
+  if( fd == -1 )
+    /*
+     * We cannot read from a stream with an invalid descriptor;
+     * in this circumstance, just say "nothing was read"...
+     */
+    return fd;
+
+  /* Otherwise the stream is ready to read...
    * Start by directing the decoder to use "buf", initially marking it 
    * as "empty".
    */

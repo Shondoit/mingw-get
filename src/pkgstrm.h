@@ -2,10 +2,10 @@
 /*
  * pkgstrm.h
  *
- * $Id: pkgstrm.h,v 1.2 2010/01/23 15:20:06 keithmarshall Exp $
+ * $Id: pkgstrm.h,v 1.3 2010/01/23 17:01:53 keithmarshall Exp $
  *
  * Written by Keith Marshall <keithmarshall@users.sourceforge.net>
- * Copyright (C) 2009, MinGW Project
+ * Copyright (C) 2009, 2010, MinGW Project
  *
  *
  * Declaration of the streaming API, for reading package archives.
@@ -36,6 +36,7 @@ class pkgArchiveStream
    */
   public:
     pkgArchiveStream(){}
+    virtual bool IsReady() = 0;
     virtual int Read( char*, size_t ) = 0;
     virtual ~pkgArchiveStream(){}
 
@@ -63,6 +64,7 @@ class pkgRawArchiveStream : public pkgArchiveStream
     pkgRawArchiveStream( const char* );
     virtual ~pkgRawArchiveStream();
 
+    inline bool IsReady(){ return fd != -1; }
     virtual int Read( char*, size_t );
 };
 
@@ -84,6 +86,7 @@ class pkgGzipArchiveStream : public pkgArchiveStream
     pkgGzipArchiveStream( const char* );
     virtual ~pkgGzipArchiveStream();
 
+    inline bool IsReady(){ return stream != NULL; }
     virtual int Read( char*, size_t );
 };
 
@@ -100,6 +103,7 @@ class pkgBzipArchiveStream : public pkgArchiveStream
     pkgBzipArchiveStream( const char* );
     virtual ~pkgBzipArchiveStream();
 
+    inline bool IsReady(){ return stream != NULL; }
     virtual int Read( char*, size_t );
 };
 
@@ -118,6 +122,7 @@ class pkgLzmaArchiveStream : public pkgArchiveStream
     pkgLzmaArchiveStream( const char* );
     virtual ~pkgLzmaArchiveStream();
 
+    inline bool IsReady(){ return fd != -1; }
     virtual int Read( char*, size_t );
 };
 
@@ -137,6 +142,7 @@ class pkgXzArchiveStream : public pkgArchiveStream
     pkgXzArchiveStream( const char* );
     virtual ~pkgXzArchiveStream();
 
+    inline bool IsReady(){ return fd != -1; }
     virtual int Read( char*, size_t );
 };
 

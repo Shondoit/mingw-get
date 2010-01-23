@@ -1,5 +1,25 @@
 2010-01-23  Keith Marshall  <keithmarshall@users.sourceforge.net>
 
+	Avoid segmentation faults when processing invalid data streams.
+
+	* src/pkgstrm.h: Update copyright notice.
+	(pkgArchiveStream::IsReady): New pure virtual method.
+	(pkgRawArchiveStream::IsReady): Provide inline implementation.
+	(pkgGzipArchiveStream::IsReady): Likewise.
+	(pkgBzipArchiveStream::IsReady): Likewise.
+	(pkgLzmaArchiveStream::IsReady): Likewise.
+	(pkgXzArchiveStream::IsReady): Likewise.
+
+	* src/pkgstrm.cpp: Update copyright notice.
+	(pkgLzmaArchiveStream, pkgXzArchiveStream) [fd == -1]: Decline to
+	perform any form of read or decode processing.
+
+	* src/pkginet.cpp (pkgInternetLzmaStreamingAgent): Use `fd = -2' as
+	pseudo-descriptor for the pkgLzmaArchiveStream derived component of
+	this internet data streaming class.
+
+2010-01-23  Keith Marshall  <keithmarshall@users.sourceforge.net>
+
 	Require liblzma >= liblzma-4.999.9beta_20091209-3-mingw32-dev
 
 	* src/pkgstrm.h (LZMA_API_STATIC): Remove definition and associated
