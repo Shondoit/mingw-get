@@ -1,3 +1,12 @@
+2010-01-23  Keith Marshall  <keithmarshall@users.sourceforge.net>
+
+	Require liblzma >= liblzma-4.999.9beta_20091209-3-mingw32-dev
+
+	* src/pkgstrm.h (LZMA_API_STATIC): Remove definition and associated
+	comment; it was required to permit, (but not to enforce), linking to
+	the static liblzma.a library, with earlier beta releases, but this
+	anomaly has now been corrected.
+
 2010-01-22  Keith Marshall  <keithmarshall@users.sourceforge.net>
 
 	Remove zlib sources from trunk.

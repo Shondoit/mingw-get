@@ -2,7 +2,7 @@
 /*
  * pkgstrm.h
  *
- * $Id: pkgstrm.h,v 1.1 2009/11/23 20:44:25 keithmarshall Exp $
+ * $Id: pkgstrm.h,v 1.2 2010/01/23 15:20:06 keithmarshall Exp $
  *
  * Written by Keith Marshall <keithmarshall@users.sourceforge.net>
  * Copyright (C) 2009, MinGW Project
@@ -70,22 +70,6 @@ class pkgRawArchiveStream : public pkgArchiveStream
  */
 #include <zlib.h>
 #include <bzlib.h>
-#ifdef __GNUC__
-/*
- * lzma.h is broken w.r.t. static vs. dynamic linking; it always
- * declares all functions with the dllimport attribute, making it
- * impossible to link with a static liblzma.a, either by using GNU
- * ld's -Bstatic option in the presence of co-existing liblzma.a
- * static and liblzma.dll.a import libraries, or in the case where
- * the import library is not installed.  To work around this defect,
- * we MUST declare LZMA_API_STATIC before we include lzma.h.  This
- * DOES NOT in any way interfere with GNU ld's default preference
- * for dynamic linking; this will still be the effective linking
- * method if the import library is present, and the -Bstatic
- * option is not specified.
- */
-# define LZMA_API_STATIC  1
-#endif
 #include <lzma.h>
 
 class pkgGzipArchiveStream : public pkgArchiveStream
