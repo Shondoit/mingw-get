@@ -1,7 +1,7 @@
 /*
  * climain.cpp
  *
- * $Id: climain.cpp,v 1.4 2010/01/22 17:11:48 keithmarshall Exp $
+ * $Id: climain.cpp,v 1.5 2010/01/26 21:07:17 keithmarshall Exp $
  *
  * Written by Keith Marshall <keithmarshall@users.sourceforge.net>
  * Copyright (C) 2009, 2010, MinGW Project
@@ -90,7 +90,6 @@ EXTERN_C int climain( int argc, char **argv )
        */
       dbase.LoadSystemMap();
 
-#if 0
       /* ...schedule the specified action for each additional command line
        * argument, (each of which is assumed to represent a package name)...
        */
@@ -100,7 +99,6 @@ EXTERN_C int climain( int argc, char **argv )
       /* ...and finally, execute all scheduled actions.
        */
       dbase.ExecuteActions();
-#endif
     }
 
     /* If we get this far, then all actions completed successfully;

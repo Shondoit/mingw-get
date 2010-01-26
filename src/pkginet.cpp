@@ -1,7 +1,7 @@
 /*
  * pkginet.cpp
  *
- * $Id: pkginet.cpp,v 1.4 2010/01/23 17:01:53 keithmarshall Exp $
+ * $Id: pkginet.cpp,v 1.5 2010/01/26 21:07:18 keithmarshall Exp $
  *
  * Written by Keith Marshall <keithmarshall@users.sourceforge.net>
  * Copyright (C) 2009, 2010, MinGW Project
@@ -288,7 +288,7 @@ void pkgActionItem::DownloadArchiveFiles( pkgActionItem *current )
        * cache, place an Internet download agent on standby to fetch
        * the required archive from a suitable internet mirror host.
        */
-      const char *package_name = current->selection->ArchiveName();
+      const char *package_name = current->Selection()->ArchiveName();
       pkgInternetStreamingAgent download( package_name, current->ArchivePath() );
 
       /* Check if the required archive is already available locally...
@@ -297,13 +297,13 @@ void pkgActionItem::DownloadArchiveFiles( pkgActionItem *current )
       {
 	/* ...if not, ask the download agent to fetch it...
 	 */
-	const char *url_template = get_host_info( current->selection, uri_key );
+	const char *url_template = get_host_info( current->Selection(), uri_key );
 	if( url_template != NULL )
 	{
 	  /* ...from the URL constructed from the template specified in
 	   * the package repository catalogue (configuration database)...
 	   */
-	  const char *mirror = get_host_info( current->selection, mirror_key );
+	  const char *mirror = get_host_info( current->Selection(), mirror_key );
 	  char package_url[mkpath( NULL, url_template, package_name, mirror )];
 	  mkpath( package_url, url_template, package_name, mirror );
 	  if( ! (download.Get( package_url ) > 0) )

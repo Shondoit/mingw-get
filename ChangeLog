@@ -1,3 +1,35 @@
+2010-01-26  Keith Marshall  <keithmarshall@users.sourceforge.net>
+
+	Implement rudimentary dependency resolver.
+
+	* src/pkgdeps.cpp: New file.
+
+	* Makefile.in (CORE_DLL_OBJECTS): Add pkgdeps.$(OBJEXT) reference;
+	establish header file dependencies.
+
+	* src/pkgbase.h (to_remove, to_install, selection_types): New enum.
+	(pkgActionItem::selection): Extend it to store as enumerated pair...
+	(pkgActionItem::SelectPackage): New inline method; assign them.
+	(pkgActionItem::Selection): New inline method; retrieve them.
+	(pkgXmlNode::GetInstallationRecord): New method; declare it.
+
+	* src/pkgexec.cpp (pkgActionItem): In constructor...
+	(selection): ...initialise both references in enumerated pair.
+	(pkgActionItem::GetReference): Use `Selection()' method.
+	(pkgActionItem::SelectIfMostRecent): Ditto; also correct logic for
+	making selection, and assign to `to_install' element.
+	(pkgXmlDocument::Schedule): Don't update `request'.
+	(pkgActionItem::Execute): Implement as stub.
+
+	* src/pkginet.cpp (pkgActionItem::DownloadArchiveFiles): Use new
+	`Selection()' method.
+
+	* src/pkgkeys.h (yes_value, no_value): Declare new string constants.
+	* src/pkgkeys.c (yes_value, no_value): Implement them.
+
+	* src/vercmp.cpp: Update copyright notice.
+	(pkgVersionInfo::operator<=): Bug fix; must test for `<', but had `>'.
+
 2010-01-23  Keith Marshall  <keithmarshall@users.sourceforge.net>
 
 	Avoid segmentation faults when processing invalid data streams.

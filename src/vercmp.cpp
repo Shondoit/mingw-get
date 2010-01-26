@@ -2,10 +2,10 @@
 /*
  * vercmp.cpp
  *
- * $Id: vercmp.cpp,v 1.1 2009/11/16 21:54:30 keithmarshall Exp $
+ * $Id: vercmp.cpp,v 1.2 2010/01/26 21:07:18 keithmarshall Exp $
  *
  * Written by Keith Marshall <keithmarshall@users.sourceforge.net>
- * Copyright (C) 2009, MinGW Project
+ * Copyright (C) 2009, 2010, MinGW Project
  *
  *
  * Implementation of package version comparator module.
@@ -155,7 +155,7 @@ bool pkgVersionInfo::operator<=( const pkgVersionInfo& rhs )
    */
   long cmp;
   for( int index = VERSION_MAJOR; index < VERSION_ELEMENT_COUNT; index++ )
-    if( (cmp = Compare( rhs, index )) != 0L ) return (cmp > 0L);
+    if( (cmp = Compare( rhs, index )) != 0L ) return (cmp < 0L);
 
   /* If we get to here, lhs and rhs versions are identically equal,
    * and hence satisfy the lhs <= rhs comparison.

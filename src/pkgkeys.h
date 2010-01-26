@@ -2,7 +2,7 @@
 /*
  * pkgkeys.c
  *
- * $Id: pkgkeys.h,v 1.1 2010/01/16 20:49:57 keithmarshall Exp $
+ * $Id: pkgkeys.h,v 1.2 2010/01/26 21:07:18 keithmarshall Exp $
  *
  * Written by Keith Marshall <keithmarshall@users.sourceforge.net>
  * Copyright (C) 2010, MinGW Project
@@ -64,5 +64,11 @@ EXTERN_C_DECL const char *sysmap_key;
 EXTERN_C_DECL const char *sysroot_key;
 EXTERN_C_DECL const char *tarname_key;
 EXTERN_C_DECL const char *uri_key;
+
+/* Some standard values, which may be associated with certain
+ * of the above XML database keys.
+ */
+EXTERN_C_DECL const char *yes_value;
+EXTERN_C_DECL const char *no_value;
 
 #endif /* PKGKEYS_H: $RCSfile: pkgkeys.h,v $: end of file */

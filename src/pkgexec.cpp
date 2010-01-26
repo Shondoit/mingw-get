@@ -1,7 +1,7 @@
 /*
  * pkgexec.cpp
  *
- * $Id: pkgexec.cpp,v 1.3 2010/01/16 20:49:57 keithmarshall Exp $
+ * $Id: pkgexec.cpp,v 1.4 2010/01/26 21:07:18 keithmarshall Exp $
  *
  * Written by Keith Marshall <keithmarshall@users.sourceforge.net>
  * Copyright (C) 2009, 2010, MinGW Project
@@ -92,7 +92,8 @@ pkgActionItem::pkgActionItem( pkgActionItem *after, pkgActionItem *before )
   min_wanted = NULL;	/* no minimum package version constraint... */
   max_wanted = NULL;	/* nor any maximum version */
 
-  selection = NULL;	/* no package selection yet, for this item */
+  /* Initialise package selection to NONE, for this action... */
+  selection[to_remove] = selection[to_install] = NULL;
 
   /* Insert this item at a specified location in the actions list.
    */
@@ -205,7 +206,7 @@ pkgActionItem::GetReference( pkgActionItem& item )
    * for the package specified for processing by "item".
    */
   pkgXmlNode* pkg;
-  if( (pkg = item.selection->GetParent()) != NULL )
+  if( (pkg = item.Selection()->GetParent()) != NULL )
   {
     /* We have a pointer to the XML database entry which identifies
      * the package containing the release specified as the selection
@@ -217,7 +218,7 @@ pkgActionItem::GetReference( pkgActionItem& item )
       /* ...and if we find another item holding an identical pointer,
        * (i.e. to the same package), we return it...
        */
-      if( item->selection->GetParent() == pkg )
+      if( item->Selection()->GetParent() == pkg )
 	return item;
     }
   }
@@ -296,23 +297,23 @@ pkgXmlNode *pkgActionItem::SelectIfMostRecentFit( pkgXmlNode *package )
   if(  match_if_explicit( test.GetComponentClass(), fit.GetComponentClass() )
   &&   match_if_explicit( test.GetComponentVersion(), fit.GetComponentVersion() )
   && ((max_wanted == NULL) || ((flags & STRICTLY_LT) ? (test < max_fit) : (test <= max_fit)))
-  && ((flags & STRICTLY_GT) ? (test > min_fit) : (test >= min_fit))  )
+  && ((min_wanted == NULL) || ((flags & STRICTLY_GT) ? (test > min_fit) : (test >= min_fit)))  )
   {
     /* We have the correct package component, and it fits within
      * the allowed range of release versions...
      */
-    pkgSpecs last( selection );
+    pkgSpecs last( Selection() );
     if( test > last )
       /*
        * It is also more recent than the current selection,
        * so we now replace that...
        */
-      selection = package;
+      selection[to_install] = package;
   }
 
   /* Whatever choice we make, we return the resultant selection...
    */
-  return selection;
+  return Selection();
 }
 
 pkgActionItem* pkgXmlDocument::Schedule
@@ -323,10 +324,6 @@ pkgActionItem* pkgXmlDocument::Schedule
    * position is specified)...
    */
   pkgActionItem *ref = rank ? rank : actions;
-
-  /* Record the requested action code...
-   */
-  request = action;
 
   /* Don't reschedule, if we already have a prior matching item...
    */
@@ -343,6 +340,7 @@ pkgActionItem* pkgXmlDocument::Schedule
        * ...at the specified ranking position, if any...
        */
       return rank->Insert( ref );
+
     else
       /* ...otherwise, at the end of the list.
        */
@@ -353,6 +351,49 @@ pkgActionItem* pkgXmlDocument::Schedule
    * return the current insertion point in the task list.
    */
   return rank;
+}
+
+void pkgActionItem::Execute()
+{
+  if( this != NULL )
+  {
+    pkgActionItem *current = this;
+    while( current->prev != NULL ) current = current->prev;
+    DownloadArchiveFiles( current );
+    while( current != NULL )
+    {
+      dmh_printf( "%s: %s\n", action_name(current->flags & ACTION_MASK),
+	  current->Selection()->GetPropVal( tarname_key, "<unknown>" ));
+
+      if( (current->flags & ACTION_REMOVE) == ACTION_REMOVE )
+      {
+	/* The selected package has been marked for removal, either explicitly,
+	 * or as an implicit prerequisite for upgrade; search to installed system
+	 * manifest, to identify the specific version (if any) to be removed.
+	 *
+	 * FIXME: This implementation is a stub, to be rewritten when the system
+	 * manifest structure has been specified and implemented.
+	 */
+	if( current->Selection( to_remove ) != NULL )
+	  dmh_printf( " removing %s\n", current->Selection( to_remove )->GetPropVal( tarname_key, "<unknown>" ));
+      }
+
+      if( (current->flags & ACTION_INSTALL) == ACTION_INSTALL )
+      {
+	/* The selected package has been marked for installation, either explicitly,
+	 * or implicitly to complete a package upgrade.
+	 *
+	 * FIXME: Once more, this is a stub, to be extended to provide the working
+	 * installer implementation.
+	 */
+	dmh_printf( " installing %s\n", current->Selection()->GetPropVal( tarname_key, "<unknown>" ));
+      }
+
+      /* Proceed to next package with scheduled actions.
+       */
+      current = current->next;
+    }
+  }
 }
 
 /* $RCSfile: pkgexec.cpp,v $: end of file */

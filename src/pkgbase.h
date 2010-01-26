@@ -2,7 +2,7 @@
 /*
  * pkgbase.h
  *
- * $Id: pkgbase.h,v 1.3 2010/01/22 17:11:48 keithmarshall Exp $
+ * $Id: pkgbase.h,v 1.4 2010/01/26 21:07:18 keithmarshall Exp $
  *
  * Written by Keith Marshall <keithmarshall@users.sourceforge.net>
  * Copyright (C) 2009, 2010, MinGW Project
@@ -126,10 +126,11 @@ class pkgXmlNode : public TiXmlElement
       return strcmp( GetName(), tagname ) == 0;
     }
 
-    /* Method for retrieving the system root management records
+    /* Methods for retrieving the system root management records
      * for a specified installed subsystem.
      */
     pkgXmlNode *GetSysRoot( const char *subsystem );
+    pkgXmlNode *GetInstallationRecord( const char* );
 
     /* The following pair of methods provide an iterator
      * for enumerating the contained nodes, within the owner,
@@ -147,6 +148,7 @@ class pkgXmlNode : public TiXmlElement
     const char* SourceArchiveName();
 };
 
+enum { to_remove = 0, to_install, selection_types };
 class pkgActionItem
 {
   /* A class implementing a bi-directionally linked list of
@@ -171,10 +173,10 @@ class pkgActionItem
     const char* min_wanted;
     const char* max_wanted;
 
-    /* Pointer to the XML database entry for the package selected
+    /* Pointers to the XML database entries for the package selected
      * for processing by this action.
      */
-    pkgXmlNode* selection;
+    pkgXmlNode* selection[ selection_types ];
 
     /* Method for retrieving packages from a distribution server.
      */
@@ -200,6 +202,18 @@ class pkgActionItem
      */
     const char* SetRequirements( pkgXmlNode* );
     pkgXmlNode* SelectIfMostRecentFit( pkgXmlNode* );
+    inline void SelectPackage( pkgXmlNode *pkg, int opt = to_install )
+    {
+      /* Mark a package as the selection for a specified action.
+       */
+      selection[ opt ] = pkg;
+    }
+    inline pkgXmlNode* Selection( int mode = to_install )
+    {
+      /* Retrieve the package selection for a specified action.
+       */
+      return selection[ mode ];
+    }
 
     /* Method specifying where downloaded packages are stored.
      */
