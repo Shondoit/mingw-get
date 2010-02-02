@@ -1,7 +1,7 @@
 /*
  * pkgdeps.cpp
  *
- * $Id: pkgdeps.cpp,v 1.1 2010/01/26 21:08:30 keithmarshall Exp $
+ * $Id: pkgdeps.cpp,v 1.2 2010/02/02 20:19:28 keithmarshall Exp $
  *
  * Written by Keith Marshall <keithmarshall@users.sourceforge.net>
  * Copyright (C) 2009, 2010, MinGW Project
@@ -298,7 +298,7 @@ void pkgXmlDocument::Schedule( unsigned long action, const char* name )
 	     * ...i.e. here we have identified a release
 	     * which is currently installed...
 	     */
-	    installed = release;
+	    latest.SelectPackage( installed = release, to_remove );
 
 	  if( latest.SelectIfMostRecentFit( release ) == release )
 	    /*

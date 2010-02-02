@@ -1,7 +1,7 @@
 /*
  * sysroot.cpp
  *
- * $Id: sysroot.cpp,v 1.1 2010/01/22 17:11:48 keithmarshall Exp $
+ * $Id: sysroot.cpp,v 1.2 2010/02/02 20:19:28 keithmarshall Exp $
  *
  * Written by Keith Marshall <keithmarshall@users.sourceforge.net>
  * Copyright (C) 2010, MinGW Project
@@ -111,6 +111,8 @@ static bool samepath( const char *tstpath, const char *refpath )
   return (*tstpath == *refpath);
 }
 
+static const char *sigpath = "%R" "var/lib/mingw-get/data/%F.xml";
+
 void pkgXmlDocument::LoadSystemMap()
 {
   /* Load an initial, or a replacement, system map into the
@@ -192,7 +194,6 @@ fprintf( stderr, "Bind subsystem %s: sysroot = %s\n",
 	      /* This sysroot has not yet been registered...
 	       */
 	      int retry = 0;
-	      const char *sigpath = "%R" "var/lib/mingw-get/data/%F.xml";
 
 	      while( retry < 16 )
 	      {
@@ -255,30 +256,21 @@ fprintf( stderr, "Bind subsystem %s: sysroot = %s\n",
 		  /* ...we have exhausted all possible hash references,
 		   * finding no existing mapping database for this sysroot...
 		   * The current hashed file name has not yet been assigned,
-		   * so initialise it as a new database for this sysroot.
+		   * so create a new entry in the internal XML database,
+		   * marking it as "modified", so that it will be written
+		   * to disk, when the system map is updated.
 		   *
 		   * FIXME: perhaps we should not do this arbitrarily for
 		   * any non-default system root.
 		   */
-		  check.AddDeclaration( "1.0", "UTF-8", "yes" );
+		  pkgXmlNode *record = new pkgXmlNode( sysroot_key );
+		  record->SetAttribute( modified_key, yes_value );
+		  record->SetAttribute( id_key, sig );
+		  record->SetAttribute( pathname_key, path );
+		  dbase->AddChild( record );
 
-		  /* Initialise the root element for this new database.
+		  /* Finally, force termination of the sysroot search.
 		   */
-		  pkgXmlNode root( sysroot_key );
-		  root.SetAttribute( id_key, sig );
-		  root.SetAttribute( pathname_key, path );
-		  check.SetRoot( &root );
-
-		  /* Link a copy of it as the corresponding sysroot
-		   * entry in the internal database.
-		   */
-		  dbase->AddChild( root.Clone() );
-
-		  /* Commit the initial state of this sysroot database
-		   * to a disk file, for future reference, and terminate
-		   * the retry loop at the end of this cycle.
-		   */
-		  check.Save( sigfile );
 		  retry = 16;
 		}
 
@@ -316,6 +308,48 @@ fprintf( stderr, "Bind subsystem %s: sysroot = %s\n",
        * ...then we delete its declaration from the active data space.
        */
       dbase->DeleteChild( to_clear );
+  }
+}
+
+void pkgXmlDocument::UpdateSystemMap()
+{
+  /* Inspect all sysroot records in the current system map;
+   * save copies of any marked with the 'modified' attribute
+   * to the appropriate disk files.
+   */
+  pkgXmlNode *entry = GetRoot()->FindFirstAssociate( sysroot_key );
+
+  while( entry != NULL )
+  {
+    /* We found a sysroot record...
+     * evaluate and clear its 'modified' attribute...
+     */
+    const char *modified = entry->GetPropVal( modified_key, no_value );
+    entry->RemoveAttribute( modified_key );
+
+    if(  (strcmp( modified, yes_value ) == 0)
+    &&  ((modified = entry->GetPropVal( id_key, NULL )) != NULL)  )
+    {
+      /* The 'modified' attribute for this record was set,
+       * and the 'id' attribute is valid; establish the path
+       * name for the file in which to save the record.
+       */
+      char mapfile[mkpath( NULL, sigpath, modified, NULL )];
+      mkpath( mapfile, sigpath, modified, NULL );
+
+      /* Create a copy of the sysroot record, as the content of
+       * a new freestanding XML document, and write it out to the
+       * nominated record file.
+       */
+      pkgXmlDocument map;
+      map.AddDeclaration( "1.0", "UTF-8", yes_value );
+      map.SetRoot( entry->Clone() );
+      map.Save( mapfile );
+    }
+
+    /* Repeat for the next sysroot record, if any...
+     */
+    entry = entry->FindNextAssociate( sysroot_key );
   }
 }
 

@@ -2,7 +2,7 @@
 /*
  * pkgkeys.c
  *
- * $Id: pkgkeys.h,v 1.2 2010/01/26 21:07:18 keithmarshall Exp $
+ * $Id: pkgkeys.h,v 1.3 2010/02/02 20:19:28 keithmarshall Exp $
  *
  * Written by Keith Marshall <keithmarshall@users.sourceforge.net>
  * Copyright (C) 2010, MinGW Project
@@ -40,6 +40,7 @@ EXTERN_C_DECL const char *alias_key;
 EXTERN_C_DECL const char *application_key;
 EXTERN_C_DECL const char *catalogue_key;
 EXTERN_C_DECL const char *component_key;
+EXTERN_C_DECL const char *download_key;
 EXTERN_C_DECL const char *download_host_key;
 EXTERN_C_DECL const char *eq_key;
 EXTERN_C_DECL const char *ge_key;
@@ -50,6 +51,7 @@ EXTERN_C_DECL const char *issue_key;
 EXTERN_C_DECL const char *le_key;
 EXTERN_C_DECL const char *lt_key;
 EXTERN_C_DECL const char *mirror_key;
+EXTERN_C_DECL const char *modified_key;
 EXTERN_C_DECL const char *name_key;
 EXTERN_C_DECL const char *package_key;
 EXTERN_C_DECL const char *package_collection_key;
@@ -59,6 +61,7 @@ EXTERN_C_DECL const char *profile_key;
 EXTERN_C_DECL const char *release_key;
 EXTERN_C_DECL const char *repository_key;
 EXTERN_C_DECL const char *requires_key;
+EXTERN_C_DECL const char *source_key;
 EXTERN_C_DECL const char *subsystem_key;
 EXTERN_C_DECL const char *sysmap_key;
 EXTERN_C_DECL const char *sysroot_key;

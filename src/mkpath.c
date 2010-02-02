@@ -1,7 +1,7 @@
 /*
  * mkpath.c
  *
- * $Id: mkpath.c,v 1.1 2009/11/16 21:54:30 keithmarshall Exp $
+ * $Id: mkpath.c,v 1.2 2010/02/02 20:19:28 keithmarshall Exp $
  *
  * Written by Keith Marshall <keithmarshall@users.sourceforge.net>
  * Copyright (C) 2009, MinGW Project
@@ -65,6 +65,14 @@
 # define _map_posix_mode(M)  _S_IREAD | (((M) & _S_IWANY) ? _S_IWRITE : 0)
 
 #endif
+
+const char *pkgArchivePath()
+{
+  /* Specify where downloaded packages are cached,
+   * within the local file system.
+   */
+  return "%R" "var/cache/mingw-get/packages" "%/M/%F";
+}
 
 int mkpath( char *buf, const char *fmt, const char *file, const char *modifier )
 {

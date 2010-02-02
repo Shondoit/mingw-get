@@ -1,7 +1,7 @@
 /*
  * pkgkeys.c
  *
- * $Id: pkgkeys.c,v 1.2 2010/01/26 21:07:18 keithmarshall Exp $
+ * $Id: pkgkeys.c,v 1.3 2010/02/02 20:19:28 keithmarshall Exp $
  *
  * Written by Keith Marshall <keithmarshall@users.sourceforge.net>
  * Copyright (C) 2010, MinGW Project
@@ -29,6 +29,7 @@ const char *alias_key		    =	"alias";
 const char *application_key	    =	"application";
 const char *catalogue_key	    =	"catalogue";
 const char *component_key	    =	"component";
+const char *download_key	    =	"download";
 const char *download_host_key	    =	"download-host";
 const char *eq_key		    =	"eq";
 const char *ge_key		    =	"ge";
@@ -39,6 +40,7 @@ const char *issue_key		    =	"issue";
 const char *le_key		    =	"le";
 const char *lt_key		    =	"lt";
 const char *mirror_key		    =	"mirror";
+const char *modified_key	    =	"modified";
 const char *name_key		    =	"name";
 const char *package_key		    =	"package";
 const char *package_collection_key  =	"package-collection";
@@ -48,6 +50,7 @@ const char *profile_key		    =	"profile";
 const char *release_key		    =	"release";
 const char *repository_key	    =	"repository";
 const char *requires_key	    =	"requires";
+const char *source_key		    =	"source";
 const char *subsystem_key	    =	"subsystem";
 const char *sysmap_key		    =	"system-map";
 const char *sysroot_key		    =	"sysroot";

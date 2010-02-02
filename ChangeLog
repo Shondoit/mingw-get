@@ -1,3 +1,39 @@
+2010-02-02  Keith Marshall  <keithmarshall@users.sourceforge.net>
+
+	Implement package installer for tar archives.
+
+	* src/pkgexec.cpp (pkgXmlDocument::Execute): Replace existing
+	stub implementation of installer, using methods provided by...
+	* src/pkgproc.h, src/tarproc.cpp: ...these new files, with trap...
+	* src/pkgdeps.cpp (pkgXmlDocument::Schedule) [installed]: Add entry...
+	(pkgActionItem::Selection) [to_remove]: ...for this; use it to detect
+	`install' requests for packages which are aleady installed.
+
+	* Makefile.in (CORE_DLL_OBJECTS): Add tarproc.$(OBJEXT); specify
+	dependencies as appropriate.
+
+	* src/sysroot.cpp (pkgXmlDocument::LoadSystemMap): Don't commit
+	newly created `sysroot' mapping records to disk; defer to...
+	(pkgXmlDocument::UpdateSystemMap): ...this new method.
+	(sigpath): Make it a global variable, with file (static) scope.
+
+	* src/climain.cpp (pkgXmlDocument::UpdateSystemMap): Invoke it.
+
+	* src/pkgkeys.h (download_key, modified_key, source_key): New global
+	string variables; declare them, providing their implementations...
+	* src/pkgkeys.c (download_key, modified_key, source_key): ...here.
+	* src/pkgname.cpp (download_key, source_key): Use them.
+
+	* src/pkginet.cpp (pkgActionItem::ArchivePath): Delete; replace...
+	* src/mkpath.c (pkgArchivePath): ...with this free standing function.
+	* src/mkpath.h (pkgArchivePath): Declare its prototype.
+
+	* src/pkgbase.h (pkgActionItem::ArchivePath): Delete declaration.
+	(pkgXmlDocument): Add a default constructor; implement as `inline'.
+	(pkgXmlDocument::AddDeclaration): Use heap memory to allocate the new
+	declaration object, instead of `auto' variable, to avoid scope error.
+	(pkgXmlDocument::UpdateSystemMap): Declare it.
+
 2010-01-26  Keith Marshall  <keithmarshall@users.sourceforge.net>
 
 	Implement rudimentary dependency resolver.

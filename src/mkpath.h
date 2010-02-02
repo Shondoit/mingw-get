@@ -2,7 +2,7 @@
 /*
  * mkpath.h
  *
- * $Id: mkpath.h,v 1.1 2009/11/16 21:54:30 keithmarshall Exp $
+ * $Id: mkpath.h,v 1.2 2010/02/02 20:19:28 keithmarshall Exp $
  *
  * Written by Keith Marshall <keithmarshall@users.sourceforge.net>
  * Copyright (C) 2009, MinGW Project
@@ -40,5 +40,7 @@
 EXTERN_C int mkdir_recursive( const char *, int );
 EXTERN_C int set_output_stream( const char *, int );
 EXTERN_C int mkpath( char *, const char *, const char *, const char * );
+
+EXTERN_C const char *pkgArchivePath();
 
 #endif /* MKPATH_H: $RCSfile: mkpath.h,v $: end of file */

@@ -1,6 +1,6 @@
 # @configure_input@
 #
-# $Id: Makefile.in,v 1.8 2010/01/26 21:07:16 keithmarshall Exp $
+# $Id: Makefile.in,v 1.9 2010/02/02 20:19:22 keithmarshall Exp $
 #
 # Written by Keith Marshall <keithmarshall@users.sourceforge.net>
 # Copyright (C) 2009, 2010, MinGW Project
@@ -52,7 +52,7 @@ CORE_DLL_OBJECTS = climain.$(OBJEXT) \
    pkgbind.$(OBJEXT) pkginet.$(OBJEXT) pkgstrm.$(OBJEXT) pkgname.$(OBJEXT) \
    pkgexec.$(OBJEXT) pkgfind.$(OBJEXT) pkginfo.$(OBJEXT) pkgspec.$(OBJEXT) \
    sysroot.$(OBJEXT) pkghash.$(OBJEXT) pkgkeys.$(OBJEXT) pkgdeps.$(OBJEXT) \
-   mkpath.$(OBJEXT)  xmlfile.$(OBJEXT) keyword.$(OBJEXT) \
+   mkpath.$(OBJEXT)  tarproc.$(OBJEXT) xmlfile.$(OBJEXT) keyword.$(OBJEXT) \
    tinyxml.$(OBJEXT) tinyxmlparser.$(OBJEXT) \
    tinystr.$(OBJEXT) tinyxmlerror.$(OBJEXT) \
    vercmp.$(OBJEXT)  dmh.$(OBJEXT)
@@ -77,6 +77,8 @@ mingw-get-0.dll: $(CORE_DLL_OBJECTS)
 dmh.$(OBJEXT):     dmh.h
 climain.$(OBJEXT): pkgbase.h pkgtask.h tinyxml.h tinystr.h dmh.h
 sysroot.$(OBJEXT): pkgbase.h pkgkeys.h tinyxml.h tinystr.h mkpath.h dmh.h
+tarproc.$(OBJEXT): pkgbase.h pkgproc.h pkginfo.h pkgkeys.h pkgstrm.h
+tarproc.$(OBJEXT): tinyxml.h tinystr.h mkpath.h dmh.h
 
 pkgname.$(OBJEXT): pkgbase.h pkgkeys.h dmh.h
 pkgfind.$(OBJEXT): pkgbase.h pkgkeys.h tinyxml.h tinystr.h

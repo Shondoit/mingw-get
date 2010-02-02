@@ -1,7 +1,7 @@
 /*
  * pkgname.cpp
  *
- * $Id: pkgname.cpp,v 1.2 2010/01/16 20:49:57 keithmarshall Exp $
+ * $Id: pkgname.cpp,v 1.3 2010/02/02 20:19:28 keithmarshall Exp $
  *
  * Written by Keith Marshall <keithmarshall@users.sourceforge.net>
  * Copyright (C) 2009, 2010, MinGW Project
@@ -107,7 +107,7 @@ const char *pkgXmlNode::SourceArchiveName()
    * not represent a "release", or if it does not have a contained
    * "source" element specifying a "tarname" property.
    */
-  return pkgArchiveName( this, "source", 0 );
+  return pkgArchiveName( this, source_key, 0 );
 }
 
 const char *pkgXmlNode::ArchiveName()
@@ -124,7 +124,7 @@ const char *pkgXmlNode::ArchiveName()
    * alternative specification within a "download" element; if
    * unresolved to either of these, returns NULL.
    */
-  return pkgArchiveName( this, "download", 1 );
+  return pkgArchiveName( this, download_key, 1 );
 }
 
 /* $RCSfile: pkgname.cpp,v $: end of file */

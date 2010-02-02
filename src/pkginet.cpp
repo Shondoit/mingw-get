@@ -1,7 +1,7 @@
 /*
  * pkginet.cpp
  *
- * $Id: pkginet.cpp,v 1.5 2010/01/26 21:07:18 keithmarshall Exp $
+ * $Id: pkginet.cpp,v 1.6 2010/02/02 20:19:28 keithmarshall Exp $
  *
  * Written by Keith Marshall <keithmarshall@users.sourceforge.net>
  * Copyright (C) 2009, 2010, MinGW Project
@@ -94,14 +94,6 @@ class pkgInternetAgent
 /* This is the one and only instantiation of an object of this class.
  */
 static pkgInternetAgent pkgDownloadAgent;
-
-const char *pkgActionItem::ArchivePath()
-{
-  /* Specify where downloaded packages are cached,
-   * within the local file system.
-   */
-  return "%R" "var/cache/mingw-get/packages" "%/M/%F";
-}
 
 class pkgInternetStreamingAgent
 {
@@ -289,7 +281,7 @@ void pkgActionItem::DownloadArchiveFiles( pkgActionItem *current )
        * the required archive from a suitable internet mirror host.
        */
       const char *package_name = current->Selection()->ArchiveName();
-      pkgInternetStreamingAgent download( package_name, current->ArchivePath() );
+      pkgInternetStreamingAgent download( package_name, pkgArchivePath() );
 
       /* Check if the required archive is already available locally...
        */

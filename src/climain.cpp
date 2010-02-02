@@ -1,7 +1,7 @@
 /*
  * climain.cpp
  *
- * $Id: climain.cpp,v 1.5 2010/01/26 21:07:17 keithmarshall Exp $
+ * $Id: climain.cpp,v 1.6 2010/02/02 20:19:24 keithmarshall Exp $
  *
  * Written by Keith Marshall <keithmarshall@users.sourceforge.net>
  * Copyright (C) 2009, 2010, MinGW Project
@@ -96,9 +96,11 @@ EXTERN_C int climain( int argc, char **argv )
       while( --argc )
 	dbase.Schedule( (unsigned long)(action), *++argv );
 
-      /* ...and finally, execute all scheduled actions.
+      /* ...finally, execute all scheduled actions, and update the
+       * system map accordingly.
        */
       dbase.ExecuteActions();
+      dbase.UpdateSystemMap();
     }
 
     /* If we get this far, then all actions completed successfully;
