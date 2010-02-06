@@ -1,6 +1,6 @@
 # configure.ac -*- autoconf -*- vim: filetype=config
 #
-# $Id: configure.ac,v 1.2 2010/01/08 17:44:20 keithmarshall Exp $
+# $Id: configure.ac,v 1.3 2010/02/06 15:29:56 keithmarshall Exp $
 #
 # Written by Keith Marshall <keithmarshall@users.sourceforge.net>
 # Copyright (C) 2009, 2010, MinGW Project
@@ -27,6 +27,11 @@
   AC_SUBST([COPYRIGHT_HOLDER],["MinGW Project"])
   AC_SUBST([YEARS_OF_ISSUE],["2009, 2010"])
 
+# Override the normal UNIX-centric autoconf default prefix;
+# substitute the MinGW standard in its place.
+#
+  AC_PREFIX_DEFAULT([C:/MinGW])
+
 # We need both C and C++ compilers; check how to invoke them
 #
   AC_PROG_CC
@@ -41,7 +46,18 @@
   AC_CHECK_TOOL([AR],[ar],[ar])
   AC_SUBST([ARFLAGS],[${ARFLAGS-rcs}])
 
-# Create a makefile
+# Identify tools required for product installation
+#
+  AC_PROG_MKDIR_P
+  AC_PROG_INSTALL
+  AC_PROG_LN_S
+
+# As for the archive librarian, we need to ensure that the tool
+# for stripping binaries is compatible with the compiler
+#
+  AC_CHECK_TOOL([STRIP],[strip],[strip])
+
+# Establish the product version banner, and create a makefile
 #
   AC_CONFIG_FILES([version.c Makefile])
   AC_OUTPUT

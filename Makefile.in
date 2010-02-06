@@ -1,7 +1,10 @@
 # @configure_input@
 #
-# $Id: Makefile.in,v 1.9 2010/02/02 20:19:22 keithmarshall Exp $
-#
+# $Id: Makefile.in,v 1.10 2010/02/06 15:29:56 keithmarshall Exp $
+
+PACKAGE_TARNAME = @PACKAGE_TARNAME@
+PACKAGE_VERSION = @PACKAGE_VERSION@
+
 # Written by Keith Marshall <keithmarshall@users.sourceforge.net>
 # Copyright (C) 2009, 2010, MinGW Project
 #
@@ -23,10 +26,11 @@
 # arising from the use of this software.
 #
 srcdir = @srcdir@
-
-VPATH = ${srcdir}/src ${srcdir}/src/pkginfo ${srcdir}/tinyxml
+abs_top_srcdir = @abs_top_srcdir@
 
 DEBUGLEVEL = 0
+
+VPATH = ${srcdir}/src ${srcdir}/src/pkginfo ${srcdir}/tinyxml
 
 CC = @CC@
 CFLAGS = @CFLAGS@
@@ -102,10 +106,98 @@ tinyxmlerror.$(OBJEXT): tinyxml.h tinystr.h
 tinyxmlparser.$(OBJEXT): tinyxml.h tinystr.h
 tinystr.$(OBJEXT): tinystr.h
 
+# Installation tools and directory paths...
+#
+mkinstalldirs = @MKDIR_P@
+
+prefix = @prefix@
+exec_prefix = @exec_prefix@
+localstatedir = @localstatedir@
+libexecdir = @libexecdir@
+bindir = @bindir@
+
+PACKAGE_CONFIG_DIR = ${localstatedir}/lib/${PACKAGE_TARNAME}/data
+
+INSTALL = @INSTALL@
+INSTALL_DATA = @INSTALL_DATA@
+INSTALL_PROGRAM = @INSTALL_PROGRAM@
+INSTALL_SCRIPT = @INSTALL_SCRIPT@
+
+STRIP = @STRIP@
+LN_S = @LN_S@
+
+# Installation rules...
+#
+installdirs:
+	$(mkinstalldirs) ${bindir}
+	$(mkinstalldirs) ${libexecdir}/${PACKAGE_TARNAME}
+	$(mkinstalldirs) ${PACKAGE_CONFIG_DIR}
+
+install: installdirs
+	$(INSTALL_PROGRAM) pkginfo$(EXEEXT) ${bindir}
+	$(INSTALL_PROGRAM) mingw-get$(EXEEXT) ${bindir}
+	$(INSTALL_DATA) mingw-get-0.dll ${libexecdir}/${PACKAGE_TARNAME}
+	$(INSTALL_DATA) ${srcdir}/xml/profile.xml ${PACKAGE_CONFIG_DIR}
+
+install-strip: install
+	$(STRIP) ${bindir}/pkginfo$(EXEEXT)
+	$(STRIP) ${bindir}/mingw-get$(EXEEXT)
+	$(STRIP) ${libexecdir}/${PACKAGE_TARNAME}/mingw-get-0.dll
+
+# Packaging and distribution...
+#
+# FIXME: the PACKAGE_DISTVERSION and PACKAGE_ROOTVERSION macro definitions
+# and usage (below) will require modification, (most likely with help from
+# configure), to accommodate inclusion of the `mingw32' subsystem qualifier,
+# when the release status qualifier is dropped from PACKAGE_VERSION.
+#
+SRCDIST_FILES = COPYING ChangeLog version.c.in \
+  configure.ac configure Makefile.in install-sh
+
+SRCDIST_SUBDIRS = src src/pkginfo tinyxml xml
+
+PACKAGE_DISTNAME = $(PACKAGE_TARNAME)-$(PACKAGE_DISTVERSION)
+PACKAGE_DISTVERSION = `echo $(PACKAGE_VERSION) | sed 's,-[^0-9],-mingw32&,'`
+PACKAGE_ROOTVERSION = `echo $(PACKAGE_VERSION) | sed 's,-[^0-9].*,,'`
+PACKAGE_DISTROOT = $(PACKAGE_TARNAME)-$(PACKAGE_ROOTVERSION)
+
+dist: srcdist bindist
+
+bindist: all
+	rm -rf staged
+	$(MAKE) --no-print-directory prefix=`pwd`/staged install-strip
+	cd staged; tar chf - bin/pkginfo$(EXEEXT) | gzip -c > \
+	  ../pkginfo-$(PACKAGE_DISTVERSION)-bin.tar.gz
+	rm staged/bin/pkginfo$(EXEEXT)
+	cd staged; tar chf - * | gzip -c > ../$(PACKAGE_DISTNAME)-bin.tar.gz
+	rm -rf staged
+
+srcdist: pkginfo.c
+	rm -rf ${PACKAGE_DISTROOT} && mkdir ${PACKAGE_DISTROOT}
+	cd ${PACKAGE_DISTROOT}; for file in $(SRCDIST_FILES); do \
+	  $(LN_S) ${abs_top_srcdir}/$$file .; done
+	for dir in $(SRCDIST_SUBDIRS); do \
+	  mkdir ${PACKAGE_DISTROOT}/$$dir && cd ${PACKAGE_DISTROOT}/$$dir; \
+	  for file in `cd ${abs_top_srcdir}/$$dir && echo *`; do \
+	    if test -f ${abs_top_srcdir}/$$dir/$$file; then \
+	      $(LN_S) ${abs_top_srcdir}/$$dir/$$file .; \
+	    fi; \
+	  done; \
+	cd ${CURDIR}; done
+	cd ${PACKAGE_DISTROOT}/src/pkginfo; $(LN_S) ${CURDIR}/$^ .
+	tar chf - ${PACKAGE_DISTROOT} | gzip -c > ${PACKAGE_DISTNAME}-src.tar.gz
+	rm -rf ${PACKAGE_DISTROOT}
+
+# Workspace clean-up...
+#
 clean:
 	rm -f *.$(OBJEXT) *.dll pkginfo$(EXEEXT) mingw-get$(EXEEXT)
 
 distclean: clean
 	rm -f config.* version.c Makefile
+
+maintainer-clean: distclean
+	rm -f pkginfo.c *-$(PACKAGE_DISTVERSION)-*.tar.gz
+	rm -rf ${PACKAGE_DISTROOT} staged
 
 # $RCSfile: Makefile.in,v $: end of file

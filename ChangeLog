@@ -1,3 +1,27 @@
+2010-02-06  Keith Marshall  <keithmarshall@users.sourceforge.net>
+
+	Add machinery for installation and packaging for distribution.
+
+	* install-sh: New file; source it from autoconf distribution.
+
+	* configure.ac (AC_PREFIX_DEFAULT): Assign it as `C:/MinGW'.
+	(AC_PROG_MKDIR_P, AC_PROG_INSTALL, AC_PROG_LN_S): Invoke these.
+	(STRIP): New output variable; use AC_CHECK_TOOL to define it.
+
+	* Makefile.in (abs_top_srcdir): Define to AC_SUBST value.
+	(PACKAGE_TARNAME, PACKAGE_VERSION): Define to AC_SUBST values.
+	(prefix, exec_prefix, bindir, libexecdir, localstatedir): Likewise.
+	(INSTALL, INSTALL_PROGRAM, INSTALL_SCRIPT, INSTALL_DATA): Likewise.
+	(STRIP): New macro; define it using AC_CHECK_TOOL substitution.
+	(mkinstalldirs): New macro; define it as AC_PROG_MKDIR_P result.
+	(LN_S): New macro; define it as AC_PROG_LN_S result.
+	(dist, srcdist, bindist): New build objectives; implement them.
+	(install, installdirs, install-strip, maintainer-clean): Likewise.
+	(SRCDIST_FILES, SRCDIST_SUBDIRS): New macros; define them.
+	(PACKAGE_DISTNAME, PACKAGE_DISTVERSION): Likewise.
+	(PACKAGE_DISTROOT, PACKAGE_ROOTVERSION): Likewise.
+	(PACKAGE_CONFIG_DIR): Likewise.
+
 2010-02-02  Keith Marshall  <keithmarshall@users.sourceforge.net>
 
 	Implement package installer for tar archives.
