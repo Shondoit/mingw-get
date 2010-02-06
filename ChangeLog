@@ -1,5 +1,12 @@
 2010-02-06  Keith Marshall  <keithmarshall@users.sourceforge.net>
 
+	Work around a deficiency in Microsoft's stat() implementation.
+
+	* src/tarproc.cpp (pkgTarArchiveProcessor::ProcessDirectory): Don't
+	pass a `pathname' argument with trailing slashes; strip them off.
+
+2010-02-06  Keith Marshall  <keithmarshall@users.sourceforge.net>
+
 	Add machinery for installation and packaging for distribution.
 
 	* install-sh: New file; source it from autoconf distribution.
