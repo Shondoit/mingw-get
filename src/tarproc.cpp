@@ -1,7 +1,7 @@
 /*
  * tarproc.cpp
  *
- * $Id: tarproc.cpp,v 1.2 2010/02/06 15:42:37 keithmarshall Exp $
+ * $Id: tarproc.cpp,v 1.3 2010/02/10 22:18:59 keithmarshall Exp $
  *
  * Written by Keith Marshall <keithmarshall@users.sourceforge.net>
  * Copyright (C) 2009, 2010, MinGW Project
@@ -373,7 +373,6 @@ int pkgTarArchiveProcessor::ProcessEntityData( int fd )
   return status;
 }
 
-
 /* Here, we implement the methods for installing software from
  * packages which are distributed in the form of tar archives.
  *
@@ -401,27 +400,57 @@ pkgTarArchiveInstaller( pkgXmlNode *pkg ):pkgTarArchiveProcessor( pkg )
    */
   if( (tarname != NULL) && (sysroot != NULL) )
   {
-    sysroot->SetAttribute( modified_key, yes_value );
-    pkgXmlNode *installed = new pkgXmlNode( installed_key );
+    /* The installation record must identify, as a minimum,
+     * the canonical name of the package being installed.
+     */
+    installed = new pkgXmlNode( installed_key );
     installed->SetAttribute( tarname_key, tarname );
     if( pkgfile != tarname )
     {
+      /* If the real package tarball name isn't identically
+       * the same as the canonical name, we record the real
+       * file name too.
+       */
       pkgXmlNode *download = new pkgXmlNode( download_key );
       download->SetAttribute( tarname_key, pkgfile );
       installed->AddChild( download );
     }
+
+    /* Set the 'modified' flag for, and attach the installation
+     * record to, the relevant sysroot record.
+     */
+    sysroot->SetAttribute( modified_key, yes_value );
     sysroot->AddChild( installed );
   }
 }
 
 int pkgTarArchiveInstaller::ProcessDirectory( const char *pathname )
 {
+  /* Create the directory infrastructure required to support
+   * a specific package installation.
+   */
 #if DEBUGLEVEL < 5
   int status;
 
-  if( (status = mkdir_recursive( pathname, 0755 )) != 0 )
+  if( (status = mkdir_recursive( pathname, 0755 )) == 0 )
+    /*
+     * Either the specified directory already exists,
+     * or we just successfully created it; attach a reference
+     * in the installation manifest for the current package.
+     */
+    UpdateInstallationManifest( dirname_key, pathname );
+
+  else
+    /* A required subdirectory could not be created;
+     * diagnose this failure.
+     */
     dmh_notify( DMH_ERROR, "cannot create directory `%s'\n", pathname );
+
 #else
+  /* Debugging stub...
+   *
+   * FIXME:maybe adapt for 'dry-run' or 'verbose' use.
+   */
   int status = 0;
 
   dmh_printf(
@@ -434,29 +463,59 @@ int pkgTarArchiveInstaller::ProcessDirectory( const char *pathname )
 
 int pkgTarArchiveInstaller::ProcessDataStream( const char *pathname )
 {
+  /* Extract file data from the archive, and copy it to the
+   * associated target file stream, if any.
+   */
 #if DEBUGLEVEL < 5
   int fd = set_output_stream( pathname, octval( header.field.mode ) );
   int status = ProcessEntityData( fd );
   if( fd >= 0 )
   {
+    /* File stream was written; close it...
+     */
     close( fd );
     if( status == 0 )
+    {
+      /* ...and on successful completion, commit it and
+       * record it in the installation database.
+       */
       commit_saved_entity( pathname, octval( header.field.mtime ) );
+      UpdateInstallationManifest( filename_key, pathname );
+    }
 
     else
     {
+      /* The target file was not successfully and completely
+       * written; discard it, and diagnose failure.
+       */
       unlink( pathname );
       dmh_notify( DMH_ERROR, "%s: extraction failed\n", pathname );
     }
   }
   return status;
+
 #else
+  /* Debugging stub...
+   *
+   * FIXME:maybe adapt for 'dry-run' or 'verbose' use.
+   */
   dmh_printf(
       "FIXME:ProcessDataStream<stub>:not extracting: %s\n",
       pathname
     );
   return ProcessEntityData( -1 );
 #endif
+}
+
+void pkgTarArchiveInstaller::
+UpdateInstallationManifest( const char *key, const char *pathname )
+{
+  /* Write installation database records for directory
+   * and file entities created during archive extraction.
+   */
+  pkgXmlNode *dir = new pkgXmlNode( key );
+  dir->SetAttribute( pathname_key, pathname );
+  installed->AddChild( dir );
 }
 
 /* $RCSfile: tarproc.cpp,v $: end of file */

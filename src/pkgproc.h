@@ -2,7 +2,7 @@
 /*
  * pkgproc.h
  *
- * $Id: pkgproc.h,v 1.1 2010/02/02 20:19:28 keithmarshall Exp $
+ * $Id: pkgproc.h,v 1.2 2010/02/10 22:18:59 keithmarshall Exp $
  *
  * Written by Keith Marshall <keithmarshall@users.sourceforge.net>
  * Copyright (C) 2009, 2010, MinGW Project
@@ -53,6 +53,7 @@ class pkgArchiveProcessor
      */
     pkgXmlNode *sysroot;
     const char *sysroot_path;
+    pkgXmlNode *installed;
     const char *tarname;
     const char *pkgfile;
 };
@@ -160,6 +161,7 @@ class pkgTarArchiveInstaller : public pkgTarArchiveProcessor
      */
     virtual int ProcessDirectory( const char* );
     virtual int ProcessDataStream( const char* );
+    virtual void UpdateInstallationManifest( const char*, const char* );
 };
 
 class pkgTarArchiveUninstaller : public pkgTarArchiveProcessor

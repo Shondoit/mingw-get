@@ -1,3 +1,23 @@
+2010-02-10  Keith Marshall  <keithmarshall@users.sourceforge.net>
+
+	Add directory/file records in installation manifests.
+
+	* src/pkgkeys.h (dirname_key, filename_key): New strings; declare...
+	* src/pkgkeys.c (dirname_key, filename_key): ...and implement them.
+
+	* src/pkgproc.h (pkgArchiveProcessor::installed): New class member
+	variable; declare it.
+	(pkgTarArchiveInstaller::UpdateInstallationManifest): New method;
+	declare it.
+
+	* src/tarproc.cpp: Miscellaneous comment updates.
+	(pkgTarArchiveInstaller): In constructor...
+	(pkgTarArchiveInstaller::installed): ...use new member variable...
+	(pkgArchiveProcessor::installed): ...inherited from this.
+	(pkgTarArchiveInstaller::UpdateInstallationManifest): Implement and...
+	(pkgTarArchiveInstaller::ProcessDataStream): ...use it.
+	(pkgTarArchiveInstaller::ProcessDirectory): Likewise.
+
 2010-02-06  Keith Marshall  <keithmarshall@users.sourceforge.net>
 
 	Work around a deficiency in Microsoft's stat() implementation.

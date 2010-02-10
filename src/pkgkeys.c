@@ -1,7 +1,7 @@
 /*
  * pkgkeys.c
  *
- * $Id: pkgkeys.c,v 1.3 2010/02/02 20:19:28 keithmarshall Exp $
+ * $Id: pkgkeys.c,v 1.4 2010/02/10 22:18:59 keithmarshall Exp $
  *
  * Written by Keith Marshall <keithmarshall@users.sourceforge.net>
  * Copyright (C) 2010, MinGW Project
@@ -29,9 +29,11 @@ const char *alias_key		    =	"alias";
 const char *application_key	    =	"application";
 const char *catalogue_key	    =	"catalogue";
 const char *component_key	    =	"component";
+const char *dirname_key 	    =	"dir";
 const char *download_key	    =	"download";
 const char *download_host_key	    =	"download-host";
 const char *eq_key		    =	"eq";
+const char *filename_key	    =	"file";
 const char *ge_key		    =	"ge";
 const char *gt_key		    =	"gt";
 const char *id_key		    =	"id";
