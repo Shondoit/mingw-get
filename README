@@ -1,0 +1,151 @@
+Release Notes for mingw-get-0.1-mingw32-alpha-1
+
+$Id: README,v 1.1 2010/02/16 20:51:07 keithmarshall Exp $
+
+Preamble
+--------
+
+This is the first alpha release of the next generation MinGW installer,
+mingw-get; it provides a more readily extensible, and more configurable
+alternative to the existing MinGW-5.1.x series of NSIS installers, for
+installing MinGW packages.
+
+mingw-get is free software.  Permission is granted to copy, modify and
+redistribute it, under the provisions of the GNU General Public License,
+Version 3, (or, at your option, any later version), as published by the
+Free Software Foundation; see the file COPYING for licensing details.
+
+Note, in particular, that mingw-get is provided "as is", in the hope
+that it may prove useful, but WITHOUT WARRANTY OF ANY KIND; not even an
+implied WARRANTY OF MERCHANTABILITY, nor of FITNESS FOR ANY PARTICULAR
+PURPOSE.  Under no circumstances will the authors, or the MinGW Project,
+accept liability for any damages, however caused, arising from the use
+of this software.
+
+At the time of this release, mingw-get is still in the early stages of
+development; this release provides an opportunity for early adopters to
+evaluate the CLI capabilities of the installer component; please report
+bugs, (but please, not the known issues identified below), to the MinGW
+bug tracker: http://sourceforge.net/tracker/?group_id=2435&atid=102435
+
+
+Installation
+------------
+
+To install mingw-get, visit the MinGW files repository at:
+
+   http://sourceforge.net/projects/mingw/files
+
+and, from the "Automated MinGW Installer/mingw-get" folder, download
+your choice of either:
+
+   mingw-get-0.1-mingw32-alpha-1-bin.zip
+
+or:
+
+   mingw-get-0.1-mingw32-alpha-1-bin.tar.gz
+
+and unpack it into the directory in which you intend to host your MinGW
+installation, (the standard default of C:\MinGW [*] is recommended), then
+use your preferred method for assignment of environmet variables to add
+the appropriate directory, (default C:\MinGW\bin), to your PATH.
+
+[*] If you insist on adopting a different directory from the recommended
+default, you are *strongly* recommended to avoid any directory which has
+white space in its absolute path name; in particular, those who choose to
+ignore this advice, and install MinGW within "C:\Program Files", usually
+discover, to their cost, that certain tools do not work correctly.
+
+
+Configuration
+-------------
+
+If you have installed mingw-get in the default location, you will find
+its primary configuration file at:
+
+   C:\MinGW\var\lib\mingw-get\data\profile.xml
+
+(if you chose a different location, replace "C:\MinGW" with your chosen
+installation prefix directory path name).
+
+This is a liberally commented XML file, which you are free to modify as
+you see fit, to suit your own installation requirements.  At the present
+time, the only entries you should consider changing are the path names
+specified by the "path" attribute associated with each of the "sysroot"
+elements within the first (only) "system-map" element.  (These specify
+the prefix directory path names for your installation; you probably want
+to make the path for the "mingw32" subsystem to match your choice for
+your mingw-get installation, if you chose not to adopt the default, in
+which case you will probably also prefer an alternative choice for the
+MSYS subsystem, if you intend to install that).
+
+If you do choose to modify the configuration, you are advised to keep a
+backup copy of your modified version, since, particularly during the
+alpha phase of development, it may be necessary to overwrite your local
+version with an updated distributed version, then fold in your changes
+once more.
+
+
+Invocation
+----------
+
+Invoking mingw-get from the command line, without arguments, is intended
+to launch a GUI variant of the application, (but currently, this mode is
+not supported; if you try it, you *will* see only an error message).
+
+To invoke the CLI variant of mingw-get, the syntax is:
+
+   mingw-get [-option ...] action [package ...]
+
+Currently supported options are:
+
+   -version                    display the version banner, and exit
+
+Currently supported actions are:
+
+   update                      synchronise the locally cached version
+                               of the distribution manifest with the
+                               version held at the repository.
+
+   install package ...         install the specified package(s), and
+                               any necessary prerequisites.
+
+   upgrade package ...         upgrade package(s) from the installed
+                               version to the newest version available,
+                               (if not already at the newest version).
+
+   remove package ...          uninstall package(s).
+
+Currently known packages are:
+
+   mingwrt                     the mingw32 runtime libraries.
+   w32api                      the MS-Windows API bindings for mingw32.
+   binutils                    the GNU binary file utilities.
+   gcc                         the GNU C Compiler (currently v3.4.5)
+   g++                         the C++ front-end for GCC-3.4.5
+   g77                         the FORTRAN-77 front-end for GCC-3.4.5
+   ada                         the Ada front-end for GCC-3.4.5
+   java                        the java front-end for GCC-3.4.5
+   objc                        the Objective-C front-end for GCC-3.4.5
+   mingw32-make                native MS-Win32 build of GNU make.
+
+
+Known Issues
+------------
+
+Please do not file bug reports, in respect of the following issues:
+
+1) Cannot start in GUI mode; the error message you see, when you try, is
+   expected behaviour, in current alpha releases.
+
+2) "remove" action does not uninstall anything; the uninstaller function
+   is currently a stub, so this is expected behaviour.
+
+3) Package list needs updating, for more recent releases; we hope to
+   address this progressively, in coming weeks.  Please check the online
+   release notes/announcements, and run "mingw-get update" periodically.
+
+4) Need an action to list available/installed packages.
+
+5) Additional features you would like to see added; we want to know your
+   ideas, but please raise them for discussion on the mailing-list first.

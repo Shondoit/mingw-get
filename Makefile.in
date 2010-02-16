@@ -1,6 +1,6 @@
 # @configure_input@
 #
-# $Id: Makefile.in,v 1.10 2010/02/06 15:29:56 keithmarshall Exp $
+# $Id: Makefile.in,v 1.11 2010/02/16 20:51:05 keithmarshall Exp $
 
 PACKAGE_TARNAME = @PACKAGE_TARNAME@
 PACKAGE_VERSION = @PACKAGE_VERSION@
@@ -151,7 +151,8 @@ install-strip: install
 # configure), to accommodate inclusion of the `mingw32' subsystem qualifier,
 # when the release status qualifier is dropped from PACKAGE_VERSION.
 #
-SRCDIST_FILES = COPYING ChangeLog version.c.in \
+LICENCE_FILES = README COPYING
+SRCDIST_FILES = $(LICENCE_FILES) ChangeLog version.c.in \
   configure.ac configure Makefile.in install-sh
 
 SRCDIST_SUBDIRS = src src/pkginfo tinyxml xml
@@ -163,14 +164,23 @@ PACKAGE_DISTROOT = $(PACKAGE_TARNAME)-$(PACKAGE_ROOTVERSION)
 
 dist: srcdist bindist
 
-bindist: all
+bindist: all licdist
 	rm -rf staged
 	$(MAKE) --no-print-directory prefix=`pwd`/staged install-strip
 	cd staged; tar chf - bin/pkginfo$(EXEEXT) | gzip -c > \
 	  ../pkginfo-$(PACKAGE_DISTVERSION)-bin.tar.gz
 	rm staged/bin/pkginfo$(EXEEXT)
 	cd staged; tar chf - * | gzip -c > ../$(PACKAGE_DISTNAME)-bin.tar.gz
+	cd staged; zip -r ../$(PACKAGE_DISTNAME)-bin.zip *
 	rm -rf staged
+
+licdist:
+	rm -rf shared
+	$(mkinstalldirs) ./shared/doc/${PACKAGE_TARNAME}
+	cd ./shared/doc/${PACKAGE_TARNAME}; for file in $(LICENCE_FILES); \
+	  do $(LN_S) ${abs_top_srcdir}/$$file .; done
+	tar chf - shared | gzip -c > $(PACKAGE_DISTNAME)-lic.tar.gz
+	rm -rf shared
 
 srcdist: pkginfo.c
 	rm -rf ${PACKAGE_DISTROOT} && mkdir ${PACKAGE_DISTROOT}

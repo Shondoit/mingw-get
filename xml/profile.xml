@@ -1,10 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-
-<!-- profile.xml -->
-
 <profile project="MinGW" application="mingw-get">
   <!--
-    $Id: profile.xml,v 1.1 2009/11/23 20:44:25 keithmarshall Exp $
+    $Id: profile.xml,v 1.2 2010/02/16 20:51:14 keithmarshall Exp $
 
     Written by Keith Marshall  <keithmarshall@users.sourceforge.net>
     Copyright (C) 2009, MinGW Project
@@ -39,7 +36,7 @@
       specified package lists will be loaded; remove them when the index
       search feature becomes available, to enable master index search.
     -->
-    <package-list catalogue="mingw-base" />
+    <package-list catalogue="package-index" />
   </repository>
 
   <system-map id="default">
@@ -65,8 +62,8 @@
       specified by user selection, the first encountered is accepted as
       default, irrespective of its actual "id" attribute value.
     -->
-    <sysroot subsystem="mingw32" path="c:/mingw" />
-    <sysroot subsystem="MSYS" path="c:/msys/1.0" />
+    <sysroot subsystem="mingw32" path="c:/MinGW" />
+    <sysroot subsystem="MSYS" path="c:/MSYS/1.0" />
   </system-map>
 
 </profile>

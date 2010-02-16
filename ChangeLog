@@ -1,3 +1,17 @@
+2010-02-16  Keith Marshall  <keithmarshall@users.sourceforge.net>
+
+	Prepare initial package release.
+
+	* README: New file; use it to source release notes.
+
+	* Makefile.in (SRCDIST_FILES): Use ...
+	(LICENCE_FILES): ...this new macro; define it.
+	(licdist): New build goal; implement it.
+	(bindist): Require it; add alternative `zip' format package.
+
+	* src/profile (repository): Set default `package-index' name.
+	(system-map): Normalise spelling for default `sysroot' path names.
+
 2010-02-10  Keith Marshall  <keithmarshall@users.sourceforge.net>
 
 	Add directory/file records in installation manifests.
