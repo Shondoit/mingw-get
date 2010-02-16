@@ -1,5 +1,15 @@
 2010-02-16  Keith Marshall  <keithmarshall@users.sourceforge.net>
 
+	Bump version for next release cycle.
+
+	* configure.ac (AC_INIT): Bump version suffix to alpha-2.
+
+2010-02-16  Keith Marshall  <keithmarshall@users.sourceforge.net>
+
+	mingw-get-0.1-mingw32-alpha-1 released.
+
+2010-02-16  Keith Marshall  <keithmarshall@users.sourceforge.net>
+
 	Prepare initial package release.
 
 	* README: New file; use it to source release notes.
