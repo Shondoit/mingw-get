@@ -7,6 +7,9 @@
 	within package definition elements, seeking a potential match on an
 	included component package name or component class-implied name.
 
+	* src/pkgkeys.h (class_key): New global string constant; declare it.
+	* src/pkgkeys.c (class_key): Implement it.
+
 2010-02-16  Keith Marshall  <keithmarshall@users.sourceforge.net>
 
 	Bump version for next release cycle.

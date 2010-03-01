@@ -2,7 +2,7 @@
 /*
  * pkgkeys.c
  *
- * $Id: pkgkeys.h,v 1.4 2010/02/10 22:18:59 keithmarshall Exp $
+ * $Id: pkgkeys.h,v 1.5 2010/03/01 22:34:19 keithmarshall Exp $
  *
  * Written by Keith Marshall <keithmarshall@users.sourceforge.net>
  * Copyright (C) 2010, MinGW Project
@@ -39,6 +39,7 @@
 EXTERN_C_DECL const char *alias_key;
 EXTERN_C_DECL const char *application_key;
 EXTERN_C_DECL const char *catalogue_key;
+EXTERN_C_DECL const char *class_key;
 EXTERN_C_DECL const char *component_key;
 EXTERN_C_DECL const char *dirname_key;
 EXTERN_C_DECL const char *download_key;
