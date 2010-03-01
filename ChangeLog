@@ -1,3 +1,12 @@
+2010-03-01  Keith Marshall  <keithmarshall@users.sourceforge.net>
+
+	Extend package name search to include component packages.
+
+	* src/pkgfind.cpp (pkgHasMatchingName): Remove; fold it into...
+	(pkgXmlNode::FindPackageByName): ...this; augment to extend search
+	within package definition elements, seeking a potential match on an
+	included component package name or component class-implied name.
+
 2010-02-16  Keith Marshall  <keithmarshall@users.sourceforge.net>
 
 	Bump version for next release cycle.

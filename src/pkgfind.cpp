@@ -1,7 +1,7 @@
 /*
  * pkgfind.cpp
  *
- * $Id: pkgfind.cpp,v 1.2 2010/01/16 20:49:57 keithmarshall Exp $
+ * $Id: pkgfind.cpp,v 1.3 2010/03/01 22:09:04 keithmarshall Exp $
  *
  * Written by Keith Marshall <keithmarshall@users.sourceforge.net>
  * Copyright (C) 2009, 2010, MinGW Project
@@ -30,23 +30,6 @@
 #include "pkgbase.h"
 #include "pkgkeys.h"
 
-static inline
-bool pkgHasMatchingName( pkgXmlNode *pkg, const char *wanted )
-{
-  /* Helper to locate a package specification by package name;
-   * returns "true" if the XML node under consideration defines
-   * a "package", having the "wanted" name; else "false".
-   */
-  return pkg->IsElementOfType( package_key )
-    /*
-     * subject to the canonical name of the package matching
-     * the "wanted" name, or any assigned package name alias...
-     */
-    &&( (strcmp( wanted, pkg->GetPropVal( name_key, "" )) == 0)
-        || (has_keyword( pkg->GetPropVal( alias_key, NULL ), wanted ) != 0)
-      );
-}
-
 pkgXmlNode *
 pkgXmlDocument::FindPackageByName( const char *name, const char *subsystem )
 {
@@ -69,11 +52,64 @@ pkgXmlDocument::FindPackageByName( const char *name, const char *subsystem )
       pkgXmlNode *pkg = dir->GetChildren();
       while( pkg != NULL )
       {
-	/* ...returning immediately, if we find a "package"
-	 * element with the required "name" property...
+	/* ...and, for each "package" element we find...
 	 */
-	if( pkgHasMatchingName( pkg, name ) )
-	  return pkg;
+	if( pkg->IsElementOfType( package_key ) )
+	{
+	  /* ...return immediately, if it has a "name" or an "alias"
+	   * property which matches the required package name...
+	   */
+	  if( (strcmp( name, pkg->GetPropVal( name_key, "" )) == 0)
+	  ||  (has_keyword( pkg->GetPropVal( alias_key, NULL ), name ) != 0)  )
+	    return pkg;
+
+	  else
+	  {
+	    /* We did find a "package" element, but neither its "name"
+	     * nor its "alias" property provided a match; look within it,
+	     * for a possible match on a "component" package element...
+	     */
+	    pkgXmlNode *cpt = pkg->GetChildren();
+	    while( cpt != NULL )
+	    {
+	      /* For each element contained within the "package" definition,
+	       * check if it represents a "component" package definition...
+	       */
+	      if( cpt->IsElementOfType( component_key ) )
+	      {
+		/* ...and return immediately, when it does, AND it also has a
+		 * "name" property which matches the required package name...
+		 */
+		if( strcmp( name, cpt->GetPropVal( name_key, "" )) == 0 )
+		  return cpt;
+
+		else
+		{ /* We did find a "component" package, but its "name"
+		   * property didn't match; construct an alternative name,
+		   * by combining the "class" property of the "component"
+		   * with the "name" property of the containing "package",
+		   * and evaluate that for a possible match...
+		   */
+		  const char *pkg_name = pkg->GetPropVal( name_key, "" );
+		  const char *cpt_class = cpt->GetPropVal( class_key, "" );
+		  char cpt_name[2 + strlen( pkg_name ) + strlen( cpt_class )];
+		  sprintf( cpt_name, "%s-%s", pkg_name, cpt_class );
+
+		  /* Again, return the "component", if this identifies
+		   * a successful match...
+		   */
+		  if( strcmp( name, cpt_name ) == 0 )
+		    return cpt;
+		}
+	      }
+
+	      /* ...otherwise, continue checking any other "components"
+	       * which may be defined within the current "package.
+	       */
+	      cpt = cpt->GetNext();
+	    }
+	  }
+	}
 
 	/* ...otherwise, continue searching among any further
 	 * entries in the current "package-collection"...
