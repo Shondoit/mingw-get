@@ -1,7 +1,7 @@
 /*
  * sysroot.cpp
  *
- * $Id: sysroot.cpp,v 1.2 2010/02/02 20:19:28 keithmarshall Exp $
+ * $Id: sysroot.cpp,v 1.3 2010/03/02 19:11:08 keithmarshall Exp $
  *
  * Written by Keith Marshall <keithmarshall@users.sourceforge.net>
  * Copyright (C) 2010, MinGW Project
@@ -111,8 +111,6 @@ static bool samepath( const char *tstpath, const char *refpath )
   return (*tstpath == *refpath);
 }
 
-static const char *sigpath = "%R" "var/lib/mingw-get/data/%F.xml";
-
 void pkgXmlDocument::LoadSystemMap()
 {
   /* Load an initial, or a replacement, system map into the
@@ -156,6 +154,10 @@ void pkgXmlDocument::LoadSystemMap()
       /* We have not yet registered any sysroot for a managed installation;
        * this implies that no system map has yet been selected for loading,
        * so check if the current one matches the selection criterion...
+       *
+       * FIXME: match_if_explicit( id, NULL ) must always return true;
+       * this is a place holder for a match on a system map selector,
+       * which will be specified by a future command line option.
        */
       const char *id = sysmap->GetPropVal( id_key, "<default>" );
       if( match_if_explicit( id, NULL ) )
@@ -210,9 +212,8 @@ fprintf( stderr, "Bind subsystem %s: sysroot = %s\n",
 		 * first generated hash with no associated file; we then
 		 * use this to create a new installation record file.
 		 */
-		char *sig = hashed_name( retry++, sysroot_key, path );
-		char sigfile[mkpath( NULL, sigpath, sig, NULL )];
-		mkpath( sigfile, sigpath, sig, NULL );
+		const char *sig = hashed_name( retry++, sysroot_key, path );
+		const char *sigfile = xmlfile( sig, NULL );
 
 		/* Check for an existing sysroot file associated with the
 		 * current hash value...
@@ -274,9 +275,11 @@ fprintf( stderr, "Bind subsystem %s: sysroot = %s\n",
 		  retry = 16;
 		}
 
-		/* Before abandoning our reference to the current hash
-		 * signature, free the memory allocated for it.
+		/* Before abandoning our references to the current hash
+		 * signature, and the path name for the associated XML file,
+		 * free the memory allocated for them.
 		 */
+		free( (void *)(sigfile) );
 		free( (void *)(sig) );
 	      }
 	    }
@@ -334,8 +337,7 @@ void pkgXmlDocument::UpdateSystemMap()
        * and the 'id' attribute is valid; establish the path
        * name for the file in which to save the record.
        */
-      char mapfile[mkpath( NULL, sigpath, modified, NULL )];
-      mkpath( mapfile, sigpath, modified, NULL );
+      const char *mapfile = xmlfile( modified, NULL );
 
       /* Create a copy of the sysroot record, as the content of
        * a new freestanding XML document, and write it out to the
@@ -345,6 +347,11 @@ void pkgXmlDocument::UpdateSystemMap()
       map.AddDeclaration( "1.0", "UTF-8", yes_value );
       map.SetRoot( entry->Clone() );
       map.Save( mapfile );
+
+      /* The 'xmlfile()' look-up for the 'mapfile' path name used
+       * the heap to return the result; free the space allocated.
+       */
+      free( (void *)(mapfile) );
     }
 
     /* Repeat for the next sysroot record, if any...

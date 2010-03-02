@@ -1,3 +1,11 @@
+2010-03-02  Keith Marshall  <keithmarshall@users.sourceforge.net>
+
+	Rationalise path identification for XML file locations.
+
+	* src/sysroot.cpp (pkgXmlDocument::LoadSystemMap): Use `xmlfile()'
+	function to locate `sysroot' map file; free memory when done.
+	(pkgXmlDocument::UpdateSystemMap): Likewise.
+
 2010-03-01  Keith Marshall  <keithmarshall@users.sourceforge.net>
 
 	Extend package name search to include component packages.
