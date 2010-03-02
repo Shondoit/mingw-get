@@ -1,7 +1,7 @@
 /*
  * pkgname.cpp
  *
- * $Id: pkgname.cpp,v 1.3 2010/02/02 20:19:28 keithmarshall Exp $
+ * $Id: pkgname.cpp,v 1.4 2010/03/02 22:33:24 keithmarshall Exp $
  *
  * Written by Keith Marshall <keithmarshall@users.sourceforge.net>
  * Copyright (C) 2009, 2010, MinGW Project
@@ -40,7 +40,7 @@ const char *pkgArchiveName( pkgXmlNode *rel, const char *tag, unsigned opt )
   /* Local helper to establish actual release file names...
    * applicable only to XML "release" elements.
    */
-  if( ! rel->IsElementOfType( "release" ) )
+  if( ! rel->IsElementOfType( release_key ) )
   {
     dmh_control( DMH_BEGIN_DIGEST );
     dmh_notify( DMH_ERROR, "internal package specification error\n" );
@@ -51,7 +51,32 @@ const char *pkgArchiveName( pkgXmlNode *rel, const char *tag, unsigned opt )
   }
 
   /* Given a package release specification...
-   * determine the archive name for the tarball to be processed; this
+   * First check that it relates to a real package, rather than to
+   * a virtual "meta-package"; such meta-packages exist solely as
+   * containers for requirements specifications, and have no
+   * associated archive.
+   */
+  pkgXmlNode *pkg = rel->GetParent();
+  while( (pkg != NULL) && ! pkg->IsElementOfType( package_key ) )
+    pkg = pkg->GetParent();
+
+  /* FIXME: we should probably provide some error handling here,
+   * to diagnose release elements without any package association;
+   * (these would be identified by pkg == NULL).
+   */
+  if( pkg != NULL )
+  {
+    /* We found the package association...
+     * Check its 'class' attribute, if any, and if classified as
+     * 'virtual', return the archive association as "none".
+     */
+    const char *package_class = pkg->GetPropVal( class_key, NULL );
+    if( (package_class != NULL) && (strcmp( package_class, value_virtual ) == 0) )
+      return value_none;
+  }
+
+  /* The given release specification relates to a real package...
+   * Determine the archive name for the tarball to be processed; this
    * is retrieved from a child XML element with name specified by "tag";
    * by default, if "opt" is non-zero, it is the canonical "tarname"
    * assigned to the release element itself, unless an alternative

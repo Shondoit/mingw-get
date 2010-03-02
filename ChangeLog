@@ -1,5 +1,28 @@
 2010-03-02  Keith Marshall  <keithmarshall@users.sourceforge.net>
 
+	Add preliminary support for virtual packages.
+
+	* src/pkgkeys.h (yes_value, no_value): Redefine as aliases...
+	(value_yes, value_no): ...for these new global strings; declare them.
+	(value_none, value_virtual): New global strings; declare them.
+
+	* src/pkgkeys.c (yes_value, no_value): Rename...
+	(value_yes, value_no): ...to implement these, respectively.
+	(value_none, value_virtual): Implement them.
+
+	* src/pkgname.cpp (pkgXmlNode::ArchiveName): Check containing package
+	node for `class' attribute set to `value_virtual'; if present, always
+	return the effective `tarname' property as `value_none'.
+
+	* src/pkginet.cpp (pkgActionItem::DownloadArchiveFiles): For packages
+	with an effective `tarname' of `value_none', do not download anything.
+
+	* src/pkgexec.cpp (pkgActionItem::Execute): For packages with an
+	effective `tarname' of `value_none', do not invoke any tar archive
+	processing function.
+
+2010-03-02  Keith Marshall  <keithmarshall@users.sourceforge.net>
+
 	Don't write installation records for unavailable packages.
 
 	* src/tarproc.cpp (pkgTarArchiveInstaller): In constructor, ensure

@@ -1,7 +1,7 @@
 /*
  * pkginet.cpp
  *
- * $Id: pkginet.cpp,v 1.6 2010/02/02 20:19:28 keithmarshall Exp $
+ * $Id: pkginet.cpp,v 1.7 2010/03/02 22:33:24 keithmarshall Exp $
  *
  * Written by Keith Marshall <keithmarshall@users.sourceforge.net>
  * Copyright (C) 2009, 2010, MinGW Project
@@ -281,35 +281,45 @@ void pkgActionItem::DownloadArchiveFiles( pkgActionItem *current )
        * the required archive from a suitable internet mirror host.
        */
       const char *package_name = current->Selection()->ArchiveName();
-      pkgInternetStreamingAgent download( package_name, pkgArchivePath() );
 
-      /* Check if the required archive is already available locally...
+      /* An explicit package name of "none" is a special case, indicating
+       * a "virtual" meta-package; it requires nothing to be downloaded...
        */
-      if( (access( download.DestFile(), R_OK ) != 0) && (errno == ENOENT) )
+      if( ! match_if_explicit( package_name, value_none ) )
       {
-	/* ...if not, ask the download agent to fetch it...
+	/* ...but we expect any other package to provide real content,
+	 * for which we may need to download the package archive...
 	 */
-	const char *url_template = get_host_info( current->Selection(), uri_key );
-	if( url_template != NULL )
+	pkgInternetStreamingAgent download( package_name, pkgArchivePath() );
+
+	/* Check if the required archive is already available locally...
+	 */
+	if( (access( download.DestFile(), R_OK ) != 0) && (errno == ENOENT) )
 	{
-	  /* ...from the URL constructed from the template specified in
-	   * the package repository catalogue (configuration database)...
+	  /* ...if not, ask the download agent to fetch it...
 	   */
-	  const char *mirror = get_host_info( current->Selection(), mirror_key );
-	  char package_url[mkpath( NULL, url_template, package_name, mirror )];
-	  mkpath( package_url, url_template, package_name, mirror );
-	  if( ! (download.Get( package_url ) > 0) )
+	  const char *url_template = get_host_info( current->Selection(), uri_key );
+	  if( url_template != NULL )
+	  {
+	    /* ...from the URL constructed from the template specified in
+	     * the package repository catalogue (configuration database)...
+	     */
+	    const char *mirror = get_host_info( current->Selection(), mirror_key );
+	    char package_url[mkpath( NULL, url_template, package_name, mirror )];
+	    mkpath( package_url, url_template, package_name, mirror );
+	    if( ! (download.Get( package_url ) > 0) )
+	      dmh_notify( DMH_ERROR,
+		  "Get package: %s: download failed\n", package_url
+		);
+	  }
+	  else
+	    /* Cannot download; the repository catalogue didn't specify a
+	     * template, from which to construct a download URL...
+	     */
 	    dmh_notify( DMH_ERROR,
-		"Get package: %s: download failed\n", package_url
+		"Get package: %s: no URL specified for download\n", package_name
 	      );
 	}
-	else
-	  /* Cannot download; the repository catalogue didn't specify a
-	   * template, from which to construct a download URL...
-	   */
-	  dmh_notify( DMH_ERROR,
-	      "Get package: %s: no URL specified for download\n", package_name
-	    );
       }
     }
     /* Repeat download action, for any additional packages specified

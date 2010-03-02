@@ -1,7 +1,7 @@
 /*
  * pkgexec.cpp
  *
- * $Id: pkgexec.cpp,v 1.5 2010/02/02 20:19:28 keithmarshall Exp $
+ * $Id: pkgexec.cpp,v 1.6 2010/03/02 22:33:18 keithmarshall Exp $
  *
  * Written by Keith Marshall <keithmarshall@users.sourceforge.net>
  * Copyright (C) 2009, 2010, MinGW Project
@@ -390,9 +390,13 @@ void pkgActionItem::Execute()
 	//dmh_printf( " installing %s\n", current->Selection()->GetPropVal( tarname_key, "<unknown>" ));
 	if( current->Selection( to_remove ) == NULL )
 	{
-	  pkgTarArchiveInstaller package( current->Selection() );
-	  if( package.IsOk() )
-	    package.Process();
+	  pkgXmlNode *pkg = current->Selection();
+	  if( ! match_if_explicit( pkg->ArchiveName(), value_none ) )
+	  {
+	    pkgTarArchiveInstaller package( pkg );
+	    if( package.IsOk() )
+	      package.Process();
+	  }
 	}
 	else
 	  dmh_notify( DMH_ERROR,

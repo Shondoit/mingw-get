@@ -2,7 +2,7 @@
 /*
  * pkgkeys.c
  *
- * $Id: pkgkeys.h,v 1.5 2010/03/01 22:34:19 keithmarshall Exp $
+ * $Id: pkgkeys.h,v 1.6 2010/03/02 22:33:24 keithmarshall Exp $
  *
  * Written by Keith Marshall <keithmarshall@users.sourceforge.net>
  * Copyright (C) 2010, MinGW Project
@@ -74,7 +74,12 @@ EXTERN_C_DECL const char *uri_key;
 /* Some standard values, which may be associated with certain
  * of the above XML database keys.
  */
-EXTERN_C_DECL const char *yes_value;
-EXTERN_C_DECL const char *no_value;
+#define yes_value	  value_yes
+#define no_value	  value_no
+
+EXTERN_C_DECL const char *value_no;
+EXTERN_C_DECL const char *value_none;
+EXTERN_C_DECL const char *value_virtual;
+EXTERN_C_DECL const char *value_yes;
 
 #endif /* PKGKEYS_H: $RCSfile: pkgkeys.h,v $: end of file */
