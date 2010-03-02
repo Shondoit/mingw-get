@@ -1,7 +1,7 @@
 /*
  * tarproc.cpp
  *
- * $Id: tarproc.cpp,v 1.3 2010/02/10 22:18:59 keithmarshall Exp $
+ * $Id: tarproc.cpp,v 1.4 2010/03/02 21:07:00 keithmarshall Exp $
  *
  * Written by Keith Marshall <keithmarshall@users.sourceforge.net>
  * Copyright (C) 2009, 2010, MinGW Project
@@ -398,7 +398,7 @@ pkgTarArchiveInstaller( pkgXmlNode *pkg ):pkgTarArchiveProcessor( pkg )
    * we add a package installation record to the sysroot entry in the
    * XML database, and mark that sysroot entry as 'modified'.
    */
-  if( (tarname != NULL) && (sysroot != NULL) )
+  if( (tarname != NULL) && (sysroot != NULL) && stream->IsReady() )
   {
     /* The installation record must identify, as a minimum,
      * the canonical name of the package being installed.
@@ -418,6 +418,11 @@ pkgTarArchiveInstaller( pkgXmlNode *pkg ):pkgTarArchiveProcessor( pkg )
 
     /* Set the 'modified' flag for, and attach the installation
      * record to, the relevant sysroot record.
+     *
+     * FIXME: We should defer this until AFTER the archive has
+     * been successfully processed, (in the destructor, perhaps?),
+     * cleaning up, and not updating the installation manifest,
+     * in the event of an archive processing failure.
      */
     sysroot->SetAttribute( modified_key, yes_value );
     sysroot->AddChild( installed );

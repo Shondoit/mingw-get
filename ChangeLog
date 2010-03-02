@@ -1,10 +1,19 @@
 2010-03-02  Keith Marshall  <keithmarshall@users.sourceforge.net>
 
+	Don't write installation records for unavailable packages.
+
+	* src/tarproc.cpp (pkgTarArchiveInstaller): In constructor, ensure
+	archive is ready for processing, before initialising an installation
+	manifest record.
+
+2010-03-02  Keith Marshall  <keithmarshall@users.sourceforge.net>
+
 	Rationalise path identification for XML file locations.
 
 	* src/sysroot.cpp (pkgXmlDocument::LoadSystemMap): Use `xmlfile()'
 	function to locate `sysroot' map file; free memory when done.
 	(pkgXmlDocument::UpdateSystemMap): Likewise.
+	(sigpath): Static global variable disused; delete it.
 
 2010-03-01  Keith Marshall  <keithmarshall@users.sourceforge.net>
 
