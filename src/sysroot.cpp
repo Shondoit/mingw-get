@@ -1,7 +1,7 @@
 /*
  * sysroot.cpp
  *
- * $Id: sysroot.cpp,v 1.3 2010/03/02 19:11:08 keithmarshall Exp $
+ * $Id: sysroot.cpp,v 1.4 2010/03/22 19:39:08 keithmarshall Exp $
  *
  * Written by Keith Marshall <keithmarshall@users.sourceforge.net>
  * Copyright (C) 2010, MinGW Project
@@ -380,7 +380,7 @@ pkgXmlNode* pkgXmlNode::GetSysRoot( const char *subsystem )
     {
       /* ...until we find one for the subsystem of interest...
        */
-      if( match_if_explicit( subsystem, sysroot->GetPropVal( subsystem_key, NULL )) )
+      if( subsystem_strcmp( subsystem, sysroot->GetPropVal( subsystem_key, NULL )) )
       {
 	/* ...from which we retrieve the sysroot path specification...
 	 */

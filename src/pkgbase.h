@@ -2,7 +2,7 @@
 /*
  * pkgbase.h
  *
- * $Id: pkgbase.h,v 1.5 2010/02/02 20:19:28 keithmarshall Exp $
+ * $Id: pkgbase.h,v 1.6 2010/03/22 19:39:06 keithmarshall Exp $
  *
  * Written by Keith Marshall <keithmarshall@users.sourceforge.net>
  * Copyright (C) 2009, 2010, MinGW Project
@@ -37,6 +37,37 @@
 #  define EXTERN_C extern "C"
 # else
 #  define EXTERN_C
+# endif
+#endif
+
+/* Adopt sensible defaults for matching subsystem and file names...
+ */
+#ifdef _WIN32
+  /*
+   * The MS-Windows file system is intrinsically case insensitive,
+   * so we prefer to match both subsystem and file names in a case
+   * insensitive manner...
+   */
+# ifndef CASE_INSENSITIVE_SUBSYSTEMS
+#  define CASE_INSENSITIVE_SUBSYSTEMS  1
+# endif
+# ifndef CASE_INSENSITIVE_FILESYSTEM
+#  define CASE_INSENSITIVE_FILESYSTEM  1
+# endif
+  /*
+   * The preferred name for MS-Windows' case insensitive string
+   * matching function, equivalent to POSIX strcasecmp().
+   */
+# define strcasecmp  stricmp
+#else
+  /* On other systems, we prefer to adopt case sensitive matching
+   * strategies for subsystem and file names.
+   */
+# ifndef CASE_INSENSITIVE_SUBSYSTEMS
+#  define CASE_INSENSITIVE_SUBSYSTEMS  0
+# endif
+# ifndef CASE_INSENSITIVE_FILESYSTEM
+#  define CASE_INSENSITIVE_FILESYSTEM  0
 # endif
 #endif
 
@@ -334,13 +365,41 @@ class pkgXmlDocument : public TiXmlDocument
 EXTERN_C const char *xmlfile( const char*, const char* = NULL );
 EXTERN_C int has_keyword( const char*, const char* );
 
+typedef int (*strcmp_function)( const char *, const char * );
+
 static inline
-bool match_if_explicit( const char *value, const char *proto )
+bool safe_strcmp( strcmp_function strcmp, const char *value, const char *proto )
 {
   /* Helper to compare a pair of "C" strings for equality,
-   * accepting NULL as a match for anything.
+   * accepting NULL as a match for anything; for non-NULL matches,
+   * case sensitivity is determined by choice of strcmp function.
+   *
+   * N.B. Unlike the 'strcmp' function which this calls, this is
+   * a boolean function, returning TRUE when the 'strcmp' result
+   * is zero, (i.e. the sense of the result is inverted).
    */
   return (value == NULL) || (proto == NULL) || (strcmp( value, proto ) == 0);
 }
+
+/* Define a safe_strcmp() alias for an explicitly case sensitive match.
+ */
+#define match_if_explicit( A, B )  safe_strcmp( strcmp, (A), (B) )
+
+/* Further safe_strcmp() aliases provide for matching subsystem names,
+ * with implementation dependent case sensitivity...
+ */
+#if CASE_INSENSITIVE_SUBSYSTEMS
+# define subsystem_strcmp( A, B )  safe_strcmp( strcasecmp, (A), (B) )
+#else
+# define subsystem_strcmp( A, B )  safe_strcmp( strcmp, (A), (B) )
+#endif
+
+/* ...and similarly, for matching of file names.
+ */
+#if CASE_INSENSITIVE_FILESYSTEM
+# define pkg_strcmp( A, B )  safe_strcmp( strcasecmp, (A), (B) )
+#else
+# define pkg_strcmp( A, B )  safe_strcmp( strcmp, (A), (B) )
+#endif
 
 #endif /* PKGBASE_H: $RCSfile: pkgbase.h,v $: end of file */

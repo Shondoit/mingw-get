@@ -1,3 +1,26 @@
+2010-03-22  Keith Marshall  <keithmarshall@users.sourceforge.net>
+
+	Support case insensitive matching for file and subsystem names.
+
+	* src/pkgbase.h (safe_strcmp): New inline function; it provides NULL
+	argument safe comparison of strings, returning the boolean inverse of
+	the `strcmp' result, using either case-sensitive or case-insensitive
+	semantics; derive it from...
+	(match_if_explicit): ...this; redefine as macro; invoke `safe_strcmp'
+	using explicitly case-sensitive semantics.
+	(subsystem_strcmp): New macro; it invokes `safe_strcmp' with either
+	case-sensitive or case-insensitive semantics, depending on...
+	(CASE_INSENSITIVE_SUBSYSTEMS): ...this new context selection macro; it
+	fixes the choice between case-sensitive and case-insensitive matching
+	semantics for any given implementation, at compile time.
+	(pkg_strcmp): New macro; it invokes `safe_strcmp' with either
+	case-sensitive or case-insensitive semantics, depending on...
+	(CASE_INSENSITIVE_FILESYSTEM): ...this new context selection macro; it
+	fixes the choice between case-sensitive and case-insensitive matching
+	semantics for any given implementation, at compile time.
+
+	* src/sysroot.cpp (pkgXmlNode::GetSysRoot): Use `subsystem_strcmp'.
+
 2010-03-02  Keith Marshall  <keithmarshall@users.sourceforge.net>
 
 	Add preliminary support for virtual packages.
