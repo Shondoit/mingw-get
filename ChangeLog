@@ -1,3 +1,14 @@
+2010-03-23  Keith Marshall  <keithmarshall@users.sourceforge.net>
+
+	Automate object code dependency tracking.
+
+	* Makefile.in (DEPFLAGS): New macro; define it.
+	(%.OBJEXT: %.c, %.OBJEXT: %.cpp): Add dependency generator commands...
+	(%.d): ...to create these dependency maps; `sinclude' them, and...
+	(clean): ...remove them.
+	
+	* .cvsignore (*.d): Add wild card template to match them.
+
 2010-03-22  Keith Marshall  <keithmarshall@users.sourceforge.net>
 
 	Support case insensitive matching for file and subsystem names.

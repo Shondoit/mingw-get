@@ -1,6 +1,6 @@
 # @configure_input@
 #
-# $Id: Makefile.in,v 1.11 2010/02/16 20:51:05 keithmarshall Exp $
+# $Id: Makefile.in,v 1.12 2010/03/23 19:04:55 keithmarshall Exp $
 
 PACKAGE_TARNAME = @PACKAGE_TARNAME@
 PACKAGE_VERSION = @PACKAGE_VERSION@
@@ -61,12 +61,6 @@ CORE_DLL_OBJECTS = climain.$(OBJEXT) \
    tinystr.$(OBJEXT) tinyxmlerror.$(OBJEXT) \
    vercmp.$(OBJEXT)  dmh.$(OBJEXT)
 
-%.$(OBJEXT): %.c
-	$(CC) -c $(CPPFLAGS) $(CFLAGS) -o $@ $<
-
-%.$(OBJEXT): %.cpp
-	$(CXX) -c $(CPPFLAGS) $(CXXFLAGS) -o $@ $<
-
 all: pkginfo$(EXEEXT) mingw-get$(EXEEXT) mingw-get-0.dll
 
 pkginfo$(EXEEXT):  driver.$(OBJEXT) pkginfo.$(OBJEXT)
@@ -78,33 +72,18 @@ mingw-get$(EXEEXT): clistub.$(OBJEXT) version.$(OBJEXT)
 mingw-get-0.dll: $(CORE_DLL_OBJECTS)
 	$(CXX) -shared -o $@ $(CXXFLAGS) $(LDFLAGS) $+ $(LIBS)
 
-dmh.$(OBJEXT):     dmh.h
-climain.$(OBJEXT): pkgbase.h pkgtask.h tinyxml.h tinystr.h dmh.h
-sysroot.$(OBJEXT): pkgbase.h pkgkeys.h tinyxml.h tinystr.h mkpath.h dmh.h
-tarproc.$(OBJEXT): pkgbase.h pkgproc.h pkginfo.h pkgkeys.h pkgstrm.h
-tarproc.$(OBJEXT): tinyxml.h tinystr.h mkpath.h dmh.h
-
-pkgname.$(OBJEXT): pkgbase.h pkgkeys.h dmh.h
-pkgfind.$(OBJEXT): pkgbase.h pkgkeys.h tinyxml.h tinystr.h
-pkgbind.$(OBJEXT): pkgbase.h pkgkeys.h tinyxml.h tinystr.h dmh.h
-pkgexec.$(OBJEXT): pkgbase.h pkgkeys.h pkgtask.h tinyxml.h tinystr.h mkpath.h dmh.h
-pkgdeps.$(OBJEXT): pkgbase.h pkgkeys.h pkginfo.h pkgtask.h tinyxml.h tinystr.h dmh.h
-pkgspec.$(OBJEXT): pkgbase.h pkgkeys.h pkginfo.h tinyxml.h tinystr.h vercmp.h
-pkginet.$(OBJEXT): pkgbase.h pkgkeys.h pkgtask.h pkgstrm.h mkpath.h dmh.h
-pkgstrm.$(OBJEXT): pkgstrm.h
-
-# Dependencies for stand alone pkginfo tool;
-# (the pkginfo object is also required by the core DLL)...
+# Compilation and dependency tracking...
 #
-driver.$(OBJEXT):  pkginfo.h
-pkginfo.$(OBJEXT): pkginfo.l pkginfo.h
+DEPFLAGS = -MM -MP -MD
+sinclude *.d
 
-# TinyXML dependencies...
-#
-tinyxml.$(OBJEXT): tinyxml.h tinystr.h
-tinyxmlerror.$(OBJEXT): tinyxml.h tinystr.h
-tinyxmlparser.$(OBJEXT): tinyxml.h tinystr.h
-tinystr.$(OBJEXT): tinystr.h
+%.$(OBJEXT): %.c
+	$(CC) $(DEPFLAGS) $(CPPFLAGS) $(CFLAGS) $<
+	$(CC) -c $(CPPFLAGS) $(CFLAGS) -o $@ $<
+
+%.$(OBJEXT): %.cpp
+	$(CXX) $(DEPFLAGS) $(CPPFLAGS) $(CXXFLAGS) $<
+	$(CXX) -c $(CPPFLAGS) $(CXXFLAGS) -o $@ $<
 
 # Installation tools and directory paths...
 #
@@ -201,7 +180,7 @@ srcdist: pkginfo.c
 # Workspace clean-up...
 #
 clean:
-	rm -f *.$(OBJEXT) *.dll pkginfo$(EXEEXT) mingw-get$(EXEEXT)
+	rm -f *.$(OBJEXT) *.d *.dll pkginfo$(EXEEXT) mingw-get$(EXEEXT)
 
 distclean: clean
 	rm -f config.* version.c Makefile
