@@ -1,3 +1,12 @@
+2010-03-28  Cesar Strauss  <cestrauss@gmail.com>
+
+	Avoid running InternetAttemptConnect in pkgInternetAgent
+	constructor, since it is called during DLL initialisation.
+
+	* src/pkginet.cpp (pkgInternetAgent::pkgInternetAgent): Move the
+	InternetAttemptConnect call from constructor...
+	(pkgInternetAgent::OpenURL): ...to here.
+
 2010-03-23  Keith Marshall  <keithmarshall@users.sourceforge.net>
 
 	Automate object code dependency tracking.
