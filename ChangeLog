@@ -1,3 +1,15 @@
+2010-03-31  Keith Marshall  <keithmarshall@users.sourceforge.net>
+
+	Guard against NULL pointer dereferences in tinyxml code.
+
+	* src/pkgbase.h (pkgXmlNode::GetName): Verify `this' pointer is
+	non-NULL, before invoking the underlying tinyxml method.
+	(pkgXmlNode::GetParent, pkgXmlNode::GetChildren): Likewise.
+	(pkgXmlNode::GetNext, pkgXmlNode::GetPropVal): Likewise.
+	(pkgXmlNode::AddChild, pkgXmlNode::DeleteChild): Likewise.
+	(pkgXmlNode::GetDocumentRoot): Likewise.
+	(pkgXmlNode::IsElementOfType): Likewise.
+
 2010-03-28  Cesar Strauss  <cestrauss@gmail.com>
 
 	Avoid running InternetAttemptConnect in pkgInternetAgent

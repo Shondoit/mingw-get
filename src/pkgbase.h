@@ -2,7 +2,7 @@
 /*
  * pkgbase.h
  *
- * $Id: pkgbase.h,v 1.6 2010/03/22 19:39:06 keithmarshall Exp $
+ * $Id: pkgbase.h,v 1.7 2010/04/02 08:38:04 keithmarshall Exp $
  *
  * Written by Keith Marshall <keithmarshall@users.sourceforge.net>
  * Copyright (C) 2009, 2010, MinGW Project
@@ -84,20 +84,24 @@ class pkgXmlNode : public TiXmlElement
     inline pkgXmlNode( const pkgXmlNode& src ):TiXmlElement( src ){}
 
     /* Accessors...
+     *
+     * Note that tinyxml is generally careless about checking for
+     * possible dereferencing of NULL pointers; thus, many of these
+     * wrappers include appropriate checks, to prevent this.
      */
     inline const char* GetName()
     {
       /* Retrieve the identifying name of the XML tag;
        * tinyxml calls this the element "value"...
        */
-      return Value();
+      return this ? Value() : NULL;
     }
     inline pkgXmlNode* GetParent()
     {
       /* wxXmlNode provides this equivalant of tinyxml's
        * Parent() method.
        */
-      return (pkgXmlNode*)(Parent());
+      return this ? (pkgXmlNode*)(Parent()) : NULL;
     }
     inline pkgXmlNode* GetChildren()
     {
@@ -105,7 +109,7 @@ class pkgXmlNode : public TiXmlElement
        * the children of an element; it is equivalent to the
        * FirstChild() method in tinyxml's arsenal.
        */
-      return (pkgXmlNode*)(FirstChild());
+      return this ? (pkgXmlNode*)(FirstChild()) : NULL;
     }
     inline pkgXmlNode* GetNext()
     {
@@ -113,7 +117,7 @@ class pkgXmlNode : public TiXmlElement
        * of an element, after the first found by GetChildren();
        * it is equivalent to tinyxml's NextSibling().
        */
-      return (pkgXmlNode*)(NextSibling());
+      return this ? (pkgXmlNode*)(NextSibling()) : NULL;
     }
     inline const char* GetPropVal( const char* name, const char* subst )
     {
@@ -121,7 +125,7 @@ class pkgXmlNode : public TiXmlElement
        * (which substitutes default "subst" text for an omitted property),
        * but it may be trivially emulated, using the Attribute() method.
        */
-      const char* retval = Attribute( name );
+      const char* retval = this ? Attribute( name ) : subst;
       return retval ? retval : subst;
     }
     inline pkgXmlNode* AddChild( TiXmlNode *child )
@@ -129,7 +133,7 @@ class pkgXmlNode : public TiXmlElement
       /* This is wxXmlNode's method for adding a child node, it is
        * equivalent to tinyxml's LinkEndChild() method.
        */
-      return (pkgXmlNode*)(LinkEndChild( child ));
+      return this ? (pkgXmlNode*)(LinkEndChild( child )) : NULL;
     }
     inline bool DeleteChild( pkgXmlNode *child )
     {
@@ -138,7 +142,7 @@ class pkgXmlNode : public TiXmlElement
        * simply use the RemoveChild method here, where for wxXmlNode, we
        * would use RemoveChild followed by `delete child'.
        */
-      return RemoveChild( child );
+      return this ? RemoveChild( child ) : false;
     }
 
     /* Additional methods specific to the application.
@@ -147,14 +151,14 @@ class pkgXmlNode : public TiXmlElement
     {
       /* Convenience method to retrieve a pointer to the document root.
        */
-      return (pkgXmlNode*)(GetDocument()->RootElement());
+      return this ? (pkgXmlNode*)(GetDocument()->RootElement()) : NULL;
     }
     inline bool IsElementOfType( const char* tagname )
     {
       /* Confirm if the owner XML node represents a data element
        * with the specified "tagname".
        */
-      return strcmp( GetName(), tagname ) == 0;
+      return this ? strcmp( GetName(), tagname ) == 0 : false;
     }
 
     /* Methods for retrieving the system root management records
@@ -180,6 +184,7 @@ class pkgXmlNode : public TiXmlElement
 };
 
 enum { to_remove = 0, to_install, selection_types };
+
 class pkgActionItem
 {
   /* A class implementing a bi-directionally linked list of
