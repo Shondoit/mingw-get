@@ -2,7 +2,7 @@
 /*
  * pkgproc.h
  *
- * $Id: pkgproc.h,v 1.2 2010/02/10 22:18:59 keithmarshall Exp $
+ * $Id: pkgproc.h,v 1.3 2010/04/04 15:25:36 keithmarshall Exp $
  *
  * Written by Keith Marshall <keithmarshall@users.sourceforge.net>
  * Copyright (C) 2009, 2010, MinGW Project
@@ -32,6 +32,27 @@
 #include "pkgbase.h"
 #include "pkgstrm.h"
 
+EXTERN_C void pkgInstall( pkgActionItem* );
+EXTERN_C void pkgRegister( pkgXmlNode*, pkgXmlNode*, const char*, const char* );
+
+class pkgManifest
+{
+  /* A wrapper around the XML document class, with specialised methods
+   * for management of the package installation manifest.
+   */
+  public:
+    pkgManifest( const char*, const char* );
+    ~pkgManifest();
+
+    void AddEntry( const char*, const char* );
+    void BindSysRoot( pkgXmlNode*, const char* );
+    void DetachSysRoot( pkgXmlNode* );
+
+  private:
+    pkgXmlDocument *manifest;
+    pkgXmlNode     *inventory;
+};
+
 class pkgArchiveProcessor
 {
   /* A minimal generic abstract base class, from which we derive
@@ -45,17 +66,20 @@ class pkgArchiveProcessor
     virtual int Process() = 0;
 
   protected:
+    int sysroot_len;
+
     /* Pointers to the sysroot management records and installation
      * path template for a managed package; note that 'tarname' does
      * not explicitly refer only to tar archives; it is simply the
      * canonical name of the archive file, as recorded in the XML
      * 'tarname' property of the package identifier record.
      */
-    pkgXmlNode *sysroot;
-    const char *sysroot_path;
-    pkgXmlNode *installed;
-    const char *tarname;
-    const char *pkgfile;
+    pkgXmlNode  *origin;
+    pkgXmlNode  *sysroot;
+    const char  *sysroot_path;
+    pkgManifest *installed;
+    const char  *tarname;
+    const char  *pkgfile;
 };
 
 /* Our standard package format specifies the use of tar archives;
@@ -156,12 +180,13 @@ class pkgTarArchiveInstaller : public pkgTarArchiveProcessor
     pkgTarArchiveInstaller( pkgXmlNode* );
     virtual ~pkgTarArchiveInstaller(){}
 
+    virtual int Process();
+
   private:
     /* Specialised implementations of the archive processing methods...
      */
     virtual int ProcessDirectory( const char* );
     virtual int ProcessDataStream( const char* );
-    virtual void UpdateInstallationManifest( const char*, const char* );
 };
 
 class pkgTarArchiveUninstaller : public pkgTarArchiveProcessor

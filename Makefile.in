@@ -1,6 +1,6 @@
 # @configure_input@
 #
-# $Id: Makefile.in,v 1.12 2010/03/23 19:04:55 keithmarshall Exp $
+# $Id: Makefile.in,v 1.13 2010/04/04 15:22:07 keithmarshall Exp $
 
 PACKAGE_TARNAME = @PACKAGE_TARNAME@
 PACKAGE_VERSION = @PACKAGE_VERSION@
@@ -56,10 +56,10 @@ CORE_DLL_OBJECTS = climain.$(OBJEXT) \
    pkgbind.$(OBJEXT) pkginet.$(OBJEXT) pkgstrm.$(OBJEXT) pkgname.$(OBJEXT) \
    pkgexec.$(OBJEXT) pkgfind.$(OBJEXT) pkginfo.$(OBJEXT) pkgspec.$(OBJEXT) \
    sysroot.$(OBJEXT) pkghash.$(OBJEXT) pkgkeys.$(OBJEXT) pkgdeps.$(OBJEXT) \
-   mkpath.$(OBJEXT)  tarproc.$(OBJEXT) xmlfile.$(OBJEXT) keyword.$(OBJEXT) \
+   mkpath.$(OBJEXT)  pkginst.$(OBJEXT) tarinst.$(OBJEXT) tarproc.$(OBJEXT) \
+   xmlfile.$(OBJEXT) keyword.$(OBJEXT) vercmp.$(OBJEXT)  dmh.$(OBJEXT) \
    tinyxml.$(OBJEXT) tinyxmlparser.$(OBJEXT) \
-   tinystr.$(OBJEXT) tinyxmlerror.$(OBJEXT) \
-   vercmp.$(OBJEXT)  dmh.$(OBJEXT)
+   tinystr.$(OBJEXT) tinyxmlerror.$(OBJEXT)
 
 all: pkginfo$(EXEEXT) mingw-get$(EXEEXT) mingw-get-0.dll
 

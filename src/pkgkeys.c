@@ -1,7 +1,7 @@
 /*
  * pkgkeys.c
  *
- * $Id: pkgkeys.c,v 1.6 2010/03/02 22:33:24 keithmarshall Exp $
+ * $Id: pkgkeys.c,v 1.7 2010/04/04 15:25:36 keithmarshall Exp $
  *
  * Written by Keith Marshall <keithmarshall@users.sourceforge.net>
  * Copyright (C) 2010, MinGW Project
@@ -42,6 +42,7 @@ const char *installed_key	    =	"installed";
 const char *issue_key		    =	"issue";
 const char *le_key		    =	"le";
 const char *lt_key		    =	"lt";
+const char *manifest_key	    =	"manifest";
 const char *mirror_key		    =	"mirror";
 const char *modified_key	    =	"modified";
 const char *name_key		    =	"name";
@@ -50,6 +51,7 @@ const char *package_collection_key  =	"package-collection";
 const char *package_list_key	    =	"package-list";
 const char *pathname_key	    =	"path";
 const char *profile_key		    =	"profile";
+const char *reference_key	    =	"references";
 const char *release_key		    =	"release";
 const char *repository_key	    =	"repository";
 const char *requires_key	    =	"requires";

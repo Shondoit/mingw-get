@@ -1,3 +1,56 @@
+2010-04-04  Keith Marshall  <keithmarshall@users.sourceforge.net>
+
+	Implement installer function; use per-package file manifests.
+
+	* src/pkgproc.h (pkgManifest): New class; declare it.
+	(pkgArchiveProcessor::origin): New protected member variable.
+	(pkgArchiveProcessor::sysroot_len): New protected member variable.
+	(pkgArchiveProcessor::installed): Type changed to `pkgManifest *'.
+	(pkgTarArchiveInstaller::Process): Declare specialisation hook.
+	(pkgTarArchiveInstaller::UpdateInstallationManifest): Disused member
+	function; remove redundant declaration from class definition.
+	(pkgInstall): New generalised installation function; declare it.
+	(pkgRegister): New function; declare it.
+
+	* src/pkginst.cpp: New file.
+	(pkgManifest, pkgInstall, pkgRegister): Implement them.
+
+	* src/pkgexec.cpp (pkgActionItem::Execute): Use `pkgInstall' in place
+	of stub formerly provided here.
+
+	* src/pkgkeys.h (manifest_key, reference_key): New keys; declare them.
+	* src/pkgkeys.c (manifest_key, reference_key): Implement them.
+
+	* src/tarproc.cpp: Code refactored.
+	(pkgTarArchiveProcessor::sysroot_len): Initialise it.
+	(pkgTarArchiveProcessor::origin): Initialise it.
+	(pkgTarArchiveProcessor::installed): Initialise; associate it with a
+	pkgManifest class entity, and populate this as appropriate.
+	(pkgTarArchiveProcessor::~pkgTarArchiveProcessor): Add explicit clean
+	up of linked `pkgManifest *' entity referenced by `installed'.
+	(pkgTarArchiveProcessor::Process) [TAR_ENTITY_TYPE_DIRECTORY]: Add
+	braces to demarcate localised inner scope of string scan for removal
+	of trailing directory name separators; (thanks to Cesar Strauss for
+	reporting invalid local pointer declaration error in GCC >= 4.4).
+	(pkgTarArchiveInstaller::UpdateInstallationManifest): Deleted.
+	(pkgTarArchiveInstaller::pkgTarArchiveInstaller): Factor out.
+	(pkgTarArchiveInstaller::ProcessDirectory): Likewise.
+	(pkgTarArchiveInstaller::ProcessDataStream): Likewise.
+	(commit_saved_entity): Likewise.
+
+	* src/tarinst.cpp: New file; it implements...
+	(pkgTarArchiveInstaller::Process): ...this new specialisation
+	of the original pkgTarArchiveProcessor::Process method...
+	(pkgTarArchiveInstaller::pkgTarArchiveInstaller): ...and this
+	refactored code, abstracted from src/tarproc.cpp and modified to
+	use the pkgManifest class for installation tracking.
+	(pkgTarArchiveInstaller::ProcessDirectory): Likewise.
+	(pkgTarArchiveInstaller::ProcessDataStream): Likewise.
+	(commit_saved_entity): Relocated from src/tarproc.cpp.
+
+	* Makefile.in (CORE_DLL_OBJECTS): Add...
+	(pkginst.OBJEXT, tarinst.OBJEXT): ...these new object files.
+
 2010-03-31  Keith Marshall  <keithmarshall@users.sourceforge.net>
 
 	Guard against NULL pointer dereferences in tinyxml code.

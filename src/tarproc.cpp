@@ -1,7 +1,7 @@
 /*
  * tarproc.cpp
  *
- * $Id: tarproc.cpp,v 1.4 2010/03/02 21:07:00 keithmarshall Exp $
+ * $Id: tarproc.cpp,v 1.5 2010/04/04 15:25:36 keithmarshall Exp $
  *
  * Written by Keith Marshall <keithmarshall@users.sourceforge.net>
  * Copyright (C) 2009, 2010, MinGW Project
@@ -52,16 +52,19 @@ pkgTarArchiveProcessor::pkgTarArchiveProcessor( pkgXmlNode *pkg )
    *
    * First, we anticipate an invalid initialisation state...
    */
+  sysroot_len = 0;
+
   sysroot = NULL;
   sysroot_path = NULL;
+  installed = NULL;
   stream = NULL;
 
   /* The 'pkg' XML database entry must be non-NULL, must
    * represent a package release, and must specify a canonical
    * tarname to identify the package...
    */
-  if(  (pkg != NULL) && pkg->IsElementOfType( release_key )
-  &&  ((tarname = pkg->GetPropVal( tarname_key, NULL )) != NULL)  )
+  if( ((origin = pkg) != NULL) && pkg->IsElementOfType( release_key )
+  &&  ((tarname = pkg->GetPropVal( tarname_key, NULL )) != NULL)       )
   {
     /* When these pre-conditions are satisfied, we may proceed
      * to identify and locate the sysroot record with which this
@@ -82,7 +85,7 @@ pkgTarArchiveProcessor::pkgTarArchiveProcessor( pkgXmlNode *pkg )
 	 */
 	const char *template_format = "%F%%/M/%%F";
 	char template_text[mkpath( NULL, template_format, prefix, NULL )];
-	mkpath( template_text, template_format, prefix, NULL );
+	sysroot_len = mkpath( template_text, template_format, prefix, NULL ) - 6;
 	sysroot_path = strdup( template_text );
       }
     }
@@ -104,11 +107,13 @@ pkgTarArchiveProcessor::pkgTarArchiveProcessor( pkgXmlNode *pkg )
 
 pkgTarArchiveProcessor::~pkgTarArchiveProcessor()
 {
-  /* Destructor must release the heap memory allocated in the
-   * constructor, (by strdup), clean up the decompression filter
-   * state, and close the archive data stream.
+  /* Destructor must release the heap memory allocated in
+   * the constructor, (by strdup and pkgManifest), clean up
+   * the decompression filter state, and close the archive
+   * data stream.
    */
   free( (void *)(sysroot_path) );
+  delete installed;
   delete stream;
 }
 
@@ -237,16 +242,17 @@ int pkgTarArchiveProcessor::Process()
 	 * e.g. we may need to create a directory, or even a sequence
 	 * of directories, to establish a location within the sysroot
 	 * hierarchy...
-	 *
-	 * Note: Microsoft's implementation of stat() appears to choke
-	 * on directory path names with trailing slashes; thus, before
-	 * we invoke the directory processing routine, (which may need
-	 * to call stat(), to check if the specified directory already
-	 * exists), we remove any such trailing slashes.
 	 */
-        char *p = pathname + sizeof( pathname ) - 1;
-	while( (p > pathname) && ((*--p == '/') || (*p == '\\')) )
-	  *p = '\0';
+	 { /* Note: Microsoft's implementation of stat() appears to choke
+	    * on directory path names with trailing slashes; thus, before
+	    * we invoke the directory processing routine, (which may need
+	    * to call stat(), to check if the specified directory already
+	    * exists), we remove any such trailing slashes.
+	    */
+	   char *p = pathname + sizeof( pathname ) - 1;
+	   while( (p > pathname) && ((*--p == '/') || (*p == '\\')) )
+	     *p = '\0';
+	 }
 
 	/* We are now ready to process the directory path name entry...
 	 */
@@ -371,156 +377,6 @@ int pkgTarArchiveProcessor::ProcessEntityData( int fd )
    * status code.
    */
   return status;
-}
-
-/* Here, we implement the methods for installing software from
- * packages which are distributed in the form of tar archives.
- *
- */
-#include <utime.h>
-
-static int commit_saved_entity( const char *pathname, time_t mtime )
-{
-  /* Helper to set the access and modification times for a file,
-   * after extraction from an archive, to match the specified "mtime";
-   * (typically "mtime" is as recorded within the archive).
-   */
-  struct utimbuf timestamp;
-
-  timestamp.actime = timestamp.modtime = mtime;
-  return utime( pathname, &timestamp );
-}
-
-pkgTarArchiveInstaller::
-pkgTarArchiveInstaller( pkgXmlNode *pkg ):pkgTarArchiveProcessor( pkg )
-{
-  /* Constructor: having set up the pkgTarArchiveProcessor base class,
-   * we add a package installation record to the sysroot entry in the
-   * XML database, and mark that sysroot entry as 'modified'.
-   */
-  if( (tarname != NULL) && (sysroot != NULL) && stream->IsReady() )
-  {
-    /* The installation record must identify, as a minimum,
-     * the canonical name of the package being installed.
-     */
-    installed = new pkgXmlNode( installed_key );
-    installed->SetAttribute( tarname_key, tarname );
-    if( pkgfile != tarname )
-    {
-      /* If the real package tarball name isn't identically
-       * the same as the canonical name, we record the real
-       * file name too.
-       */
-      pkgXmlNode *download = new pkgXmlNode( download_key );
-      download->SetAttribute( tarname_key, pkgfile );
-      installed->AddChild( download );
-    }
-
-    /* Set the 'modified' flag for, and attach the installation
-     * record to, the relevant sysroot record.
-     *
-     * FIXME: We should defer this until AFTER the archive has
-     * been successfully processed, (in the destructor, perhaps?),
-     * cleaning up, and not updating the installation manifest,
-     * in the event of an archive processing failure.
-     */
-    sysroot->SetAttribute( modified_key, yes_value );
-    sysroot->AddChild( installed );
-  }
-}
-
-int pkgTarArchiveInstaller::ProcessDirectory( const char *pathname )
-{
-  /* Create the directory infrastructure required to support
-   * a specific package installation.
-   */
-#if DEBUGLEVEL < 5
-  int status;
-
-  if( (status = mkdir_recursive( pathname, 0755 )) == 0 )
-    /*
-     * Either the specified directory already exists,
-     * or we just successfully created it; attach a reference
-     * in the installation manifest for the current package.
-     */
-    UpdateInstallationManifest( dirname_key, pathname );
-
-  else
-    /* A required subdirectory could not be created;
-     * diagnose this failure.
-     */
-    dmh_notify( DMH_ERROR, "cannot create directory `%s'\n", pathname );
-
-#else
-  /* Debugging stub...
-   *
-   * FIXME:maybe adapt for 'dry-run' or 'verbose' use.
-   */
-  int status = 0;
-
-  dmh_printf(
-      "FIXME:ProcessDirectory<stub>:not executing: mkdir -p %s\n",
-       pathname
-    );
-#endif
-  return status;
-}
-
-int pkgTarArchiveInstaller::ProcessDataStream( const char *pathname )
-{
-  /* Extract file data from the archive, and copy it to the
-   * associated target file stream, if any.
-   */
-#if DEBUGLEVEL < 5
-  int fd = set_output_stream( pathname, octval( header.field.mode ) );
-  int status = ProcessEntityData( fd );
-  if( fd >= 0 )
-  {
-    /* File stream was written; close it...
-     */
-    close( fd );
-    if( status == 0 )
-    {
-      /* ...and on successful completion, commit it and
-       * record it in the installation database.
-       */
-      commit_saved_entity( pathname, octval( header.field.mtime ) );
-      UpdateInstallationManifest( filename_key, pathname );
-    }
-
-    else
-    {
-      /* The target file was not successfully and completely
-       * written; discard it, and diagnose failure.
-       */
-      unlink( pathname );
-      dmh_notify( DMH_ERROR, "%s: extraction failed\n", pathname );
-    }
-  }
-  return status;
-
-#else
-  /* Debugging stub...
-   *
-   * FIXME:maybe adapt for 'dry-run' or 'verbose' use.
-   */
-  dmh_printf(
-      "FIXME:ProcessDataStream<stub>:not extracting: %s\n",
-      pathname
-    );
-  return ProcessEntityData( -1 );
-#endif
-}
-
-void pkgTarArchiveInstaller::
-UpdateInstallationManifest( const char *key, const char *pathname )
-{
-  /* Write installation database records for directory
-   * and file entities created during archive extraction.
-   */
-  pkgXmlNode *dir = new pkgXmlNode( key );
-  dir->SetAttribute( pathname_key, pathname );
-  installed->AddChild( dir );
 }
 
 /* $RCSfile: tarproc.cpp,v $: end of file */

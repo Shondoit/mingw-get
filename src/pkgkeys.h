@@ -2,7 +2,7 @@
 /*
  * pkgkeys.c
  *
- * $Id: pkgkeys.h,v 1.6 2010/03/02 22:33:24 keithmarshall Exp $
+ * $Id: pkgkeys.h,v 1.7 2010/04/04 15:25:36 keithmarshall Exp $
  *
  * Written by Keith Marshall <keithmarshall@users.sourceforge.net>
  * Copyright (C) 2010, MinGW Project
@@ -53,6 +53,7 @@ EXTERN_C_DECL const char *installed_key;
 EXTERN_C_DECL const char *issue_key;
 EXTERN_C_DECL const char *le_key;
 EXTERN_C_DECL const char *lt_key;
+EXTERN_C_DECL const char *manifest_key;
 EXTERN_C_DECL const char *mirror_key;
 EXTERN_C_DECL const char *modified_key;
 EXTERN_C_DECL const char *name_key;
@@ -61,6 +62,7 @@ EXTERN_C_DECL const char *package_collection_key;
 EXTERN_C_DECL const char *package_list_key;
 EXTERN_C_DECL const char *pathname_key;
 EXTERN_C_DECL const char *profile_key;
+EXTERN_C_DECL const char *reference_key;
 EXTERN_C_DECL const char *release_key;
 EXTERN_C_DECL const char *repository_key;
 EXTERN_C_DECL const char *requires_key;
