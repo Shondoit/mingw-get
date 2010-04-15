@@ -2,7 +2,7 @@
 /*
  * pkgbase.h
  *
- * $Id: pkgbase.h,v 1.7 2010/04/02 08:38:04 keithmarshall Exp $
+ * $Id: pkgbase.h,v 1.8 2010/04/15 20:17:34 keithmarshall Exp $
  *
  * Written by Keith Marshall <keithmarshall@users.sourceforge.net>
  * Copyright (C) 2009, 2010, MinGW Project
@@ -326,12 +326,12 @@ class pkgXmlDocument : public TiXmlDocument
     unsigned long request;
     pkgActionItem* actions;
 
+  public:
     /* Method to synchronise the state of the local package manifest
      * with the master copy held on the distribution server.
      */
     void SyncRepository( const char*, pkgXmlNode* );
 
-  public:
     /* Method to merge content from repository-specific package lists
      * into the central XML package database.
      */

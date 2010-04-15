@@ -1,3 +1,14 @@
+2010-04-15  Keith Marshall  <keithmarshall@users.sourceforge.net>
+
+	Enable recursive processing of repository package lists.
+
+	* src/pkgbase.h (pkgXmlDocument::SyncRepository): Make it public.
+
+	* src/pkgbind.cpp (pkgRepository): New locally defined and implemented
+	class; it facilitates recursive loading and parsing of package lists,
+	replacing much of the original non-recursive functionality within...
+	(pkgXmlDocument::BindRepositories): ...this; use it.
+
 2010-04-04  Keith Marshall  <keithmarshall@users.sourceforge.net>
 
 	Implement installer function; use per-package file manifests.
