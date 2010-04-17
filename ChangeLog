@@ -1,3 +1,11 @@
+2010-04-17  Keith Marshall  <keithmarshall@users.sourceforge.net>
+
+	Case-insensitive subsystem name matching revisited.
+
+	* src/pkgfind.cpp (pkgXmlDocument::FindPackageByName): Use...
+	(subsystem_strcmp): ...this to match subsystem names, instead of...
+	(match_if_explicit): ...this.
+
 2010-04-15  Keith Marshall  <keithmarshall@users.sourceforge.net>
 
 	Enable recursive processing of repository package lists.

@@ -1,7 +1,7 @@
 /*
  * pkgfind.cpp
  *
- * $Id: pkgfind.cpp,v 1.3 2010/03/01 22:09:04 keithmarshall Exp $
+ * $Id: pkgfind.cpp,v 1.4 2010/04/17 12:43:05 keithmarshall Exp $
  *
  * Written by Keith Marshall <keithmarshall@users.sourceforge.net>
  * Copyright (C) 2009, 2010, MinGW Project
@@ -45,7 +45,7 @@ pkgXmlDocument::FindPackageByName( const char *name, const char *subsystem )
     /* Select only "package-collection" elements...
      */
     if( dir->IsElementOfType( package_collection_key )
-    &&  match_if_explicit( subsystem, dir->GetPropVal( subsystem_key, NULL )) )
+    &&  subsystem_strcmp( subsystem, dir->GetPropVal( subsystem_key, NULL )) )
     {
       /* ...inspect the content of each...
        */
