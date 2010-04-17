@@ -1,6 +1,6 @@
 # configure.ac -*- autoconf -*- vim: filetype=config
 #
-# $Id: configure.ac,v 1.4 2010/02/16 21:58:06 keithmarshall Exp $
+# $Id: configure.ac,v 1.5 2010/04/17 22:18:08 keithmarshall Exp $
 #
 # Written by Keith Marshall <keithmarshall@users.sourceforge.net>
 # Copyright (C) 2009, 2010, MinGW Project
@@ -40,6 +40,16 @@
 # We also need a lexical analyser generator
 #
   AC_PROG_LEX
+
+# Ensure that (at least the headers for) prerequisite libraries,
+# zlib, libbz2 and liblzma are available
+#
+  AC_CHECK_HEADER([zlib.h],,MINGW_AC_ASSERT_MISSING([zlib],
+    [libz-1.2.3-1-mingw32-dev.tar.gz]))
+  AC_CHECK_HEADER([bzlib.h],,MINGW_AC_ASSERT_MISSING([libbz2],
+    [bzip2-1.0.5-2-mingw32-dev.tar.gz]))
+  AC_CHECK_HEADER([lzma.h],,MINGW_AC_ASSERT_MISSING([liblzma],
+    [liblzma-4.999.9beta_20091209-3-mingw32-dev.tar.bz2]))
 
 # Set up the archive librarian, to match our compiler settings
 #

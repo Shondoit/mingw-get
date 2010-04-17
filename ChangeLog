@@ -1,5 +1,17 @@
 2010-04-17  Keith Marshall  <keithmarshall@users.sourceforge.net>
 
+	Add configure script checks for prerequisite library headers.
+	(Thanks to Cesar Strauss for proposing a rudimentary implementation).
+
+	* aclocal.m4: New file; it does no more than include...
+	* m4/missing.m4: ...this; new file incorporated from build-aux module.
+
+	* configure.ac: Add AC_CHECK_HEADER assertions for...
+	(zlib.h, bzlib.h, lzma.h): ...these; invoke MINGW_AC_ASSERT_MISSING in
+	respect of each failing assertion.
+
+2010-04-17  Keith Marshall  <keithmarshall@users.sourceforge.net>
+
 	Case-insensitive subsystem name matching revisited.
 
 	* src/pkgfind.cpp (pkgXmlDocument::FindPackageByName): Use...
