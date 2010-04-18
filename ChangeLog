@@ -1,3 +1,15 @@
+2010-04-18  Keith Marshall  <keithmarshall@users.sourceforge.net>
+
+	Correct omission from configure script prerequisite checks.
+
+	* aclocal.m4 (MINGW_AC_OUTPUT): New macro; it wraps AC_OUTPUT itself,
+	adding a trap to force an abort if any preceding prerequisite check
+	was handled by MINGW_AC_ASSERT_MISSING.
+
+	* configure.ac: Qualify package component types, in prerequisite
+	checks handled by MINGW_AC_ASSERT_MISSING; invoke MINGW_AC_OUTPUT
+	in place of AC_OUTPUT.
+
 2010-04-17  Keith Marshall  <keithmarshall@users.sourceforge.net>
 
 	Add configure script checks for prerequisite library headers.

@@ -1,6 +1,6 @@
 # aclocal.m4 -*- autoconf -*- vim: filetype=config
 #
-# $Id: aclocal.m4,v 1.1 2010/04/17 22:18:08 keithmarshall Exp $
+# $Id: aclocal.m4,v 1.2 2010/04/18 09:09:58 keithmarshall Exp $
 #
 # Written by Keith Marshall <keithmarshall@users.sourceforge.net>
 # Copyright (C) 2009, 2010, MinGW Project
@@ -22,6 +22,16 @@
 # MinGW Project, accept liability for any damages, however caused,
 # arising from the use of this software.
 #
-  m4_include([m4/missing.m4])
+m4_include([m4/missing.m4])
+
+# MINGW_AC_OUTPUT
+# ---------------
+# A wrapper for AC_OUTPUT itself, to ensure that missing prerequisite
+# checks are completed, before the final output stage.
+#
+AC_DEFUN([MINGW_AC_OUTPUT],
+[AC_REQUIRE([_MINGW_AC_ABORT_IF_MISSING_PREREQ])dnl
+ AC_OUTPUT($@)dnl
+])# MINGW_AC_OUTPUT
 #
 # $RCSfile: aclocal.m4,v $: end of file

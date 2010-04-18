@@ -1,6 +1,6 @@
 # configure.ac -*- autoconf -*- vim: filetype=config
 #
-# $Id: configure.ac,v 1.5 2010/04/17 22:18:08 keithmarshall Exp $
+# $Id: configure.ac,v 1.6 2010/04/18 09:09:58 keithmarshall Exp $
 #
 # Written by Keith Marshall <keithmarshall@users.sourceforge.net>
 # Copyright (C) 2009, 2010, MinGW Project
@@ -44,11 +44,11 @@
 # Ensure that (at least the headers for) prerequisite libraries,
 # zlib, libbz2 and liblzma are available
 #
-  AC_CHECK_HEADER([zlib.h],,MINGW_AC_ASSERT_MISSING([zlib],
+  AC_CHECK_HEADER([zlib.h],,MINGW_AC_ASSERT_MISSING([zlib-dev],
     [libz-1.2.3-1-mingw32-dev.tar.gz]))
-  AC_CHECK_HEADER([bzlib.h],,MINGW_AC_ASSERT_MISSING([libbz2],
+  AC_CHECK_HEADER([bzlib.h],,MINGW_AC_ASSERT_MISSING([libbz2-dev],
     [bzip2-1.0.5-2-mingw32-dev.tar.gz]))
-  AC_CHECK_HEADER([lzma.h],,MINGW_AC_ASSERT_MISSING([liblzma],
+  AC_CHECK_HEADER([lzma.h],,MINGW_AC_ASSERT_MISSING([liblzma-dev],
     [liblzma-4.999.9beta_20091209-3-mingw32-dev.tar.bz2]))
 
 # Set up the archive librarian, to match our compiler settings
@@ -70,6 +70,6 @@
 # Establish the product version banner, and create a makefile
 #
   AC_CONFIG_FILES([version.c Makefile])
-  AC_OUTPUT
+  MINGW_AC_OUTPUT
 #
 # $RCSfile: configure.ac,v $: end of file
