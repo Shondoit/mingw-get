@@ -2,7 +2,7 @@
 /*
  * vercmp.cpp
  *
- * $Id: vercmp.cpp,v 1.2 2010/01/26 21:07:18 keithmarshall Exp $
+ * $Id: vercmp.cpp,v 1.3 2010/04/29 17:13:15 keithmarshall Exp $
  *
  * Written by Keith Marshall <keithmarshall@users.sourceforge.net>
  * Copyright (C) 2009, 2010, MinGW Project
@@ -26,14 +26,20 @@
  *
  */
 #include "vercmp.h"
+#include <string.h>
 
 pkgVersionInfo::pkgVersionInfo( const char* version, const char* build )
 {
   /* Constructor...
-   * Decompose given version number string, storing components
-   * within the specified class structure.
+   * Decompose given version number and build serial number strings,
+   * storing components within the specified class structure.
+   *
+   * Note that the strings to be parsed are invariant, (and it is
+   * necessary that they be so), but we need to create modifiable
+   * copies to facilitate decomposition...
    */
-  const char *p = version ? version : "";
+  char *wildcard = build_string = NULL;
+  char *p = version_string = strdup( version ? version : "" );
 
   /* Walking over all version number constituent elements...
    */
@@ -49,43 +55,68 @@ pkgVersionInfo::pkgVersionInfo( const char* version, const char* build )
       /*
        * ...select second argument for parsing.
        */
-      p = build;
+      p = build_string = strdup( build );
 
-    /* When parsing a numeric argument...
+    /* When parsing an explicitly specified numeric argument...
      */
     while( (*p >= '0') && ((*p - '0') < 10) )
-      /*
-       * ...accumulate its ultimate value.
+    {
+      /* ...accumulate its ultimate value, and clear any prior
+       * "wildcard" matching request which may have been carried
+       * forward from the preceding field specification.
        */
       value = *p++ - '0' + 10 * value;
+      wildcard = NULL;
+    }
 
-    /* Store it, and note presence of any suffix.
+    /* Store it, note the presence of any suffix, and establish
+     * the control state for a possible "wildcard" match.
      */
     version_elements[index].value = value;
     version_elements[index].suffix = p;
+    if( (value == 0L) && (*p == '*') )
+      wildcard = p++;
 
-    /* Skip forward to next element field delimiter.
+    /* Skip forward to next element field delimiter, clearing any
+     * active "wildcard" matching request, if the "suffix" doesn't
+     * represent a pure "wildcard" designator.
      */
     while( *p && (*p != '.') && (*p != '-') )
-      ++p;
+      if( *p++ != '*' ) wildcard = NULL;
 
+    /* Evaluate the current field delimiter, to identify the type
+     * of the following field (if any)...
+     */
     if( (*p == '-') || ((*p == '\0') && (build != NULL)) )
       /*
-       * If we hit the end of the version number,
+       * ...and, if we hit the end of the version number,
        * before we filled out all of its possible elements,
-       * then zero the remainder, before we progress to
-       * capture the build serial number.
+       * then zero the remainder, (while preserving "wildcard"
+       * matching state), before we progress to capture the
+       * build serial number.
        */
       while( index < VERSION_PATCHLEVEL )
       {
 	version_elements[++index].value = 0L;
-	version_elements[index].suffix = p;
+	version_elements[index].suffix = wildcard ? wildcard : p;
       }
 
-    /* Step over any delimiter, which demarcates the current
-     * version number or build serial number element field.
+    /* If "wildcard" matching is in the active state, by the time
+     * we get to here, then it may have been activated for this field,
+     * or it may have been passed forward from a preceding field...
      */
-    if( *p ) ++p;
+    if( wildcard )
+      /*
+       * ...we don't know which applies, so we unconditionally adjust
+       * the "suffix" pointer, to ensure that the state is recorded.
+       */
+      version_elements[index].suffix = wildcard;
+
+    /* Step over any delimiter, which demarcates the current
+     * version number or build serial number element field, while
+     * ensuring that the decomposed field is properly terminated.
+     */
+    if( *p ) *p++ = '\0';
   }
 }
 
@@ -95,8 +126,26 @@ long pkgVersionInfo::Compare( const pkgVersionInfo& rhs, int index )
    * corresponding element of a reference (rhs) version specification; return
    * <0L, 0L or >0L for less than, equal to or greater than rhs respectively.
    */
-  long cmp = version_elements[index].value - rhs.version_elements[index].value;
-  if( cmp == 0L )
+  long cmpval;
+  if( (cmpval = rhs.version_elements[index].value) == 0L )
+  {
+    /* In the special case where the reference value is zero...
+     */
+    const char *p = rhs.version_elements[index].suffix;
+    if( (p != NULL) && (p[0] == '*') && (p[1] == '\0') )
+    {
+      /* ...and where it has an explicit suffix which is identically
+       * equal to the string "*", then it represents a "wildcard" match,
+       * which unconditionally matches everything as "equal".
+       */
+      return 0L;
+    }
+  }
+
+  /* When we didn't match a "wildcard"...
+   * we fall through to here, and proceed with a normal comparison.
+   */
+  if( (cmpval = version_elements[index].value - cmpval) == 0L )
   {
     /* The specified element values are identically equal;
      * discriminate on suffixes, if any...
@@ -125,10 +174,10 @@ long pkgVersionInfo::Compare( const pkgVersionInfo& rhs, int index )
     /* Compute return value based on difference between the
      * mismatched characters, representing delimiters as NUL.
      */
-    cmp = (*p && (*p != '.') && (*p != '-')) ? (long)(*p) : 0L;
-    cmp -= (*r && (*r != '.') && (*r != '-')) ? (long)(*r) : 0L;
+    cmpval = (*p && (*p != '.') && (*p != '-')) ? (long)(*p) : 0L;
+    cmpval -= (*r && (*r != '.') && (*r != '-')) ? (long)(*r) : 0L;
   }
-  return cmp;
+  return cmpval;
 }
 
 bool pkgVersionInfo::operator<( const pkgVersionInfo& rhs )

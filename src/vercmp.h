@@ -2,7 +2,7 @@
 /*
  * vercmp.h
  *
- * $Id: vercmp.h,v 1.1 2009/11/16 21:54:30 keithmarshall Exp $
+ * $Id: vercmp.h,v 1.2 2010/04/29 17:13:15 keithmarshall Exp $
  *
  * Written by Keith Marshall <keithmarshall@users.sourceforge.net>
  * Copyright (C) 2009, MinGW Project
@@ -75,6 +75,7 @@ class pkgVersionInfo
      * be appended to the first, in the full format as above.
      */
     pkgVersionInfo( const char* version = "", const char* build = NULL );
+    inline ~pkgVersionInfo(){ Free( version_string ); Free( build_string ); }
 
     /* Package version comparison operators.
      */
@@ -88,11 +89,13 @@ class pkgVersionInfo
   private:
     /* The decomposed version/serial number elements.
      */
+    char *version_string, *build_string;
     struct version_t version_elements[VERSION_ELEMENT_COUNT];
 
     /* An internal comparison helper function
      */
     long Compare( const pkgVersionInfo&, int );
+    inline void Free( void *mem ){ if( mem != NULL ) free( mem ); }
 };
 
 #endif /* __cplusplus */

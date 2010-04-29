@@ -1,3 +1,24 @@
+2010-04-29  Keith Marshall  <keithmarshall@users.sourceforge.net>
+
+	Handle "*" wildcard matches in package and subsystem version strings.
+
+	* src/vercmp.h (pkgVersionInfo::version_string): New private member
+	variable; it stores a pointer to a dynamically allocated local copy of
+	the invariant `version' argument, to facilitate correct parsing.
+	(pkgVersionInfo::build_string): Likewise; it provides similar handling
+	for the invariant `build' argument.
+	(pkgVersionInfo::Free): New private inline method; it provides a NULL
+	pointer safe wrapper, calling the C library `free()' function, (since
+	some implementations are believed to be unsafe); it is used by...
+	(pkgVersionInfo::~pkgVersionInfo): ...this new inline destructor, to
+	release the memory allocated by the constructor, for `version_string'
+	and `build_string'.
+
+	* src/vercmp.cpp (pkgVersionInfo::pkgVersionInfo): Allocate memory for
+	`version_string' and `build_string', as required; populate it.
+	Explicitly handle "*" as a `match anything' wildcard...
+	(pkgVersionInfo::Compare): ...matching it as `equal' to everything.
+
 2010-04-18  Keith Marshall  <keithmarshall@users.sourceforge.net>
 
 	Correct omission from configure script prerequisite checks.
