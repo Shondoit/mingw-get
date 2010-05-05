@@ -1,7 +1,7 @@
 /*
  * pkgexec.cpp
  *
- * $Id: pkgexec.cpp,v 1.7 2010/04/04 15:25:36 keithmarshall Exp $
+ * $Id: pkgexec.cpp,v 1.8 2010/05/05 20:34:17 keithmarshall Exp $
  *
  * Written by Keith Marshall <keithmarshall@users.sourceforge.net>
  * Copyright (C) 2009, 2010, MinGW Project
@@ -230,51 +230,6 @@ pkgActionItem::GetReference( pkgActionItem& item )
   return NULL;
 }
 
-const char * pkgActionItem::SetRequirements( pkgXmlNode *req )
-{
-  /* Establish the selection criteria, for association of any
-   * particular package release with an action item.
-   */
-  flags &= ACTION_MASK;
-
-  /* First check for a strict equality requirement...
-   */
-  if( (min_wanted = req->GetPropVal( eq_key, NULL )) != NULL )
-    /*
-     * ...and if specified, set the selection range such that
-     * only the one specific release can match.
-     */
-    max_wanted = min_wanted;
-
-  else
-  { /* Check for either an inclusive, or a strictly exclusive,
-     * minimum requirement (release "greater" than) specification,
-     * setting the minimum release selector...
-     */
-    if( ((min_wanted = req->GetPropVal( ge_key, NULL )) == NULL)
-    &&  ((min_wanted = req->GetPropVal( gt_key, NULL )) != NULL)  )
-      /*
-       * ...and its selection mode flag accordingly.
-       */
-      flags |= STRICTLY_GT;
-
-    /* Similarly, check for an inclusive, or a strictly exclusive,
-     * maximum requirement (release "less" than) specification,
-     * setting the maximum release selector...
-     */
-    if( ((max_wanted = req->GetPropVal( le_key, NULL )) == NULL)
-    &&  ((max_wanted = req->GetPropVal( lt_key, NULL )) != NULL)  )
-      /*
-       * ...and its selection mode flag accordingly.
-       */
-      flags |= STRICTLY_LT;
-  }
-
-  /* Return a canonical representation of the requirements spec.
-   */
-  return (min_wanted == NULL) ? max_wanted : min_wanted;
-}
-
 pkgXmlNode *pkgActionItem::SelectIfMostRecentFit( pkgXmlNode *package )
 {
   /* Assign "package" as the "selection" for the referring action item,
@@ -391,6 +346,30 @@ void pkgActionItem::Execute()
       current = current->next;
     }
   }
+}
+
+pkgActionItem::~pkgActionItem()
+{
+  /* Destructor...
+   * The package version range selectors, "min_wanted" and "max_wanted",
+   * are always allocated storage space on the heap; we need to free that,
+   * before we destroy the reference pointers.
+   */
+  if( (max_wanted != NULL) && (max_wanted != min_wanted) )
+    /*
+     * "max_wanted" is non-NULL, and is distinct, (i.e. it doesn't
+     * represent an equality constraint which shares a reference with
+     * "min_wanted"); we need to free it independently.
+     */
+    free( (void *)(max_wanted) );
+
+  if( min_wanted != NULL )
+    /*
+     * "min_wanted" is non-NULL; we don't care if it is distinct,
+     * because if not, freeing it is required anyway, to also free
+     * the same memory referenced by "max_wanted".
+     */
+    free( (void *)(min_wanted) );
 }
 
 /* $RCSfile: pkgexec.cpp,v $: end of file */

@@ -2,10 +2,10 @@
 /*
  * pkginfo.h
  *
- * $Id: pkginfo.h,v 1.1 2009/10/12 21:35:29 keithmarshall Exp $
+ * $Id: pkginfo.h,v 1.2 2010/05/05 20:34:17 keithmarshall Exp $
  *
  * Written by Keith Marshall <keithmarshall@users.sourceforge.net>
- * Copyright (C) 2009, MinGW Project
+ * Copyright (C) 2009, 2010, MinGW Project
  *
  *
  * Public interface for the package tarname interpreter.  Provides
@@ -13,10 +13,10 @@
  * which is implemented as a "flex" scanner in file "pkginfo.l", to
  * be accessed via the "get_pkginfo()" function.
  *
- * When included by "C++" code, it also defines the interface
- * for the "pkgSpecs" class, which is used by the package manager,
- * for convenient evaluation and comparison of package attributes, 
- * based on examination of the package tarname.
+ * When included by "C++" code, it also defines the interface for
+ * the "pkgSpecs" class, which is used by the package manager, for
+ * convenient evaluation, comparison and manipulation of package
+ * attributes, based on examination of the package tarname.
  *
  *
  * This is free software.  Permission is granted to copy, modify and
@@ -109,6 +109,11 @@ class pkgSpecs
     pkginfo_t  specs;		/* pkginfo data array */
     void      *content;		/* buffer to hold its content */
 
+    /* Internal method to facilitate manipulation of individual
+     * property field values.
+     */
+    const char *SetProperty( int, const char* );
+
   public:
     /* Constructors...
      */
@@ -126,18 +131,105 @@ class pkgSpecs
 
     /* Accessors...
      */
-    inline const char *GetPackageName(){ return specs[PACKAGE_NAME]; }
-    inline const char *GetPackageVersion(){ return specs[PACKAGE_VERSION]; }
-    inline const char *GetPackageBuild(){ return specs[PACKAGE_BUILD]; }
-    inline const char *GetSubSystemName(){ return specs[PACKAGE_SUBSYSTEM_NAME]; }
-    inline const char *GetSubSystemVersion(){ return specs[PACKAGE_SUBSYSTEM_VERSION]; }
-    inline const char *GetSubSystemBuild(){ return specs[PACKAGE_SUBSYSTEM_BUILD]; }
-    inline const char *GetReleaseStatus(){ return specs[PACKAGE_RELEASE_STATUS]; }
-    inline const char *GetReleaseIndex(){ return specs[PACKAGE_RELEASE_INDEX]; }
-    inline const char *GetComponentClass(){ return specs[PACKAGE_COMPONENT_CLASS]; }
-    inline const char *GetComponentVersion(){ return specs[PACKAGE_COMPONENT_VERSION]; }
-    inline const char *GetPackageFormat(){ return specs[PACKAGE_FORMAT]; }
-    inline const char *GetCompressionType(){ return specs[PACKAGE_COMPRESSION_TYPE]; }
+    inline const char *GetPackageName()
+    {
+      return specs[PACKAGE_NAME];
+    }
+    inline const char *GetPackageVersion()
+    {
+      return specs[PACKAGE_VERSION];
+    }
+    inline const char *GetPackageBuild()
+    {
+      return specs[PACKAGE_BUILD];
+    }
+    inline const char *GetSubSystemName()
+    {
+      return specs[PACKAGE_SUBSYSTEM_NAME];
+    }
+    inline const char *GetSubSystemVersion()
+    {
+      return specs[PACKAGE_SUBSYSTEM_VERSION];
+    }
+    inline const char *GetSubSystemBuild()
+    {
+      return specs[PACKAGE_SUBSYSTEM_BUILD];
+    }
+    inline const char *GetReleaseStatus()
+    {
+      return specs[PACKAGE_RELEASE_STATUS];
+    }
+    inline const char *GetReleaseIndex()
+    {
+      return specs[PACKAGE_RELEASE_INDEX];
+    }
+    inline const char *GetComponentClass()
+    {
+      return specs[PACKAGE_COMPONENT_CLASS];
+    }
+    inline const char *GetComponentVersion()
+    {
+      return specs[PACKAGE_COMPONENT_VERSION];
+    }
+    inline const char *GetPackageFormat()
+    {
+      return specs[PACKAGE_FORMAT];
+    }
+    inline const char *GetCompressionType()
+    {
+      return specs[PACKAGE_COMPRESSION_TYPE];
+    }
+
+    /* Manipulators...
+     */
+    inline const char *SetPackageName( const char *value )
+    {
+      return SetProperty( PACKAGE_NAME, value );
+    }
+    inline const char *SetPackageVersion( const char *value )
+    {
+      return SetProperty( PACKAGE_VERSION, value );
+    }
+    inline const char *SetPackageBuild( const char *value )
+    {
+      return SetProperty( PACKAGE_BUILD, value );
+    }
+    inline const char *SetSubSystemName( const char *value )
+    {
+      return SetProperty( PACKAGE_SUBSYSTEM_NAME, value );
+    }
+    inline const char *SetSubSystemVersion( const char *value )
+    {
+      return SetProperty( PACKAGE_SUBSYSTEM_VERSION, value );
+    }
+    inline const char *SetSubSystemBuild( const char *value )
+    {
+      return SetProperty( PACKAGE_SUBSYSTEM_BUILD, value );
+    }
+    inline const char *SetReleaseStatus( const char *value )
+    {
+      return SetProperty( PACKAGE_RELEASE_STATUS, value );
+    }
+    inline const char *SetReleaseIndex( const char *value )
+    {
+      return SetProperty( PACKAGE_RELEASE_INDEX, value );
+    }
+    inline const char *SetComponentClass( const char *value )
+    {
+      return SetProperty( PACKAGE_COMPONENT_CLASS, value );
+    }
+    inline const char *SetComponentVersion( const char *value )
+    {
+      return SetProperty( PACKAGE_COMPONENT_VERSION, value );
+    }
+    inline const char *SetPackageFormat( const char *value )
+    {
+      return SetProperty( PACKAGE_FORMAT, value );
+    }
+    inline const char *SetCompressionType( const char *value )
+    {
+      return SetProperty( PACKAGE_COMPRESSION_TYPE, value );
+    }
 
     /* Comparators...
      */
@@ -146,6 +238,16 @@ class pkgSpecs
     bool operator==( pkgSpecs& );
     bool operator>=( pkgSpecs& );
     bool operator>( pkgSpecs& );
+
+    /* Helper to reconstitute the associated tarname...
+     * The optional argument MUST either be a NULL pointer, or
+     * it MUST point to memory previously allocated by malloc();
+     * (the returned value is ALWAYS such a pointer, and the
+     * intent of the argument is to recycle the memory used
+     * for previous results, rather than to provide any
+     * pre-allocated buffer).
+     */
+    const char *GetTarName( const char* = NULL );
 };
 
 #endif /* __cplusplus */

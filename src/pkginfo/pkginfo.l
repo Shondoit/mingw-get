@@ -1,10 +1,10 @@
 /*
  * pkginfo.l
  *
- * $Id: pkginfo.l,v 1.1 2009/10/12 21:35:29 keithmarshall Exp $
+ * $Id: pkginfo.l,v 1.2 2010/05/05 20:34:17 keithmarshall Exp $
  *
  * Written by Keith Marshall <keithmarshall@users.sourceforge.net>
- * Copyright (C) 2009, MinGW Project
+ * Copyright (C) 2009, 2010, MinGW Project
  *
  *
  * A simple lexical analyser for decomposing package archive names into their
@@ -140,7 +140,7 @@ STATUS_KEYWORDS (alpha|beta|stable)
     yyless( 0 );
   }
 
-<TRANS>([&*]|[^-0-9.][^-.]+)(-[0-9][^-.]*){0,1}(\.[^-.]+){1,2}\? {
+<TRANS>([%&*]|[^-0-9.][^-.]+)(-[0-9][^-.]*){0,1}(\.[^-.]+){1,2}\? {
     /*
      * Transitional case rule...
      * Identify a following terminal <type-id> sequence; set up
@@ -154,7 +154,7 @@ STATUS_KEYWORDS (alpha|beta|stable)
     yyless( 0 );
   }
 
-<TRANS>([&*][.-])|([0-9]+[.-]) {
+<TRANS>([%&*][.-])|([0-9]+[.-]) {
     /*
      * Transitional case rule...
      * Found a purely numeric following element, such as a <major>

@@ -2,7 +2,7 @@
 /*
  * pkgbase.h
  *
- * $Id: pkgbase.h,v 1.8 2010/04/15 20:17:34 keithmarshall Exp $
+ * $Id: pkgbase.h,v 1.9 2010/05/05 20:34:17 keithmarshall Exp $
  *
  * Written by Keith Marshall <keithmarshall@users.sourceforge.net>
  * Copyright (C) 2009, 2010, MinGW Project
@@ -70,6 +70,8 @@
 #  define CASE_INSENSITIVE_FILESYSTEM  0
 # endif
 #endif
+
+class pkgSpecs;
 
 class pkgXmlNode : public TiXmlElement
 {
@@ -236,8 +238,8 @@ class pkgActionItem
     /* Methods for defining the selection criteria for
      * packages to be processed.
      */
-    const char* SetRequirements( pkgXmlNode* );
     pkgXmlNode* SelectIfMostRecentFit( pkgXmlNode* );
+    const char* SetRequirements( pkgXmlNode*, pkgSpecs* );
     inline void SelectPackage( pkgXmlNode *pkg, int opt = to_install )
     {
       /* Mark a package as the selection for a specified action.
@@ -254,6 +256,10 @@ class pkgActionItem
     /* Method for processing all scheduled actions.
      */
     void Execute();
+
+    /* Destructor...
+     */
+    ~pkgActionItem();
 };
 
 class pkgXmlDocument : public TiXmlDocument

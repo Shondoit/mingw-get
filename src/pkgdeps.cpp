@@ -1,7 +1,7 @@
 /*
  * pkgdeps.cpp
  *
- * $Id: pkgdeps.cpp,v 1.2 2010/02/02 20:19:28 keithmarshall Exp $
+ * $Id: pkgdeps.cpp,v 1.3 2010/05/05 20:34:17 keithmarshall Exp $
  *
  * Written by Keith Marshall <keithmarshall@users.sourceforge.net>
  * Copyright (C) 2009, 2010, MinGW Project
@@ -127,6 +127,9 @@ pkgXmlDocument::ResolveDependencies( pkgXmlNode* package, pkgActionItem* rank )
    * of such prerequisites, and finally, extend the search to capture
    * additional dependencies common to the containing package group.
    */
+  pkgSpecs *refdata = NULL;
+  pkgXmlNode *refpkg = package;
+
   while( package != NULL )
   {
     /* We have a valid XML entity, which may identify dependencies;
@@ -140,10 +143,24 @@ pkgXmlDocument::ResolveDependencies( pkgXmlNode* package, pkgActionItem* rank )
        */
       pkgXmlNode *installed = NULL;
 
+      /* To facilitate resolution of "%" version matching wildcards
+       * in the requirements specification, we need to parse the version
+       * specification for the current dependent package...
+       */
+      if( refdata == NULL )
+      {
+	/* ...but we deferred that until we knew for sure that it would
+	 * be needed; it is, so parse it now.
+	 */
+	const char *refname;
+	if( (refname = refpkg->GetPropVal( tarname_key, NULL )) != NULL )
+	  refdata = new pkgSpecs( refname );
+      }
+
       /* Identify the prerequisite package, from its canonical name...
        */
       pkgActionItem wanted; pkgXmlNode *selected;
-      pkgSpecs req( wanted.SetRequirements( dep ) );
+      pkgSpecs req( wanted.SetRequirements( dep, refdata ) );
       /*
        * (Both the package name, and subsystem if specified, must match)...
        */
@@ -246,6 +263,7 @@ pkgXmlDocument::ResolveDependencies( pkgXmlNode* package, pkgActionItem* rank )
      */
     package = package->GetParent();
   }
+  delete refdata;
 }
 
 void pkgXmlDocument::Schedule( unsigned long action, const char* name )

@@ -1,3 +1,38 @@
+2010-05-05  Keith Marshall  <keithmarshall@users.sourceforge.net>
+
+	Handle "%" wildcard matches in package and subsystem version strings.
+
+	* src/pkgbase.h (pkgSpecs): Forward declare it.
+	(pkgActionItem::~pkgActionItem): Declare explicit destructor.
+	(pkgActionItem::SetRequirements): Add extra `pkgSpecs*' argument;
+	update references, passing additional argument in...
+
+	* src/pkgdeps.cpp (pkgXmlDocument::ResolveDependencies): ...this.
+
+	* src/pkgexec.cpp (pkgActionItem::~pkgActionItem): Implement it.
+	(pkgActionItem::SetRequirements): Delete obsolete implementation.
+
+	* src/pkginfo/pkginfo.h: Update copyright notice; add year 2010.
+	(pkgSpecs::GetTarName): New public method; declare it.
+	(pkgSpecs::SetProperty): New private method; declare it.
+	(pkgSpecs::SetPackageName): New inline method; implement it.
+	(pkgSpecs::SetPackageVersion, pkgSpecs::SetPackageBuild): Likewise.
+	(pkgSpecs::SetSubSystemName, pkgSpecs::SetSubSystemVersion): Likewise.
+	(pkgSpecs::SetSubSystemBuild, pkgSpecs::SetReleaseStatus): Likewise.
+	(pkgSpecs::SetReleaseIndex, pkgSpecs::SetComponentClass): Likewise.
+	(pkgSpecs::SetComponentVersion, pkgSpecs::SetPackageFormat): Likewise.
+	(pkgSpecs::SetCompressionType): Likewise.
+
+	* src/pkginfo/pkginfo.l: Update copyright notice; add year 2010.
+	(TRANS): Interpret "%" as wildcard in version string matches.
+
+	* src/pkgreqs.cpp: New file.
+	(pkgActionItem::SetRequirements): Reimplement per new declaration;
+	it now always allocates heap memory for requirements specifications.
+	(pkgSpecs::GetTarName, pkgSpecs::SetProperty): Implement them.
+
+	* Makefile.in (CORE_DLL_OBJECTS): Add `pkgreqs.$(OBJEXT)'.
+
 2010-04-30  Keith Marshall  <keithmarshall@users.sourceforge.net>
 
 	Revert 2010-04-04 refactoring of tarproc.cpp and tarinst.cpp

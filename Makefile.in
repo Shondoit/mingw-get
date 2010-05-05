@@ -1,6 +1,6 @@
 # @configure_input@
 #
-# $Id: Makefile.in,v 1.14 2010/04/30 20:25:06 keithmarshall Exp $
+# $Id: Makefile.in,v 1.15 2010/05/05 20:33:29 keithmarshall Exp $
 
 PACKAGE_TARNAME = @PACKAGE_TARNAME@
 PACKAGE_VERSION = @PACKAGE_VERSION@
@@ -56,8 +56,8 @@ CORE_DLL_OBJECTS = climain.$(OBJEXT) \
    pkgbind.$(OBJEXT) pkginet.$(OBJEXT) pkgstrm.$(OBJEXT) pkgname.$(OBJEXT) \
    pkgexec.$(OBJEXT) pkgfind.$(OBJEXT) pkginfo.$(OBJEXT) pkgspec.$(OBJEXT) \
    sysroot.$(OBJEXT) pkghash.$(OBJEXT) pkgkeys.$(OBJEXT) pkgdeps.$(OBJEXT) \
+   mkpath.$(OBJEXT)  pkgreqs.$(OBJEXT) pkginst.$(OBJEXT) tarproc.$(OBJEXT) \
    xmlfile.$(OBJEXT) keyword.$(OBJEXT) vercmp.$(OBJEXT)  dmh.$(OBJEXT) \
-   mkpath.$(OBJEXT)  pkginst.$(OBJEXT) tarproc.$(OBJEXT) \
    tinyxml.$(OBJEXT) tinyxmlparser.$(OBJEXT) \
    tinystr.$(OBJEXT) tinyxmlerror.$(OBJEXT)
 
