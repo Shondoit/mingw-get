@@ -1,7 +1,7 @@
 /*
  * pkgexec.cpp
  *
- * $Id: pkgexec.cpp,v 1.8 2010/05/05 20:34:17 keithmarshall Exp $
+ * $Id: pkgexec.cpp,v 1.9 2010/05/11 21:17:54 keithmarshall Exp $
  *
  * Written by Keith Marshall <keithmarshall@users.sourceforge.net>
  * Copyright (C) 2009, 2010, MinGW Project
@@ -32,6 +32,14 @@
 #include "pkginfo.h"
 #include "pkgtask.h"
 #include "pkgproc.h"
+
+/* FIXME: temporarily establish "install" behaviour as if the
+ * "--reinstall" option is selected; remove this kludge, when we
+ * have an effective "uninstall" implementation, and have provided
+ * a mechanism for specifying options.
+ */
+#define pkgOptionSelected( OPT )  OPT
+#define PKG_OPTION_REINSTALL	  true
 
 EXTERN_C const char *action_name( unsigned long index )
 {
@@ -324,7 +332,7 @@ void pkgActionItem::Execute()
       if( (current->flags & ACTION_REMOVE) == ACTION_REMOVE )
       {
 	/* The selected package has been marked for removal, either explicitly,
-	 * or as an implicit prerequisite for upgrade; search to installed system
+	 * or as an implicit prerequisite for upgrade; search the installed system
 	 * manifest, to identify the specific version (if any) to be removed.
 	 *
 	 * FIXME: This implementation is a stub, to be rewritten when the system
@@ -335,11 +343,16 @@ void pkgActionItem::Execute()
       }
 
       if( (current->flags & ACTION_INSTALL) == ACTION_INSTALL )
-	/*
-	 * The selected package has been marked for installation, either explicitly,
+      {
+	/* The selected package has been marked for installation, either explicitly,
 	 * or implicitly to complete a package upgrade.
 	 */
+	pkgXmlNode *tmp = current->Selection( to_remove );
+	if( pkgOptionSelected( PKG_OPTION_REINSTALL ) )
+	  current->selection[ to_remove ] = NULL;
 	pkgInstall( current );
+	current->selection[ to_remove ] = tmp;
+      }
 
       /* Proceed to next package with scheduled actions.
        */

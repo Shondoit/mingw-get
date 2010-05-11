@@ -1,5 +1,16 @@
 2010-05-11  Keith Marshall  <keithmarshall@users.sourceforge.net>
 
+	Add preliminary support for future `-reinstall' option.
+
+	* src/pkgexec.cpp (pkgActionItem::Execute) [ACTION_INSTALL]: Force
+	installation if `-reinstall' option is selected, overriding state of
+	any prior installation; temporarily assume that this option is always
+	selected, to permit proper `upgrade' operation in the absence of any
+	functional `uninstall' capability, and pending implementation of a
+	mechanism for interpreting user specified options.
+
+2010-05-11  Keith Marshall  <keithmarshall@users.sourceforge.net>
+
 	Correct handling for "%R" macro in relative sysroot path specs.
 
 	* src/tarproc.cpp (pkgTarArchiveProcessor): In constructor, expand the
