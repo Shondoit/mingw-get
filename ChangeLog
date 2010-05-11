@@ -1,3 +1,11 @@
+2010-05-11  Keith Marshall  <keithmarshall@users.sourceforge.net>
+
+	Correct handling for "%R" macro in relative sysroot path specs.
+
+	* src/tarproc.cpp (pkgTarArchiveProcessor): In constructor, expand the
+	sysroot path specification a second time, to capture the effect of any
+	embedded macros, before computing the recorded `sysroot_len' value.
+
 2010-05-05  Keith Marshall  <keithmarshall@users.sourceforge.net>
 
 	Handle "%" wildcard matches in package and subsystem version strings.
