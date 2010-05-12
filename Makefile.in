@@ -1,6 +1,6 @@
 # @configure_input@
 #
-# $Id: Makefile.in,v 1.15 2010/05/05 20:33:29 keithmarshall Exp $
+# $Id: Makefile.in,v 1.16 2010/05/12 18:16:27 keithmarshall Exp $
 
 PACKAGE_TARNAME = @PACKAGE_TARNAME@
 PACKAGE_VERSION = @PACKAGE_VERSION@
@@ -112,11 +112,14 @@ installdirs:
 	$(mkinstalldirs) ${libexecdir}/${PACKAGE_TARNAME}
 	$(mkinstalldirs) ${PACKAGE_CONFIG_DIR}
 
-install: installdirs
+install: installdirs install-profile
 	$(INSTALL_PROGRAM) pkginfo$(EXEEXT) ${bindir}
 	$(INSTALL_PROGRAM) mingw-get$(EXEEXT) ${bindir}
 	$(INSTALL_DATA) mingw-get-0.dll ${libexecdir}/${PACKAGE_TARNAME}
-	$(INSTALL_DATA) ${srcdir}/xml/profile.xml ${PACKAGE_CONFIG_DIR}
+
+install-profile:
+	$(INSTALL_DATA) ${srcdir}/xml/profile.xml \
+	  ${PACKAGE_CONFIG_DIR}/defaults.xml
 
 install-strip: install
 	$(STRIP) ${bindir}/pkginfo$(EXEEXT)

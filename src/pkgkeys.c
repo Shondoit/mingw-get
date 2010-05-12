@@ -1,7 +1,7 @@
 /*
  * pkgkeys.c
  *
- * $Id: pkgkeys.c,v 1.7 2010/04/04 15:25:36 keithmarshall Exp $
+ * $Id: pkgkeys.c,v 1.8 2010/05/12 18:16:27 keithmarshall Exp $
  *
  * Written by Keith Marshall <keithmarshall@users.sourceforge.net>
  * Copyright (C) 2010, MinGW Project
@@ -30,6 +30,7 @@ const char *application_key	    =	"application";
 const char *catalogue_key	    =	"catalogue";
 const char *class_key		    =	"class";
 const char *component_key	    =	"component";
+const char *defaults_key	    =	"defaults";
 const char *dirname_key 	    =	"dir";
 const char *download_key	    =	"download";
 const char *download_host_key	    =	"download-host";
@@ -46,20 +47,20 @@ const char *manifest_key	    =	"manifest";
 const char *mirror_key		    =	"mirror";
 const char *modified_key	    =	"modified";
 const char *name_key		    =	"name";
-const char *package_key		    =	"package";
+const char *package_key 	    =	"package";
 const char *package_collection_key  =	"package-collection";
 const char *package_list_key	    =	"package-list";
 const char *pathname_key	    =	"path";
-const char *profile_key		    =	"profile";
+const char *profile_key 	    =	"profile";
 const char *reference_key	    =	"references";
-const char *release_key		    =	"release";
+const char *release_key 	    =	"release";
 const char *repository_key	    =	"repository";
 const char *requires_key	    =	"requires";
 const char *source_key		    =	"source";
 const char *subsystem_key	    =	"subsystem";
 const char *sysmap_key		    =	"system-map";
-const char *sysroot_key		    =	"sysroot";
-const char *tarname_key		    =	"tarname";
+const char *sysroot_key 	    =	"sysroot";
+const char *tarname_key 	    =	"tarname";
 const char *uri_key		    =	"uri";
 
 /* Some standard values, which may be associated with certain
