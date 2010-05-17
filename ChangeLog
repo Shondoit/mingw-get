@@ -1,11 +1,19 @@
 2010-05-17  Keith Marshall  <keithmarshall@users.sourceforge.net>
 
+	Bump version for next release cycle.
+
+	* configure.ac (AC_INIT): Bump version suffix to alpha-3.
+
+2010-05-17  Keith Marshall  <keithmarshall@users.sourceforge.net>
+
 	mingw-get-0.1-mingw32-alpha-2 released.
 
 	* README: Add new release notes.
 
 	* xml/profile.xml: Update to use default referencing for...
 	(package-list.xml.lzma): ...this repository master catalogue.
+
+	* All files (r0-1-alpha-2): Tag assigned.
 
 2010-05-12  Keith Marshall  <keithmarshall@users.sourceforge.net>
 
