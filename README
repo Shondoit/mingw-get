@@ -1,6 +1,63 @@
-Release Notes for mingw-get-0.1-mingw32-alpha-1
+Release Notes for mingw-get-0.1-mingw32-alpha-2
 
-$Id: README,v 1.1 2010/02/16 20:51:07 keithmarshall Exp $
+$Id: README,v 1.2 2010/05/17 17:03:31 keithmarshall Exp $
+
+Preamble
+--------
+
+This is the second alpha release of mingw-get.  The majority of changes
+since the first alpha release are developer centric, with little end
+user impact.  Thus, users are advised to review the release notes for
+mingw-get-0.1-mingw32-alpha-1, (appended below); the procedure for the
+installation and usage of the alpha-2 release is similar to that for
+alpha-1, with a few minor user-visible changes.
+
+
+User Visible Changes for mingw-get-0.1-mingw32-alpha-2
+------------------------------------------------------
+
+- The var/lib/mingw-get/data/profile.xml file is no longer included in
+  the distribution tarball, (or zipfile); instead, a prototype for this
+  file is provided as var/lib/mingw-get/data/defaults.xml
+
+- The repository section of profile.xml may now omit any specific
+  reference to a named package-list catalogue, allowing mingw-get to
+  interrogate a default catalogue on the repository host.  Users who
+  have previously installed a modified profile.xml are advised to
+  incorporate changes to the repository definition from defaults.xml
+  into their profile.xml
+
+- Users who do not wish to provide a customised profile.xml are advised
+  to copy or rename the provided defaults.xml file to profile.xml; this
+  remains the preferred name for the configuration file, and mingw-get
+  will look for it first.  If it cannot be found, mingw-get will issue
+  a warning, before looking for defaults.xml as an alternative.
+
+- The structure of the repository catalogue has changed, to more readily
+  accommodate dynamic incremental distribution updates, without requiring
+  a corresponding update to mingw-get itself.  While this affects package
+  maintainers more than end users, such users are advised to perform a
+  regular `mingw-get update', at intervals of a few weeks, to capture
+  catalogue updates.
+
+- As a consequence of the preceding change, the list of packages known
+  to mingw-get is no longer restricted, as it was previously; additional
+  or more up-to-date packages may become available from time to time, as
+  individual package maintainers add the appropriate manifests to the
+  online repository catalogue; use `mingw-get update' to capture such
+  new and updated packages.
+
+At the time of this release, the packages recorded in the distribution
+manifest remain as for the alpha-1 release.  With the improved handling
+of manifests, additional (and more up-to-date) packages will be added
+soon after this release, and will become immediately available to users,
+on running `mingw-get update'.
+
+
+===============================================
+
+
+Release Notes for mingw-get-0.1-mingw32-alpha-1
 
 Preamble
 --------

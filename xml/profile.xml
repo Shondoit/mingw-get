@@ -1,13 +1,21 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <profile project="MinGW" application="mingw-get">
   <!--
-    $Id: profile.xml,v 1.2 2010/02/16 20:51:14 keithmarshall Exp $
+    $Id: profile.xml,v 1.3 2010/05/17 17:03:31 keithmarshall Exp $
 
     Written by Keith Marshall  <keithmarshall@users.sourceforge.net>
-    Copyright (C) 2009, MinGW Project
+    Copyright (C) 2009, 2010, MinGW Project
 
 
     Master configuration profile for mingw-get.
+
+    This file is user modifiable, to accommodate local customisation
+    of mingw-get's behaviour.  To avoid overwriting the user's local
+    customisations, when upgrading the mingw-get installation, this
+    file is distributed with the alternative name "defaults.xml"; a
+    locally customised version should always be renamed, so that it
+    may be identified as the preferentially loaded "profile.xml".
+
 
     This is free software.  Permission is granted to copy, modify and
     redistribute this software, under the provisions of the GNU General
@@ -30,13 +38,33 @@
       identified by substituting the catalogue name for the "%F" field
       in the uri specification.
 
-      FIXME: package lists specified here will inhibit searching of any
-      master index maintained on the repository server.  At present, the
-      master index search facility is unsupported, so only these locally
-      specified package lists will be loaded; remove them when the index
-      search feature becomes available, to enable master index search.
+      You may specify a particular collection of package lists to load
+      here, (selecting from the available catalogue-name.xml.lzma files
+      hosted on the repository server).  If you do this, then ONLY those
+      package lists which you explicitly specify will be loaded.  If you
+      specify no package list here, then the repository's standard list
+      of packages, as identified in the master "package-list.xml.lzma"
+      file will be automatically selected; this is the recommended
+      configuration choice.
+
+      Note however, that if the repository offers optional package list
+      selections, in addition to the the master list, and you wish any of
+      these to be loaded, then you MUST explicitly specify them here.  If
+      you exercise this option, then the automatic loading of the master
+      list will be inhibited, UNLESS you also explicitly include it in
+      your selection, by adding the explicit reference:-
+
+	<package-list catalogue="package-list" />
+
+      Additional package lists, which you wish to specify, are then
+      identified by the addition of as many further references of the
+      form:-
+
+	<package-list catalogue="catalogue-name" />
+
+      as may be required; (note that the "catalogue" attribute name
+      MUST be specified thus, with the GB English spelling).
     -->
-    <package-list catalogue="package-index" />
   </repository>
 
   <system-map id="default">
