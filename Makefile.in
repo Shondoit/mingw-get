@@ -1,6 +1,6 @@
 # @configure_input@
 #
-# $Id: Makefile.in,v 1.16 2010/05/12 18:16:27 keithmarshall Exp $
+# $Id: Makefile.in,v 1.17 2010/06/10 21:32:48 keithmarshall Exp $
 
 PACKAGE_TARNAME = @PACKAGE_TARNAME@
 PACKAGE_VERSION = @PACKAGE_VERSION@
@@ -25,6 +25,8 @@ PACKAGE_VERSION = @PACKAGE_VERSION@
 # MinGW Project, accept liability for any damages, however caused,
 # arising from the use of this software.
 #
+PACKAGE_SUBSYSTEM = @host_os@
+
 srcdir = @srcdir@
 abs_top_srcdir = @abs_top_srcdir@
 
@@ -128,21 +130,28 @@ install-strip: install
 
 # Packaging and distribution...
 #
-# FIXME: the PACKAGE_DISTVERSION and PACKAGE_ROOTVERSION macro definitions
-# and usage (below) will require modification, (most likely with help from
-# configure), to accommodate inclusion of the `mingw32' subsystem qualifier,
-# when the release status qualifier is dropped from PACKAGE_VERSION.
-#
 LICENCE_FILES = README COPYING
 SRCDIST_FILES = $(LICENCE_FILES) ChangeLog version.c.in \
   configure.ac configure Makefile.in install-sh
 
 SRCDIST_SUBDIRS = src src/pkginfo tinyxml xml
 
-PACKAGE_DISTNAME = $(PACKAGE_TARNAME)-$(PACKAGE_DISTVERSION)
-PACKAGE_DISTVERSION = `echo $(PACKAGE_VERSION) | sed 's,-[^0-9],-mingw32&,'`
-PACKAGE_ROOTVERSION = `echo $(PACKAGE_VERSION) | sed 's,-[^0-9].*,,'`
+# The names of distributed pacakge archive files incorporate version
+# information, derived from PACKAGE_VERSION; this is decomposed, so that
+# the PACKAGE_SUBSYSTEM may be interposed between the principal version
+# number and any qualifying suffix, which specifies development status.
+# Additionally, the package maintainer may specify, (at `make dist' time),
+# a SNAPSHOT qualifier; if specified, this will be appended, (literally),
+# to the principal version number component of the package version number,
+# as it appears in the distributed archive file names.
+#
 PACKAGE_DISTROOT = $(PACKAGE_TARNAME)-$(PACKAGE_ROOTVERSION)
+PACKAGE_ROOTVERSION = `echo $(PACKAGE_VERSION) | sed 's,-[^0-9].*,,'`
+PACKAGE_DISTVERSION = `echo $(PACKAGE_VERSION)-$(PACKAGE_SUBSYSTEM) | sed \
+  -e 's,-[^0-9],-$(PACKAGE_SUBSYSTEM)&,' \
+  -e 's,\(-$(PACKAGE_SUBSYSTEM).*\)-$(PACKAGE_SUBSYSTEM),\1,' \
+  -e 's,-$(PACKAGE_SUBSYSTEM),$(SNAPSHOT)&,'`
+PACKAGE_DISTNAME = $(PACKAGE_TARNAME)-$(PACKAGE_DISTVERSION)
 
 dist: srcdist bindist
 

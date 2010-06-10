@@ -1,3 +1,21 @@
+2010-06-10  Keith Marshall  <keithmarshall@users.sourceforge.net>
+
+	Address FIXME relating to identification of distributable files.
+
+	* install-sh: Move to...
+	* build-aux: ...this new directory.
+
+	* Makefile.in (PACKAGE_DISTVERSION): Modify `sed' edit sequence; make
+	it depend on, and ensure that it incorporates the expansion of...
+	(PACKAGE_SUBSYSTEM): ...this new macro; defined as substitution of...
+	(host_os): ...this autoconf variable, set by...
+
+	* configure.ac (AC_CANONICAL_HOST): ...this; add it, requiring...
+	(AC_CONFIG_AUX_DIR): ...`build-aux' directory reference, providing...
+
+	* build-aux/config.guess, build-aux/config.sub: ...these new standard
+	files; import them from the standard `build-aux' repository.
+
 2010-05-17  Keith Marshall  <keithmarshall@users.sourceforge.net>
 
 	Bump version for next release cycle.
