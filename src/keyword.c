@@ -1,14 +1,14 @@
 /*
  * keyword.c
  *
- * $Id: keyword.c,v 1.1 2009/11/23 20:44:25 keithmarshall Exp $
+ * $Id: keyword.c,v 1.2 2010/06/24 20:49:39 keithmarshall Exp $
  *
  * Written by Keith Marshall <keithmarshall@users.sourceforge.net>
- * Copyright (C) 2009, MinGW Project
+ * Copyright (C) 2009, 2010 MinGW Project
  *
  *
  * Implementation of "has_keyword()" function; this is used to check
- * for the presence of a specified keyword with a wihtespace separated
+ * for the presence of a specified keyword with a whitespace separated
  * list, appearing as an XML property string.
  *
  *
@@ -27,72 +27,59 @@
  *
  */
 #include <ctype.h>
-#include <string.h>
 #include <stdlib.h>
 
 #define FALSE  0
 #define TRUE   !FALSE
 
-static inline
-char *safe_strdup( const char *src )
+int has_keyword( const char *lookup, const char *in_list )
 {
-  /* Duplicate a "C" string into dynamically allocated memory,
-   * safely handling a NULL source reference.
+  /* Check if the keyword specified by "lookup" is present in
+   * the white-space separated list specified by "in_list".
    */
-  return src ? strdup( src ) : NULL;
-}
-
-int has_keyword( const char *keywords, const char *wanted )
-{
-  /* Check the given "keywords" list for the presence of
-   * the "wanted" keyword.
-   */
-  char *inspect;
-  if( (inspect = safe_strdup( keywords )) != NULL )
+  if( (lookup != NULL) && (in_list != NULL) )
   {
-    /* We've found a non-empty list of keywords to inspect;
-     * initialise a pointer to the first entry for matching...
+    /* Provided both "lookup" and "in_list" are specified...
      */
-    char *match = inspect;
-    while( *match )
+    while( *in_list )
     {
-      /* We haven't yet checked all of the available keywords;
-       * locate the end of the current inspection reference...
+      /* ...and while we haven't run out of list entries to match...
+       *
+       * Perform a character-by-character comparison between the
+       * "lookup" string and the leading entry in the currently
+       * unchecked section of "in_list"...
        */
-      char *brk = match;
-      while( *brk && ! isspace( *brk ) )
-	++brk;
-
-      /* ...and append a NUL terminator.
-       */
-      if( *brk )
-	*brk++ = '\0';
-
-      /* Check the currently selected alias...
-       */
-      if( strcmp( match, wanted ) == 0 )
-      {
-	/* ...and if it's a match, then immediately release the
-	 * scratch-pad memory we used for the keyword comparisons,
-	 * and return "true".
+      const char *inspect = lookup;
+      while( *inspect && ! isspace( *in_list ) && (*inspect++ == *in_list++) )
+	/*
+	 * ...advancing pointers to both, with no further action,
+	 * until we find a mismatch.
 	 */
-	free( (void *)(inspect) );
-	return TRUE;
-      }
+	;
 
-      /* Otherwise, proceed to check the next keyword, if any.
+      /* If the mismatch coincides with the terminating NUL for "lookup",
+       * AND we've simultaneously encountered a keyword separator, or the
+       * terminating NUL for "in_list"...
        */
-      match = brk;
-    }
+      if( (*inspect == '\0') && ((*in_list == '\0') || isspace( *in_list )) )
+	/*
+	 * ...then we have found a keyword match...
+	 */
+	return TRUE;
 
-    /* If we get to here, then all assigned aliases have been
-     * checked, without finding a match; the scratch-pad memory
-     * remains allocated, so release it, before falling through
-     * to return "false".
-     */
-    free( (void *)(inspect) );
+      /* Otherwise, we have not yet found a match...
+       * Step over any remaining non-white-space characters in the current
+       * "in_list" entry, and also the following space character if any...
+       */
+      while( *in_list && ! isspace( *in_list++ ) )
+	/*
+	 * ...until we either exhaust "in_list", or we are ready to cycle
+	 * back to evaluate the next potentially matching entry.
+	 */
+	;
+    }
   }
-  /* Return "false" in all cases where no matching name can be found.
+  /* If we get to here, then there was no match for "lookup" in "in_list"...
    */
   return FALSE;
 }

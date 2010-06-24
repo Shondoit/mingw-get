@@ -1,7 +1,7 @@
 /*
  * pkgfind.cpp
  *
- * $Id: pkgfind.cpp,v 1.4 2010/04/17 12:43:05 keithmarshall Exp $
+ * $Id: pkgfind.cpp,v 1.5 2010/06/24 20:49:39 keithmarshall Exp $
  *
  * Written by Keith Marshall <keithmarshall@users.sourceforge.net>
  * Copyright (C) 2009, 2010, MinGW Project
@@ -31,18 +31,28 @@
 #include "pkgkeys.h"
 
 pkgXmlNode *
-pkgXmlDocument::FindPackageByName( const char *name, const char *subsystem )
+pkgXmlDocument::FindPackageByName( const char *lookup, const char *subsystem )
 {
+  /* Create a local copy of the package "name" which we are required to
+   * "lookup"; this allows us to make temporary adjustments to facilitate
+   * stripping of any "component" identifying suffix, which might occlude
+   * a match for a package "alias" name.
+   */
+  int len; char name[ 1 + (len = strlen( lookup )) ];
+  strcpy( name, lookup );
+
+  /* Working from the root of the package directory tree...
+   */
   pkgXmlNode *dir = GetRoot()->GetChildren();
   /*
-   * Working from the root of the package directory tree...
    * search all "package-collection" XML nodes, to locate a package
    * by "name"; return a pointer to the XML node which contains the
    * specification for the package, or NULL if no such package.
    */
   while( dir != NULL )
   {
-    /* Select only "package-collection" elements...
+    /* Select only "package-collection" elements, which have been
+     * assigned the desired "subsystem" property...
      */
     if( dir->IsElementOfType( package_collection_key )
     &&  subsystem_strcmp( subsystem, dir->GetPropVal( subsystem_key, NULL )) )
@@ -59,55 +69,61 @@ pkgXmlDocument::FindPackageByName( const char *name, const char *subsystem )
 	  /* ...return immediately, if it has a "name" or an "alias"
 	   * property which matches the required package name...
 	   */
-	  if( (strcmp( name, pkg->GetPropVal( name_key, "" )) == 0)
-	  ||  (has_keyword( pkg->GetPropVal( alias_key, NULL ), name ) != 0)  )
+	  const char *pkg_name, *alias;
+	  if( (strcmp( name, pkg_name = pkg->GetPropVal( name_key, "" )) == 0)
+	  ||  (has_keyword( name, alias = pkg->GetPropVal( alias_key, NULL ) ) != 0)  )
 	    return pkg;
 
-	  else
+	  /* We did find a "package" element, but neither its "name"
+	   * nor its "alias" property provided a match; look within it,
+	   * for a possible match on a "component" package element...
+	   */
+	  pkgXmlNode *cpt = pkg->GetChildren();
+	  while( cpt != NULL )
 	  {
-	    /* We did find a "package" element, but neither its "name"
-	     * nor its "alias" property provided a match; look within it,
-	     * for a possible match on a "component" package element...
+	    /* For each element contained within the "package" definition,
+	     * check if it represents a "component" package definition...
 	     */
-	    pkgXmlNode *cpt = pkg->GetChildren();
-	    while( cpt != NULL )
+	    if( cpt->IsElementOfType( component_key ) )
 	    {
-	      /* For each element contained within the "package" definition,
-	       * check if it represents a "component" package definition...
+	      /* ...and return immediately, when it does, AND it also has a
+	       * "name" property which matches the required package name...
 	       */
-	      if( cpt->IsElementOfType( component_key ) )
-	      {
-		/* ...and return immediately, when it does, AND it also has a
-		 * "name" property which matches the required package name...
+	      if( strcmp( name, cpt->GetPropVal( name_key, "" )) == 0 )
+		return cpt;
+
+	      else
+	      { /* We did find a "component" package, but its "name"
+		 * property didn't match; construct an alternative name,
+		 * by combining the "class" property of the "component"
+		 * with the "name" property of the containing "package",
+		 * and evaluate that for a possible match...
 		 */
-		if( strcmp( name, cpt->GetPropVal( name_key, "" )) == 0 )
-		  return cpt;
-
-		else
-		{ /* We did find a "component" package, but its "name"
-		   * property didn't match; construct an alternative name,
-		   * by combining the "class" property of the "component"
-		   * with the "name" property of the containing "package",
-		   * and evaluate that for a possible match...
-		   */
-		  const char *pkg_name = pkg->GetPropVal( name_key, "" );
-		  const char *cpt_class = cpt->GetPropVal( class_key, "" );
-		  char cpt_name[2 + strlen( pkg_name ) + strlen( cpt_class )];
-		  sprintf( cpt_name, "%s-%s", pkg_name, cpt_class );
-
+		const char *cpt_class = cpt->GetPropVal( class_key, "" );
+		char *cpt_name = name + len - strlen( cpt_class );
+		if( (strcmp( cpt_name, cpt_class ) == 0)
+		&&  (*--cpt_name == '-')  )
+		{
 		  /* Again, return the "component", if this identifies
 		   * a successful match...
 		   */
-		  if( strcmp( name, cpt_name ) == 0 )
+		  *cpt_name = '\0';
+		  if( (strcmp( name, pkg_name ) == 0) || has_keyword( name, alias ) )
 		    return cpt;
+
+		  /* Otherwise, restore the original content of the
+		   * working copy of the "lookup name", in preperation
+		   * for any subsequent attempt to find a match.
+		   */
+		  *cpt_name = '-';
 		}
 	      }
-
-	      /* ...otherwise, continue checking any other "components"
-	       * which may be defined within the current "package.
-	       */
-	      cpt = cpt->GetNext();
 	    }
+
+	    /* ...otherwise, continue checking any other "components"
+	     * which may be defined within the current "package.
+	     */
+	    cpt = cpt->GetNext();
 	  }
 	}
 

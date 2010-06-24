@@ -1,3 +1,22 @@
+2010-06-24  Keith Marshall  <keithmarshall@users.sourceforge.net>
+
+	Include alias search, when matching component package name.
+
+	* src/keyword.c (has_keyword): Rearrange argument declarations for
+	more natural order; update all callers accordingly.  Simplify; compare
+	keyword to be matched with each successive candidate from match-list,
+	character-by-character and in-place, so avoiding memory allocation
+	for any local duplicate of the passed match-list; thus...
+	(safe_strdup): ...this static function no longer required; delete it.
+	(string.h): No references remain; do not include it.
+
+	* src/pkgfind.cpp (pkgXmlNode::FindPackageByName): Augment component
+	package name matching to include potential matches of the look-up name
+	with trailing component name stripped off, when that matches the class
+	name of an identified component package, and the initial substring of
+	the look-up name, after stripping, matches any specified alias name
+	for the containing package.
+
 2010-06-10  Keith Marshall  <keithmarshall@users.sourceforge.net>
 
 	Address FIXME relating to identification of distributable files.
