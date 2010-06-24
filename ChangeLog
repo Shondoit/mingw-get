@@ -1,5 +1,16 @@
 2010-06-24  Keith Marshall  <keithmarshall@users.sourceforge.net>
 
+	Work around an autoconf bug (reported by Stefano Sabatini).
+
+	* Makefile.in (VPATH): Use @top_srcdir@ instead of ${srcdir}; current
+	autoconf incorrectly elides references to @srcdir@ and ${srcdir} when
+	substituting within a VPATH specification for building `in-source'.
+	Also, prefer colons to blanks as path name separators, for improved
+	portability to non-GNU implementations of make; (recommendation by
+	Ralf Wildenhues).
+
+2010-06-24  Keith Marshall  <keithmarshall@users.sourceforge.net>
+
 	Include alias search, when matching component package name.
 
 	* src/keyword.c (has_keyword): Rearrange argument declarations for

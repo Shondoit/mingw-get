@@ -1,6 +1,6 @@
 # @configure_input@
 #
-# $Id: Makefile.in,v 1.17 2010/06/10 21:32:48 keithmarshall Exp $
+# $Id: Makefile.in,v 1.18 2010/06/24 21:40:11 keithmarshall Exp $
 
 PACKAGE_TARNAME = @PACKAGE_TARNAME@
 PACKAGE_VERSION = @PACKAGE_VERSION@
@@ -32,7 +32,7 @@ abs_top_srcdir = @abs_top_srcdir@
 
 DEBUGLEVEL = 0
 
-VPATH = ${srcdir}/src ${srcdir}/src/pkginfo ${srcdir}/tinyxml
+VPATH = @top_srcdir@/src:@top_srcdir@/src/pkginfo:@top_srcdir@/tinyxml
 
 CC = @CC@
 CFLAGS = @CFLAGS@
