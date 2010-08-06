@@ -1,3 +1,17 @@
+2010-07-27  Cesar Strauss  <cestrauss@gmail.com>
+
+	Handle the GNU long name tar header format.
+
+	* src/pkgproc.h (TAR_ENTITY_TYPE_GNU_LONGNAME): New manifest constant;
+	define it.
+	(pkgTarArchiveProcessor::EntityDataAsString): New protected method;
+	declare and...
+	* src/tarproc.cpp: ...implement it.
+	(pkgTarArchiveProcessor::Process): Before building the entry pathname,
+	check for a GNU long name type header; when found, read pathname from
+	the entry data area, before fetching the following header, from which
+	to retrieve the associated entity data.
+
 2010-06-24  Keith Marshall  <keithmarshall@users.sourceforge.net>
 
 	Work around an autoconf bug (reported by Stefano Sabatini).

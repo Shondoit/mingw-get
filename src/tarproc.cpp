@@ -1,7 +1,7 @@
 /*
  * tarproc.cpp
  *
- * $Id: tarproc.cpp,v 1.7 2010/05/11 18:13:01 keithmarshall Exp $
+ * $Id: tarproc.cpp,v 1.8 2010/08/06 22:34:39 keithmarshall Exp $
  *
  * Written by Keith Marshall <keithmarshall@users.sourceforge.net>
  * Copyright (C) 2009, 2010, MinGW Project
@@ -231,12 +231,41 @@ int pkgTarArchiveProcessor::Process()
    */
   while( GetArchiveEntry() > 0 )
   {
+    char *prefix = *header.field.prefix ? header.field.prefix : NULL;
+    char *name = header.field.name;
+
+    /* Handle the GNU long name header format. 
+     * If the pathname overflows the name field, GNU tar creates a special
+     * entry type, where the data contains the full pathname for the
+     * following entry.
+     */
+    char *longname = NULL;
+    if( *header.field.typeflag == TAR_ENTITY_TYPE_GNU_LONGNAME )
+    {
+      /* Extract the full pathname from the data of this entry.
+       */
+      longname = EntityDataAsString();
+      if( !longname )
+        dmh_notify( DMH_ERROR, "Unable to read a long name entry\n" );
+
+      /* Read the entry for which this long name is intended.
+       */
+      if( GetArchiveEntry() <= 0 )
+        dmh_notify( DMH_ERROR, "Expected a new entry after a long name entry\n" );
+
+      /* Use the previously determined long name as the pathname for this entry.
+       */
+      prefix = NULL;
+      name = longname;
+    }
+
     /* Found an archive entry; map it to an equivalent file system
      * path name, within the designated sysroot hierarchy.
      */
-    char *prefix = *header.field.prefix ? header.field.prefix : NULL;
-    char pathname[mkpath( NULL, sysroot_path, header.field.name, prefix )];
-    mkpath( pathname, sysroot_path, header.field.name, prefix );
+    char pathname[mkpath( NULL, sysroot_path, name, prefix )];
+    mkpath( pathname, sysroot_path, name, prefix );
+
+    free( longname );
 
     /* Direct further processing to the appropriate handler; (this
      * is specific to the archive entry classification)...
@@ -388,6 +417,45 @@ int pkgTarArchiveProcessor::ProcessEntityData( int fd )
   return status;
 }
 
+char *pkgTarArchiveProcessor::EntityDataAsString()
+{
+  /* Read the data associated with a specific header within a tar archive
+   * and return it as a string.  The return value is stored in memory which
+   * is allocated by malloc; it should be freed when no longer required.
+   *
+   * It is assumed that the return data can be accommodated within available
+   * heap memory.  Since the length isn't returned, we assume that the string
+   * is NUL-terminated, and that it contains no embedded NULs.
+   *
+   * In the event of any error, NULL is returned.
+   */
+  char *data;
+  uint64_t bytes_to_copy = octval( header.field.size );
+  
+  /* Round the buffer size to the smallest multiple of the record size.
+   */
+  bytes_to_copy += sizeof( header ) - 1;
+  bytes_to_copy -= bytes_to_copy % sizeof( header );
+
+  /* Allocate the data buffer.
+   */
+  data = (char*)(malloc( bytes_to_copy ));
+  if( !data )
+    return NULL;
+  
+  /* Read the data into the buffer.
+   */
+  size_t count = stream->Read( data, bytes_to_copy );
+  if( count < bytes_to_copy )
+  {
+    /* Failure to fully populate the transfer buffer, (i.e. a short
+     * read), indicates a corrupt archive.
+     */
+    free( data );
+    return NULL;
+  }
+  return data;
+}
 
 /*******************
  *

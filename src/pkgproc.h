@@ -2,7 +2,7 @@
 /*
  * pkgproc.h
  *
- * $Id: pkgproc.h,v 1.3 2010/04/04 15:25:36 keithmarshall Exp $
+ * $Id: pkgproc.h,v 1.4 2010/08/06 22:34:39 keithmarshall Exp $
  *
  * Written by Keith Marshall <keithmarshall@users.sourceforge.net>
  * Copyright (C) 2009, 2010, MinGW Project
@@ -125,6 +125,7 @@ union tar_archive_header
 #define TAR_ENTITY_TYPE_CHRDEV		'3'
 #define TAR_ENTITY_TYPE_BLKDEV		'4'
 #define TAR_ENTITY_TYPE_DIRECTORY	'5'
+#define TAR_ENTITY_TYPE_GNU_LONGNAME	'L'
 
 /* Some older style tar archives may use '\0' as an alternative to '0',
  * to identify an archive entry representing a regular file.
@@ -159,6 +160,7 @@ class pkgTarArchiveProcessor : public pkgArchiveProcessor
      */
     virtual int GetArchiveEntry();
     virtual int ProcessEntityData( int );
+    virtual char *EntityDataAsString();
 
     /* ...those for which each specialisation is expected to
      * furnish its own task specific implementation...
