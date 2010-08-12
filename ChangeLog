@@ -1,3 +1,11 @@
+2010-08-12  Keith Marshall  <keithmarshall@users.sourceforge.net>
+
+	Guard against a potential buffer overrun.
+
+	* src/pkgreqs.cpp (pkgSpecs::SetProperty): Allocate an additional
+	byte to accommodate an extra field separator, when inserting a new
+	data value into a previously empty field.
+
 2010-07-27  Cesar Strauss  <cestrauss@gmail.com>
 
 	Handle the GNU long name tar header format.

@@ -1,7 +1,7 @@
 /*
  * pkgreqs.cpp
  *
- * $Id: pkgreqs.cpp,v 1.1 2010/05/05 20:34:17 keithmarshall Exp $
+ * $Id: pkgreqs.cpp,v 1.2 2010/08/12 20:29:30 keithmarshall Exp $
  *
  * Written by Keith Marshall <keithmarshall@users.sourceforge.net>
  * Copyright (C) 2009, 2010, MinGW Project
@@ -124,6 +124,13 @@ const char *pkgSpecs::SetProperty( int index, const char *repl )
    */
   int oldlen = buflen( specs );
   int newlen = oldlen + fieldlen( repl ) - fieldlen( specs[index] );
+
+  if( (repl != NULL) && (specs[index] == NULL) )
+    /*
+     * When inserting a non-empty value into a previously empty field,
+     * we need to allow an additional byte for an extra field separator.
+     */
+    ++newlen;
 
   if( newlen > oldlen )
   {
