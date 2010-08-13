@@ -1,7 +1,7 @@
 /*
  * pkgname.cpp
  *
- * $Id: pkgname.cpp,v 1.4 2010/03/02 22:33:24 keithmarshall Exp $
+ * $Id: pkgname.cpp,v 1.5 2010/08/13 16:20:07 keithmarshall Exp $
  *
  * Written by Keith Marshall <keithmarshall@users.sourceforge.net>
  * Copyright (C) 2009, 2010, MinGW Project
@@ -42,11 +42,25 @@ const char *pkgArchiveName( pkgXmlNode *rel, const char *tag, unsigned opt )
    */
   if( ! rel->IsElementOfType( release_key ) )
   {
+    /* The XML element type name is not "release"; identify it...
+     */
+    const char *reftype;
+    if( (reftype = rel->GetName()) == NULL )
+      /*
+       * ...or classify as "unknown", when given a NULL element.
+       */
+      reftype = value_unknown;
+
+    /* Complain that this XML element type is invalid, in this context...
+     */
     dmh_control( DMH_BEGIN_DIGEST );
     dmh_notify( DMH_ERROR, "internal package specification error\n" );
-    dmh_notify( DMH_ERROR, "can't get 'tarname' for non-release element\n" );
+    dmh_notify( DMH_ERROR, "can't get 'tarname' for non-release element %s\n", reftype );
     dmh_notify( DMH_ERROR, "please report this to the package maintainer\n" );
     dmh_control( DMH_END_DIGEST );
+
+    /* ...and bail out, telling the caller that no archive name is available...
+     */
     return NULL;
   }
 
@@ -100,7 +114,7 @@ const char *pkgArchiveName( pkgXmlNode *rel, const char *tag, unsigned opt )
 	 * ...else emit a warning, and ignore this one...
 	 */
 	dmh_notify( DMH_WARNING, "%s: archive name reassignment ignored\n",
-	    rel->GetPropVal( tarname_key, "<unknown>" )
+	    rel->GetPropVal( tarname_key, value_unknown )
 	);
       else
 	/* ...ok; this is the first "tag" specification,

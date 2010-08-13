@@ -2,7 +2,7 @@
 /*
  * pkgkeys.c
  *
- * $Id: pkgkeys.h,v 1.8 2010/05/12 18:16:27 keithmarshall Exp $
+ * $Id: pkgkeys.h,v 1.9 2010/08/13 16:20:07 keithmarshall Exp $
  *
  * Written by Keith Marshall <keithmarshall@users.sourceforge.net>
  * Copyright (C) 2010, MinGW Project
@@ -82,6 +82,7 @@ EXTERN_C_DECL const char *uri_key;
 
 EXTERN_C_DECL const char *value_no;
 EXTERN_C_DECL const char *value_none;
+EXTERN_C_DECL const char *value_unknown;
 EXTERN_C_DECL const char *value_virtual;
 EXTERN_C_DECL const char *value_yes;
 

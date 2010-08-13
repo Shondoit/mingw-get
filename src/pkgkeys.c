@@ -1,7 +1,7 @@
 /*
  * pkgkeys.c
  *
- * $Id: pkgkeys.c,v 1.8 2010/05/12 18:16:27 keithmarshall Exp $
+ * $Id: pkgkeys.c,v 1.9 2010/08/13 16:20:07 keithmarshall Exp $
  *
  * Written by Keith Marshall <keithmarshall@users.sourceforge.net>
  * Copyright (C) 2010, MinGW Project
@@ -68,6 +68,7 @@ const char *uri_key		    =	"uri";
  */
 const char *value_no		    =	"no";
 const char *value_none		    =	"none";
+const char *value_unknown	    =	"<<<unknown>>>";
 const char *value_virtual	    =	"virtual";
 const char *value_yes		    =	"yes";
 

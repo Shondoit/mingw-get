@@ -1,3 +1,14 @@
+2010-08-13  Keith Marshall  <keithmarshall@users.sourceforge.net>
+
+	Improve diagnostics for invalid references to non-release XML nodes.
+
+	* src/pkgkeys.h (value_unknown): New global string; declare it.
+	* src/pkgkeys.c (value_unknown): Implement it.
+
+	* src/pkgname.cpp (pkgArchiveName): Identify XML element type when
+	diagnosing references to elements of types other than release; use...
+	(value_unknown): ...this, as appropriate.
+
 2010-08-12  Keith Marshall  <keithmarshall@users.sourceforge.net>
 
 	Guard against a potential buffer overrun.
