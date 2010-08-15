@@ -1,5 +1,14 @@
 2010-08-15  Keith Marshall  <keithmarshall@users.sourceforge.net>
 
+	Lay foundation for selective compilation of debugging code.
+
+	* src/debug.h: New file...
+	* src/sysroot.cpp: Include it.
+	(pkgXmlDocument::LoadSystemMap): Make debugging output conditional...
+	[DEBUGLEVEL & DEBUG_TRACE_INIT]: ...on this new debugging state.
+
+2010-08-15  Keith Marshall  <keithmarshall@users.sourceforge.net>
+
 	* src/pkgkeys.h: Typo in comment: file was previously identified as
 	pkgkeys.c; corrected.
 

@@ -1,7 +1,7 @@
 /*
  * sysroot.cpp
  *
- * $Id: sysroot.cpp,v 1.4 2010/03/22 19:39:08 keithmarshall Exp $
+ * $Id: sysroot.cpp,v 1.5 2010/08/15 13:37:54 keithmarshall Exp $
  *
  * Written by Keith Marshall <keithmarshall@users.sourceforge.net>
  * Copyright (C) 2010, MinGW Project
@@ -43,6 +43,8 @@
 
 #include "pkgbase.h"
 #include "pkgkeys.h"
+
+#include "debug.h"
 
 EXTERN_C char *hashed_name( int, const char*, const char* );
 
@@ -165,9 +167,9 @@ void pkgXmlDocument::LoadSystemMap()
 	/* This system map is a candidate for loading;
 	 * process all of its subsystem specific sysroot declarations...
 	 */
-#if DEBUGLEVEL
-fprintf( stderr, "Load system map: id = %s\n", id );
-#endif
+#	if DEBUGLEVEL & DEBUG_TRACE_INIT
+	  fprintf( stderr, "Load system map: id = %s\n", id );
+#	endif
 	pkgXmlNode *subsystem = sysmap->FindFirstAssociate( sysroot_key );
 	while( subsystem != NULL )
 	{
@@ -186,11 +188,12 @@ fprintf( stderr, "Load system map: id = %s\n", id );
 	    && ! samepath( path, sysroot->GetPropVal( pathname_key, NULL )) )
 	      sysroot = sysroot->FindNextAssociate( sysroot_key );
 
-#if DEBUGLEVEL
-fprintf( stderr, "Bind subsystem %s: sysroot = %s\n",
-    subsystem->GetPropVal( subsystem_key, "<unknown>" ), path
-  );
-#endif
+#	    if DEBUGLEVEL & DEBUG_TRACE_INIT
+	      fprintf( stderr, "Bind subsystem %s: sysroot = %s\n",
+		  subsystem->GetPropVal( subsystem_key, "<unknown>" ), path
+		);
+#	    endif
+
 	    if( sysroot == NULL )
 	    {
 	      /* This sysroot has not yet been registered...
