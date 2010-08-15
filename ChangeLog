@@ -1,3 +1,8 @@
+2010-08-15  Keith Marshall  <keithmarshall@users.sourceforge.net>
+
+	* src/pkgkeys.h: Typo in comment: file was previously identified as
+	pkgkeys.c; corrected.
+
 2010-08-13  Keith Marshall  <keithmarshall@users.sourceforge.net>
 
 	Improve diagnostics for invalid references to non-release XML nodes.

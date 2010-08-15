@@ -1,8 +1,8 @@
 #ifndef PKGKEYS_H
 /*
- * pkgkeys.c
+ * pkgkeys.h
  *
- * $Id: pkgkeys.h,v 1.9 2010/08/13 16:20:07 keithmarshall Exp $
+ * $Id: pkgkeys.h,v 1.10 2010/08/15 13:16:54 keithmarshall Exp $
  *
  * Written by Keith Marshall <keithmarshall@users.sourceforge.net>
  * Copyright (C) 2010, MinGW Project
