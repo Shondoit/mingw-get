@@ -1,7 +1,7 @@
 /*
  * pkgexec.cpp
  *
- * $Id: pkgexec.cpp,v 1.9 2010/05/11 21:17:54 keithmarshall Exp $
+ * $Id: pkgexec.cpp,v 1.10 2010/08/17 21:35:59 keithmarshall Exp $
  *
  * Written by Keith Marshall <keithmarshall@users.sourceforge.net>
  * Copyright (C) 2009, 2010, MinGW Project
@@ -291,11 +291,13 @@ pkgActionItem* pkgXmlDocument::Schedule
 
   /* Don't reschedule, if we already have a prior matching item...
    */
-  if(  (ref->GetReference( item ) == NULL)
+  if(  (actions->GetReference( item ) == NULL)
   /*
-   * ...but, when we don't, we raise a new scheduling request...
+   * ...but, when we don't, and when this request produces a valid
+   * package reference, we raise a new scheduling request...
    */
-  &&  ((ref = ref->Schedule( action, item )) != NULL)  )
+  &&  ((ref = ref->Schedule( action, item )) != NULL)
+  &&  ((ref->Selection() != NULL) || (ref->Selection( to_remove ) != NULL)) )
   {
     /* ...and, when successfully raised, add it to the task list...
      */

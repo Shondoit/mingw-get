@@ -1,3 +1,12 @@
+2010-08-17  Keith Marshall  <keithmarshall@users.sourceforge.net>
+
+	Improve scheduling of package processing requests.
+
+	* src/pkgexec.cpp (pkgXmlDocument::Schedule): Inspect entire `actions'
+	list, when checking for duplicate package processing requests; decline
+	to schedule any such duplicate, or any request which lacks a package
+	association.
+
 2010-08-15  Keith Marshall  <keithmarshall@users.sourceforge.net>
 
 	Lay foundation for selective compilation of debugging code.
