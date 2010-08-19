@@ -1,3 +1,22 @@
+2010-08-19  Keith Marshall  <keithmarshall@users.sourceforge.net>
+
+	Some dependency resolver enhancements and bug fixes.
+
+	* src/pkgbase.h (pkgXmlNode::GetContainerAttribute): New method;
+	declare it.
+
+	* src/pkgdeps.cpp (pkgXmlNode::GetContainerAttribute): Implement it;
+	it is used to retrieve package name attributes from the containing
+	'package' element, when given a pointer to a 'release' element by...
+	(assert_unmatched, assert_installed): ...these new static functions.
+	(pkgXmlDocument::Schedule): Use them to reconstruct and register
+	dependency reference data for previously installed packages which are
+	no longer included in the distribution manifest.
+	(pkgXmlDocument::ResolveDependencies): Fix a block nesting error;
+	catch and diagnose unresolved dependencies; don't look beyond the XML
+	document root node, (tinyxml error not caught?), when searching for
+	requirements specified on container nodes.
+
 2010-08-17  Keith Marshall  <keithmarshall@users.sourceforge.net>
 
 	Improve scheduling of package processing requests.

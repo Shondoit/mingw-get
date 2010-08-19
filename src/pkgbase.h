@@ -2,7 +2,7 @@
 /*
  * pkgbase.h
  *
- * $Id: pkgbase.h,v 1.9 2010/05/05 20:34:17 keithmarshall Exp $
+ * $Id: pkgbase.h,v 1.10 2010/08/19 19:52:35 keithmarshall Exp $
  *
  * Written by Keith Marshall <keithmarshall@users.sourceforge.net>
  * Copyright (C) 2009, 2010, MinGW Project
@@ -183,6 +183,13 @@ class pkgXmlNode : public TiXmlElement
      */
     const char* ArchiveName();
     const char* SourceArchiveName();
+
+    /* The following retrieves an attribute which may have been
+     * specified on an ancestor (container) node; typically used to
+     * retrieve the package name or alias attributes which are to
+     * be associated with a release.
+     */
+    const char *GetContainerAttribute( const char*, const char* = NULL );
 };
 
 enum { to_remove = 0, to_install, selection_types };

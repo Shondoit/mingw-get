@@ -1,7 +1,7 @@
 /*
  * pkgdeps.cpp
  *
- * $Id: pkgdeps.cpp,v 1.3 2010/05/05 20:34:17 keithmarshall Exp $
+ * $Id: pkgdeps.cpp,v 1.4 2010/08/19 19:52:35 keithmarshall Exp $
  *
  * Written by Keith Marshall <keithmarshall@users.sourceforge.net>
  * Copyright (C) 2009, 2010, MinGW Project
@@ -118,6 +118,40 @@ pkgXmlNode *pkgXmlNode::GetInstallationRecord( const char *pkgname )
   return NULL;
 }
 
+const char *pkgXmlNode::GetContainerAttribute( const char *key, const char *sub )
+{
+  /* Walk the XML path from current element, back towards the document root,
+   * until we find the innermost element which has an attribute matching "key";
+   * if such an element is found, return the value of the attribute; if we have
+   * traversed the entire path, all the way to the document root, and we have
+   * not found any element with the "key" attribute, return "sub".
+   */
+  pkgXmlNode *pkg = this;
+  pkgXmlNode *root = pkg->GetDocumentRoot();
+  while( pkg != NULL )
+  {
+    /* We haven't yet tried to search beyond the document root;
+     * try matching "key" to an attribute of the current element...
+     */
+    const char *retval = pkg->GetPropVal( key, NULL );
+    if( retval != NULL )
+      /*
+       * ...returning its value, if such an attribute is found...
+       */
+      return retval;
+
+    /* ...otherwise,
+     * take a further step back towards the document root.
+     */
+    pkg = (pkg == root) ? NULL : pkg->GetParent();
+  }
+
+  /* If we get to here, then no element with the required "key"
+   * attribute could be found; substitute the specified default.
+   */
+  return sub;
+}
+
 void
 pkgXmlDocument::ResolveDependencies( pkgXmlNode* package, pkgActionItem* rank )
 {
@@ -173,8 +207,10 @@ pkgXmlDocument::ResolveDependencies( pkgXmlNode* package, pkgActionItem* rank )
 	/* ...and, more significantly, the appropriate component package,
 	 * where applicable...
 	 */
-	pkgXmlNode *component;
-	const char *reqclass = req.GetComponentClass();
+	pkgXmlNode *component; const char *reqclass;
+	if( (reqclass = req.GetComponentClass()) == NULL )
+	  reqclass = value_unknown;
+
 	if( (component = selected->FindFirstAssociate( component_key )) == NULL )
 	  /*
 	   * ...but if no separate component package exists,
@@ -182,18 +218,26 @@ pkgXmlDocument::ResolveDependencies( pkgXmlNode* package, pkgActionItem* rank )
 	   */
 	  component = selected;
 
+	/* At this point, we have no more than a tentative package selection;
+	 * it may not provide a component to fit the requirements specification.
+	 * Thus, kill the selection, pending reaffirmation...
+	 */
+	selected = NULL;
 	while( component != NULL )
 	{
-       	  /* Step through the "releases" of this component package...
+       	  /* ...by stepping through the "releases" of this component package...
 	  */
 	  pkgXmlNode *required = component->FindFirstAssociate( release_key );
 	  while( required != NULL )
 	  {
 	    /* ...noting if we find one already marked as "installed"...
 	    */
+	    const char *tstclass;
 	    pkgSpecs tst( required->GetPropVal( tarname_key, NULL ) );
-	    if(  is_installed( required )
-	    &&  (strcmp( tst.GetComponentClass(), reqclass ) == 0)  )
+	    if( (tstclass = tst.GetComponentClass()) == NULL )
+	      tstclass = value_unknown;
+
+	    if( is_installed( required ) && (strcmp( tstclass, reqclass ) == 0) )
 	      installed = required;
 
     	    /* ...and identify the most suitable candidate "release"
@@ -213,42 +257,63 @@ pkgXmlDocument::ResolveDependencies( pkgXmlNode* package, pkgActionItem* rank )
 	   */
 	  component = component->FindNextAssociate( component_key );
 	}
-      }
 
-      /* We have now identified the most suitable candidate package,
-       * to resolve the current dependency...
-       */
-      if( installed )
-      {
-	/* ...this package is already installed, so we may schedule
-	 * a resolved dependency match, with no pending action...
+	/* We have now identified the most suitable candidate package,
+	 * to resolve the current dependency...
 	 */
-	unsigned long fallback = request & ~ACTION_MASK;
-	if( selected != installed )
+	if( installed )
 	{
-	  /* ...but, if there is a better candidate than the installed
-	   * version, we prefer to schedule an upgrade.
+	  /* ...this package is already installed, so we may schedule
+	   * a resolved dependency match, with no pending action...
 	   */
-	  fallback |= ACTION_UPGRADE;
-	  wanted.SelectPackage( installed, to_remove );
+	  unsigned long fallback = request & ~ACTION_MASK;
+	  if( (selected != NULL) && (selected != installed) )
+	  {
+	    /* ...but, if there is a better candidate than the installed
+	     * version, we prefer to schedule an upgrade.
+	     */
+	    fallback |= ACTION_UPGRADE;
+	    wanted.SelectPackage( installed, to_remove );
+	  }
+	  rank = Schedule( fallback, wanted, rank );
 	}
-	rank = Schedule( fallback, wanted, rank );
+
+	else if( (request & ACTION_MASK) == ACTION_INSTALL )
+	  /*
+	   * The required package is not installed...
+	   * When performing an installation, we must schedule it
+	   * for installation now; (we may simply ignore it, if
+	   * we are performing a removal).
+	   */
+	  rank = Schedule( request, wanted, rank );
+
+	/* Regardless of the action scheduled, we must recursively
+	 * consider further dependencies of the resolved prerequisite;
+	 * FIXME: do we need to do this, when performing a removal?
+	 */
+	ResolveDependencies( selected, rank );
       }
 
-      else if( (request & ACTION_MASK) == ACTION_INSTALL )
-	/*
-	 * The required package is not installed...
-	 * When performing an installation, we must schedule it
-	 * for installation now; (we may simply ignore it, if
-	 * we are performing a removal).
+      if( selected == NULL )
+      {
+	/* No package matching the selection criteria could be found;
+	 * report a dependency resolution failure in respect of each
+	 * specified criterion...
 	 */
-	rank = Schedule( request, wanted, rank );
+	const char *ref, *key[] = { lt_key, le_key, eq_key, ge_key, gt_key };
+	const char *requestor = refpkg->GetPropVal( tarname_key, value_unknown );
 
-      /* Regardless of the action scheduled, we must recursively
-       * consider further dependencies of the resolved prerequisite;
-       * FIXME: do we need to do this, when performing a removal?
-       */
-      ResolveDependencies( selected, rank );
+	dmh_control( DMH_BEGIN_DIGEST );
+	dmh_notify( DMH_ERROR, "%s: requires...\n", requestor );
+	for( int i = 0; i < sizeof( key ) / sizeof( char* ); i++ )
+	  if( (ref = dep->GetPropVal( key[i], NULL )) != NULL )
+	  {
+	    dmh_notify( DMH_ERROR, "%s: unresolved dependency (type '%s')\n", ref, key[i] );
+	    dmh_notify( DMH_ERROR, "%s: cannot identify any providing package\n" );
+	  }
+	dmh_notify( DMH_ERROR, "please report this to the package maintainer\n" );
+	dmh_control( DMH_END_DIGEST );
+      }
 
       /* Continue, until all prerequisites of the current package
        * have been evaluated.
@@ -261,9 +326,130 @@ pkgXmlDocument::ResolveDependencies( pkgXmlNode* package, pkgActionItem* rank )
      * searching for "requires" elements in all containing
      * contexts, until we reach the root element.
      */
-    package = package->GetParent();
+    package = (package == GetRoot()) ? NULL : package->GetParent();
   }
   delete refdata;
+}
+
+static inline bool assert_unmatched
+( const char *ref, const char *val, const char *name, const char *alias )
+{
+# define if_noref( name )	((name == NULL) || (*name == '\0'))
+# define if_match( ref, name )	((name != NULL) && (strcmp( ref, name ) == 0))
+# define if_alias( ref, list )	((list != NULL) && has_keyword( ref, list ))
+
+  /* Helper for the following "assert_installed" function; it determines if
+   * the reference name specified by "ref" matches either the corresponding
+   * field value "val" from a tarname look-up, or in the case of a package
+   * name reference, the containing package "name" attribute or any of its
+   * specified "alias" names.  The return value is false, in the case of a
+   * match, or true when unmatched.
+   */
+  return (ref == NULL)
+
+    ? /* When "ref" is NULL, then a match requires all specified candidates
+       * for matching to also be NULL, or to be pointers to empty strings.
+       */
+      !( if_noref( val ) && if_noref( name ) && if_noref( alias ))
+
+    : /* Otherwise, when "ref" is not NULL, then a match is identified when
+       * any one candidate is found to match.
+       */
+      !( if_match( ref, val ) || if_match( ref, name ) || if_alias( ref, alias ));
+}
+
+static inline
+pkgXmlNode *assert_installed( pkgXmlNode *current, pkgXmlNode *installed )
+{
+  /* Validation hook for pkgXmlDocument::Schedule(); it checks for
+   * possible prior installation of an obsolete version of a current
+   * package, (i.e. the package itself is listed in the distribution
+   * manifest, but the listing for the installed version has been
+   * removed).
+   *
+   * Note that, by the time this helper is called, an installation
+   * may have been identified already, by a release reference which
+   * is still present in the distribution manifest; we perform this
+   * check, only if no such identification was possible.
+   */
+  if( current && (installed == NULL) )
+  {
+    /* This is the specific case where we have selected a current
+     * package for processing, but we HAVE NOT been able to identify
+     * a prior installation through a distribution manifest reference;
+     * thus, we must perform the further check for prior installation
+     * of an obsolete version.
+     *
+     * Starting from the sysroot record for the specified release...
+     */
+    pkgXmlNode *sysroot; const char *tarname;
+    pkgSpecs lookup( tarname = current->GetPropVal( tarname_key, NULL ) );
+    if( (sysroot = current->GetSysRoot( lookup.GetSubSystemName() )) != NULL )
+    {
+      /* ...identify the first, if any, package installation record.
+       */
+      pkgXmlNode *ref = sysroot->FindFirstAssociate( installed_key );
+      if( ref != NULL )
+      {
+	/* When at least one installation record exists,
+	 * establish references for the "tarname" fields which
+	 * we must match, to identify a prior installation.
+	 */
+	const char *refname = lookup.GetPackageName();
+	const char *cptname = lookup.GetComponentClass();
+	const char *version = lookup.GetComponentVersion();
+
+	/* Also identify the formal name for the containing package,
+	 * and any aliases by which it may also be known, so that we
+	 * may be able to identify a prior installation which may
+	 * have borne a deprecated package name.
+	 */
+	const char *pkgname = current->GetContainerAttribute( name_key );
+	const char *alias = current->GetContainerAttribute( alias_key );
+
+	/* For each candidate installation record found...
+	 */
+	while( ref != NULL )
+	{
+	  /* ...check if it matches the look-up criteria.
+	   */
+	  pkgSpecs chk( ref->GetPropVal( tarname_key, NULL ) );
+	  if( assert_unmatched( chk.GetPackageName(), refname, pkgname, alias )
+	  ||  assert_unmatched( chk.GetComponentClass(), cptname, NULL, NULL )
+	  ||  assert_unmatched( chk.GetComponentVersion(), version, NULL, NULL )  )
+	    /*
+	     * This candidate isn't a match; try the next, if any...
+	     */
+	    ref = ref->FindNextAssociate( installed_key );
+
+	  else
+	  { /* We found a prior installation of a deprecated version;
+	     * back-build a corresponding reference within the associated
+	     * package or component-package inventory, in the internal
+	     * copy of the distribution manifest...
+	     */
+	    if( (installed = new pkgXmlNode( release_key )) != NULL )
+	    {
+	      installed->SetAttribute( tarname_key, tarname );
+	      installed->SetAttribute( installed_key, value_yes );
+	      if( (ref = current->GetParent()) != NULL )
+		installed = ref->AddChild( installed );
+	    }
+	    /* Having found a prior installation, there is no need to
+	     * check any further installation records; force "ref" to
+	     * NULL, to inhibit further searching.
+	     */
+	    ref = NULL;
+	  }
+	}
+      }
+    }
+  }
+  /* However we get to here, we always return the pointer to the installed
+   * package entry identified by the dependency resolver, which may, or may
+   * not have been modified by this function.
+   */
+  return installed;
 }
 
 void pkgXmlDocument::Schedule( unsigned long action, const char* name )
@@ -330,7 +516,7 @@ void pkgXmlDocument::Schedule( unsigned long action, const char* name )
 	  release = release->FindNextAssociate( release_key );
 	}
 
-	if( installed == NULL )
+	if( (installed = assert_installed( upgrade, installed )) == NULL )
 	{
 	  /* There is no installed version...
 	   * therefore, there is nothing to do for any action
