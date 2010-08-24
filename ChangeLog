@@ -1,3 +1,11 @@
+2010-08-24  Keith Marshall  <keithmarshall@users.sourceforge.net>
+
+	Set default sysroots relative to mingw-get installation directory.
+
+	* xml/profile.xml (system-map) [name == default]: For each of...
+	[subsystem == mingw32]: ...set sysroot path to value of %R macro...
+	[subsystem == msys]: ...and to its %R/msys/1.0 subdirectory.
+
 2010-08-19  Keith Marshall  <keithmarshall@users.sourceforge.net>
 
 	Some dependency resolver enhancements and bug fixes.

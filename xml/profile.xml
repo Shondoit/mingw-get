@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <profile project="MinGW" application="mingw-get">
   <!--
-    $Id: profile.xml,v 1.3 2010/05/17 17:03:31 keithmarshall Exp $
+    $Id: profile.xml,v 1.4 2010/08/24 20:02:10 keithmarshall Exp $
 
     Written by Keith Marshall  <keithmarshall@users.sourceforge.net>
     Copyright (C) 2009, 2010, MinGW Project
@@ -90,8 +90,8 @@
       specified by user selection, the first encountered is accepted as
       default, irrespective of its actual "id" attribute value.
     -->
-    <sysroot subsystem="mingw32" path="c:/MinGW" />
-    <sysroot subsystem="MSYS" path="c:/MSYS/1.0" />
+    <sysroot subsystem="mingw32" path="%R" />
+    <sysroot subsystem="MSYS" path="%R/msys/1.0" />
   </system-map>
 
 </profile>
