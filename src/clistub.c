@@ -1,7 +1,7 @@
 /*
  * clistub.c
  *
- * $Id: clistub.c,v 1.3 2010/01/08 17:44:21 keithmarshall Exp $
+ * $Id: clistub.c,v 1.4 2010/08/27 22:08:03 keithmarshall Exp $
  *
  * Written by Keith Marshall <keithmarshall@users.sourceforge.net>
  * Copyright (C) 2009, 2010, MinGW Project
@@ -26,9 +26,6 @@
  */
 #define _WIN32_WINNT 0x500
 #define WIN32_LEAN_AND_MEAN
-
-#define MINGW_GET_DLL  L"libexec/mingw-get/mingw-get-0.dll"
-#define MINGW_GET_GUI  L"libexec/mingw-get/gui.exe"
 
 #include <windows.h>
 #include <stdio.h>
@@ -157,9 +154,15 @@ wchar_t *AppPathNameW( const wchar_t *relpath )
 
 extern const char *version_identification;
 
+#define  IMPLEMENT_INITIATION_RITES
+#include "rites.c"
+
 int main( int argc, char **argv )
 {
-  wchar_t *approot;		/* where this application is installed */
+  /* Make a note of...
+   */
+  const char *progname = basename( *argv );	/* ...this program's name    */
+  wchar_t *approot;				/* and where it is installed */
 
   if( argc > 1 )
   {
@@ -188,14 +191,14 @@ int main( int argc, char **argv )
 	   * emit the requisite informational message, and quit.
 	   */
 	  printf( version_identification );
-	  return 0;
+	  return EXIT_SUCCESS;
 
 	default:
 	  /* User specified an invalid or unsupported option...
 	   */
 	  if( opt != '?' )
 	    fprintf( stderr, "%s: option '-%s' not yet supported\n",
-		basename( *argv ), options[offset].name
+		progname, options[offset].name
 	      );
 	  return EXIT_FAILURE;
       }
@@ -220,6 +223,7 @@ int main( int argc, char **argv )
      * then, remaining in command line mode, we jump to its main
      * command line processing routine...
      */
+    int lock;
     typedef int (*dll_entry)( int, char ** );
     HMODULE my_dll = LoadLibraryW( AppPathNameW( MINGW_GET_DLL ) );
     dll_entry climain = (dll_entry)(GetProcAddress( my_dll, "climain" ));
@@ -228,11 +232,35 @@ int main( int argc, char **argv )
       /* ...bailing out, on failure to load the DLL.
        */
       fprintf( stderr, "%s: %S: shared library load failed\n", 
-	  basename( *argv ), MINGW_GET_DLL
+	  progname, MINGW_GET_DLL
 	);
       return EXIT_FATAL;
     }
-    return climain( argc, argv );
+
+    /* We want only one mingw-get process accessing the XML database
+     * at any time; attempt to acquire an exclusive access lock...
+     */
+    if( (lock = pkgInitRites( progname )) >= 0 )
+    {
+      /* ...and proceed, only if successful.
+       * (Note that we don't capture the exit status from "climain()";
+       *  MS-Windows degenerate process model provides us with no viable
+       *  mechanism to pass it back to our parent, when the last rites
+       *  handler exits with a successful "exec()" call).
+       */
+      (void) climain( argc, argv );
+
+      /* We must release the mingw-get DLL code, BEFORE we invoke
+       * last rites processing, (otherwise the last rites clean-up
+       * handler exhibits abnormal behaviour when it is exec'd).
+       */
+      FreeLibrary( my_dll );
+      return pkgLastRites( lock, progname );
+    }
+    /* If we get to here, then we failed to acquire a lock;
+     * we MUST abort!
+     */
+    return EXIT_FATAL;
   }
 
   else
@@ -248,7 +276,7 @@ int main( int argc, char **argv )
      * Issue a diagnostic message, before abnormal termination.
      */
     fprintf( stderr, "%s: %S: unable to start application; status = %d\n",
-	basename( *argv ), MINGW_GET_GUI, status
+	progname, MINGW_GET_GUI, status
       );
     return EXIT_FATAL;
   }

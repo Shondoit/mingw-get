@@ -2,7 +2,7 @@
 /*
  * debug.h
  *
- * $Id: debug.h,v 1.1 2010/08/15 13:37:54 keithmarshall Exp $
+ * $Id: debug.h,v 1.2 2010/08/27 22:08:03 keithmarshall Exp $
  *
  * Written by Keith Marshall <keithmarshall@users.sourceforge.net>
  * Copyright (C) 2010, MinGW Project
@@ -27,10 +27,23 @@
  *
  */
 #define DEBUG_H  1
+
 # if DEBUGLEVEL
-#  ifndef DEBUG_TRACE_INIT
-#   define DEBUG_TRACE_INIT	0x0001
-#  endif
+  /* Here, we provide definitions and declarations which allow us
+   * to selectively enable compilation of (specific class of) debug
+   * specific code.
+   */
+#  define DEBUG_TRACE_INIT  			0x0001
+
+#  define DEBUG_INHIBIT_RITES_OF_PASSAGE  	0x7000
+#  define DEBUG_FAIL_FILE_RENAME_RITE		0x1000
+#  define DEBUG_FAIL_FILE_UNLINK_RITE		0x2000
+
 # else /* DEBUGLEVEL == 0 */
+  /* We use this space to provide any declarations which may be
+   * necessary to disable compilation of debug specific code...
+   * (currently, there are none).
+   */
 # endif /* DEBUGLEVEL */
+
 #endif /* DEBUG_H: $RCSfile: debug.h,v $: end of file */

@@ -1,6 +1,6 @@
 # @configure_input@
 #
-# $Id: Makefile.in,v 1.18 2010/06/24 21:40:11 keithmarshall Exp $
+# $Id: Makefile.in,v 1.19 2010/08/27 22:08:03 keithmarshall Exp $
 
 PACKAGE_TARNAME = @PACKAGE_TARNAME@
 PACKAGE_VERSION = @PACKAGE_VERSION@
@@ -54,7 +54,7 @@ EXEEXT = @EXEEXT@
 LDFLAGS = @LDFLAGS@
 LIBS = -Wl,-Bstatic -lz -lbz2 -llzma -Wl,-Bdynamic -lwininet
 
-CORE_DLL_OBJECTS = climain.$(OBJEXT) \
+CORE_DLL_OBJECTS  =  climain.$(OBJEXT) \
    pkgbind.$(OBJEXT) pkginet.$(OBJEXT) pkgstrm.$(OBJEXT) pkgname.$(OBJEXT) \
    pkgexec.$(OBJEXT) pkgfind.$(OBJEXT) pkginfo.$(OBJEXT) pkgspec.$(OBJEXT) \
    sysroot.$(OBJEXT) pkghash.$(OBJEXT) pkgkeys.$(OBJEXT) pkgdeps.$(OBJEXT) \
@@ -63,13 +63,16 @@ CORE_DLL_OBJECTS = climain.$(OBJEXT) \
    tinyxml.$(OBJEXT) tinyxmlparser.$(OBJEXT) \
    tinystr.$(OBJEXT) tinyxmlerror.$(OBJEXT)
 
-all: pkginfo$(EXEEXT) mingw-get$(EXEEXT) mingw-get-0.dll
+all: pkginfo$(EXEEXT) mingw-get$(EXEEXT) mingw-get-0.dll lastrites$(EXEEXT)
 
 pkginfo$(EXEEXT):  driver.$(OBJEXT) pkginfo.$(OBJEXT)
 	$(CC) -o $@ $(CFLAGS) $(LDFLAGS) $+
 
 mingw-get$(EXEEXT): clistub.$(OBJEXT) version.$(OBJEXT)
 	$(CXX) -o $@ $(CXXFLAGS) $(LDFLAGS) $+
+
+lastrites$(EXEEXT): rites.$(OBJEXT)
+	$(CC) -o $@ $(CFLAGS) $(LDFLAGS) $+
 
 mingw-get-0.dll: $(CORE_DLL_OBJECTS)
 	$(CXX) -shared -o $@ $(CXXFLAGS) $(LDFLAGS) $+ $(LIBS)
@@ -117,6 +120,7 @@ installdirs:
 install: installdirs install-profile
 	$(INSTALL_PROGRAM) pkginfo$(EXEEXT) ${bindir}
 	$(INSTALL_PROGRAM) mingw-get$(EXEEXT) ${bindir}
+	$(INSTALL_PROGRAM) lastrites$(EXEEXT) ${libexecdir}/${PACKAGE_TARNAME}
 	$(INSTALL_DATA) mingw-get-0.dll ${libexecdir}/${PACKAGE_TARNAME}
 
 install-profile:
@@ -126,15 +130,16 @@ install-profile:
 install-strip: install
 	$(STRIP) ${bindir}/pkginfo$(EXEEXT)
 	$(STRIP) ${bindir}/mingw-get$(EXEEXT)
+	$(STRIP) ${libexecdir}/${PACKAGE_TARNAME}/lastrites$(EXEEXT)
 	$(STRIP) ${libexecdir}/${PACKAGE_TARNAME}/mingw-get-0.dll
 
 # Packaging and distribution...
 #
 LICENCE_FILES = README COPYING
-SRCDIST_FILES = $(LICENCE_FILES) ChangeLog version.c.in \
-  configure.ac configure Makefile.in install-sh
+SRCDIST_FILES = $(LICENCE_FILES) ChangeLog \
+  configure.ac configure Makefile.in version.c.in
 
-SRCDIST_SUBDIRS = src src/pkginfo tinyxml xml
+SRCDIST_SUBDIRS = build-aux src src/pkginfo tinyxml xml
 
 # The names of distributed pacakge archive files incorporate version
 # information, derived from PACKAGE_VERSION; this is decomposed, so that

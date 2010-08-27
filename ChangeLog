@@ -1,3 +1,29 @@
+2010-08-27  Keith Marshall  <keithmarshall@users.sourceforge.net>
+
+	Add runtime hooks to support self-upgrade for future releases.
+
+	* src/rites.c: New file; compile it free-standing, to provide...
+	(lastrites.exe): ...this helper application for context clean-up;
+	alternatively, use it as an include file, with pre-definition of...
+	(IMPLEMENT_INITIATION_RITES): ...this, to implement...
+	(pkgInitRites, pkgLastRites): ...these inline functions.
+
+	* src/clistub.c (main) [argc > 1]: Use them.
+	(progname): New local variable within `main'; set it once, then use it
+	instead of repeated references to `basename(*argv)' in diagnostics.
+	(MINGW_GET_DLL, MINGW_GET_GUI): Relocate to `src/rites.c'.
+
+	* src/debug.h (DEBUG_INHIBIT_RITES_OF_PASSAGE):
+	(DEBUG_FAIL_FILE_RENAME_RITE, DEBUG_FAIL_FILE_UNLINK_RITE): New
+	defines; they facilitate debugging of the src/rites.c code.
+
+	* Makefile.in (lastrites$EXEEXT): New target; build as prerequisite...
+	(all): ...of this primary target.
+	(install, install-strip): Install it.
+	(SRCDIST_FILES): Remove install-sh; it is now included in...
+	(build-aux): ...this directory; add it to...
+	(SRCDIST_SUBDIRS): ...this.
+
 2010-08-24  Keith Marshall  <keithmarshall@users.sourceforge.net>
 
 	Set default sysroots relative to mingw-get installation directory.
