@@ -1,6 +1,67 @@
-Release Notes for mingw-get-0.1-mingw32-alpha-2
+Release Notes for mingw-get-0.1-mingw32-alpha-3
 
-$Id: README,v 1.2 2010/05/17 17:03:31 keithmarshall Exp $
+$Id: README,v 1.3 2010/08/30 20:42:26 keithmarshall Exp $
+
+Preamble
+--------
+
+This is the third alpha release of mingw-get; this is primarily a bug
+fix release, with few user visible changes.  The installation procedure
+remains the same as for previous releases; to upgrade from a previous
+release, simply unpack the -bin package over the top of the existing
+installation.  For further information, and usage advice, see:
+
+    http://mingw.org/wiki/Getting_Started
+
+
+User Visible Changes for mingw-get-0.1-mingw32-alpha-3
+------------------------------------------------------
+
+- There is no profile.xml file shipped with this release; users who
+  are installing for the first time are advised to copy the supplied
+  var/lib/mingw-get/data/defaults.xml configuration file prototype to
+  var/lib/mingw-get/data/profile.xml, which may then be customised as
+  required; (if no customisation is required, mingw-get can use the
+  defaults.xml file directly, but will warn that profile.xml does
+  not exist).
+
+- Within defaults.xml, the %R macro has been formally adopted as the
+  mechanism for specifying the installation paths for both MinGW and
+  for MSYS; this binds the default installation paths for both MinGW
+  and MSYS to the installation directory of mingw-get itself, since
+  the absolute path to mingw-get.exe is identified as:
+
+      %R\bin\mingw-get.exe
+
+  with default base directory paths being defined for each of MinGW
+  and MSYS respectively as:
+
+      %R\
+      %R\msys\1.0\
+
+  This arrangement makes it possible for users to choose installation
+  locations for both MinGW and MSYS, simply by making the choice of
+  where to install mingw-get, without any further need to create, or
+  to modify profile.xml, (although, to avoid warnings about a missing
+  profile.xml, users may prefer to copy or rename defaults.xml).  As
+  for previous releases, the recommended directory for installation is
+  C:\MinGW\, and this should not be changed without pressing reason; in
+  any event, users who insist on changing it should be aware that, if
+  they choose any installation directory which includes white space in
+  its absolute path name, their installation may not work correctly,
+  and such installations will not be supported by the MinGW Project.
+
+- This release of mingw-get incorporates necessary infrastructure to
+  support future upgrades to itself, using its own internal upgrade 
+  facility.  This is the first release to support this capability;
+  however, the effect will not become apparent until upgrading to
+  the next release.
+
+
+===============================================
+
+
+Release Notes for mingw-get-0.1-mingw32-alpha-2
 
 Preamble
 --------

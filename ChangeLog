@@ -1,3 +1,11 @@
+2010-08-30  Keith Marshall  <keithmarshall@users.sourceforge.net>
+
+	mingw-get-0.1-mingw32-alpha-3 released.
+
+	* README: Add new release notes.
+
+	* All files (r0-1-alpha-3): Tag assigned.
+
 2010-08-27  Keith Marshall  <keithmarshall@users.sourceforge.net>
 
 	Add runtime hooks to support self-upgrade for future releases.
