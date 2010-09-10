@@ -1,5 +1,11 @@
 2010-09-10  Charles Wilson  <mingw@cwilson.fastmail.fm>
 
+	mingw-get-0.1-mingw32-alpha-4 released.
+
+	* All files (r0-1-alpha-4): Tag assigned.
+
+2010-09-10  Charles Wilson  <mingw@cwilson.fastmail.fm>
+
 	Add rudimentary help option.
 
 	* README: Update release notes.
@@ -21,7 +27,7 @@
 	(abort_if_fatal): If DMH_FATAL, throw dmh_exception rather
 	than calling exit().
 
-	* src/climain.cpp (climain): Wrap entry function body in try/
+	* src/climain.cpp (climain): Wrap entire function body in try/
 	catch block. If dmh_exception is caught, return EXIT_FAILURE.
 
 	* src/clistub.c (main): Capture return value of climain(). If
