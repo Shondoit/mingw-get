@@ -1,6 +1,6 @@
 Release Notes for mingw-get-0.1-mingw32-alpha-4
 
-$Id: README,v 1.4 2010/09/10 01:44:24 cwilso11 Exp $
+$Id: README,v 1.5 2010/09/10 02:15:57 cwilso11 Exp $
 
 Preamble
 --------
@@ -30,6 +30,7 @@ User Visible Changes for mingw-get-0.1-mingw32-alpha-4
      mv bin/mingw-get.exe~ bin/mingw-get.exe
      mv libexec/mingw-get/mingw-get-0.dll~ libexec/mingw-get/mingw-get-0.dll
 
+- Add --help|-h option
 
 ===============================================
 

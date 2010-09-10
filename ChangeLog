@@ -1,5 +1,13 @@
 2010-09-10  Charles Wilson  <mingw@cwilson.fastmail.fm>
 
+	Add rudimentary help option.
+
+	* README: Update release notes.
+
+	* src/clistub.c: Add --help option.
+
+2010-09-10  Charles Wilson  <mingw@cwilson.fastmail.fm>
+
 	Fix "mingw-get deletes itself" bug in last rites handling.
 
 	* README: Add new release notes.

@@ -1,7 +1,7 @@
 /*
  * clistub.c
  *
- * $Id: clistub.c,v 1.5 2010/09/10 01:44:24 cwilso11 Exp $
+ * $Id: clistub.c,v 1.6 2010/09/10 02:15:57 cwilso11 Exp $
  *
  * Written by Keith Marshall <keithmarshall@users.sourceforge.net>
  * Copyright (C) 2009, 2010, MinGW Project
@@ -154,6 +154,24 @@ wchar_t *AppPathNameW( const wchar_t *relpath )
 
 extern const char *version_identification;
 
+static const char *help_text =
+"mingw-get [OPTIONS] ACTION package-spec [package-spec ...]\n"
+"Manage MinGW and MSYS installations (Command-line user interface).\n\n"
+"Options:\n"
+"  --help, -h      Show this help text\n"
+"  --version, -V   Show version and licence information\n\n"
+"Actions:\n"
+"  update          Update local copy of repository catalogues\n"
+"  install         Install new packages\n"
+"  remove          [not implemented] Remove previously installed packages\n"
+"  upgrade         [not implemented] Upgrade previously installed packages\n\n"
+"Package Specifications:\n"
+"  [subsystem]-name-[component]:\n"
+"  msys-bash-doc   The 'doc' component of the bash package for MSYS\n"
+"  mingw32-gdb     All components of the gdb package for MinGW\n"
+"See /mingw/var/lib/mingw-get/data/*.xml for possible package names\n"
+"and the components associated with each.\n\n";
+
 #define  IMPLEMENT_INITIATION_RITES
 #include "rites.c"
 
@@ -172,10 +190,11 @@ int main( int argc, char **argv )
      */
     struct option options[] =
     {
-      /* Option Name		  Argument Category    Store To   Return Value
+      /* Option Name              Argument Category    Store To   Return Value
        * ----------------------   ------------------   --------   ------------
        */
-      { "version",		  no_argument,	       NULL,	  'V'	       },
+      { "version",                no_argument,         NULL,      'V'        },
+      { "help",                   no_argument,         NULL,      'h'        },
 
       /* This list must be terminated by a null definition...
        */
@@ -183,7 +202,7 @@ int main( int argc, char **argv )
     };
 
     int opt, offset;
-    while( (opt = getopt_long_only( argc, argv, "V", options, &offset )) != -1 )
+    while( (opt = getopt_long_only( argc, argv, "Vh", options, &offset )) != -1 )
       switch( opt )
       {
 	case 'V':
@@ -191,6 +210,11 @@ int main( int argc, char **argv )
 	   * emit the requisite informational message, and quit.
 	   */
 	  printf( version_identification );
+	  return EXIT_SUCCESS;
+
+	case 'h':
+	  /* This is a request to display help text and quit. */
+	  printf( help_text );
 	  return EXIT_SUCCESS;
 
 	default:
