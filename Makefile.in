@@ -1,6 +1,6 @@
 # @configure_input@
 #
-# $Id: Makefile.in,v 1.19 2010/08/27 22:08:03 keithmarshall Exp $
+# $Id: Makefile.in,v 1.20 2010/09/10 03:04:06 cwilso11 Exp $
 
 PACKAGE_TARNAME = @PACKAGE_TARNAME@
 PACKAGE_VERSION = @PACKAGE_VERSION@
@@ -171,12 +171,12 @@ bindist: all licdist
 	rm -rf staged
 
 licdist:
-	rm -rf shared
-	$(mkinstalldirs) ./shared/doc/${PACKAGE_TARNAME}
-	cd ./shared/doc/${PACKAGE_TARNAME}; for file in $(LICENCE_FILES); \
+	rm -rf share
+	$(mkinstalldirs) ./share/doc/${PACKAGE_TARNAME}
+	cd ./share/doc/${PACKAGE_TARNAME}; for file in $(LICENCE_FILES); \
 	  do $(LN_S) ${abs_top_srcdir}/$$file .; done
-	tar chf - shared | gzip -c > $(PACKAGE_DISTNAME)-lic.tar.gz
-	rm -rf shared
+	tar chf - share | gzip -c > $(PACKAGE_DISTNAME)-lic.tar.gz
+	rm -rf share
 
 srcdist: pkginfo.c
 	rm -rf ${PACKAGE_DISTROOT} && mkdir ${PACKAGE_DISTROOT}

@@ -1,5 +1,12 @@
 2010-09-10  Charles Wilson  <mingw@cwilson.fastmail.fm>
 
+	Fix packaging bug in -lic package.
+
+	* Makefile.in (licdist): Use directory named
+	"share", not "shared".
+
+2010-09-10  Charles Wilson  <mingw@cwilson.fastmail.fm>
+
 	mingw-get-0.1-mingw32-alpha-4 released.
 
 	* All files (r0-1-alpha-4): Tag assigned.
