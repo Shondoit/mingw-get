@@ -2,7 +2,7 @@
 /*
  * dmh.h
  *
- * $Id: dmh.h,v 1.1 2009/11/11 21:59:43 keithmarshall Exp $
+ * $Id: dmh.h,v 1.2 2010/09/10 01:44:24 cwilso11 Exp $
  *
  * Written by Keith Marshall <keithmarshall@users.sourceforge.net>
  * Copyright (C) 2009, MinGW Project
@@ -29,6 +29,9 @@
 #define DMH_H  1
 
 #include <stdint.h>
+#ifdef __cplusplus
+#include <exception>
+#endif
 
 #undef EXTERN_C
 #ifdef __cplusplus
@@ -61,5 +64,25 @@ EXTERN_C int dmh_printf( const char *fmt, ... );
 #define DMH_END_DIGEST    0x0100U,  0x0000U
 
 EXTERN_C uint16_t dmh_control( const uint16_t, const uint16_t );
+
+#ifdef __cplusplus
+class dmh_exception : public std::exception
+{
+  /* Limited purpose exception class; can only accept messages
+   * that are const char, because lifetime is assumed infinite,
+   * and storage is not freed. Used to handle fatal errors,
+   * which otherwise would force a direct call to exit().  By
+   * using this class, we can ensure that last rites are
+   * performed before exiting.
+   */
+public:
+  dmh_exception() throw();
+  dmh_exception(const char * msg) throw();
+  virtual ~dmh_exception() throw();
+  virtual const char* what() const throw();
+protected:
+  const char * message;
+};
+#endif /* __cplusplus */
 
 #endif /* DMH_H: $RCSfile: dmh.h,v $: end of file */

@@ -1,7 +1,7 @@
 /*
  * clistub.c
  *
- * $Id: clistub.c,v 1.4 2010/08/27 22:08:03 keithmarshall Exp $
+ * $Id: clistub.c,v 1.5 2010/09/10 01:44:24 cwilso11 Exp $
  *
  * Written by Keith Marshall <keithmarshall@users.sourceforge.net>
  * Copyright (C) 2009, 2010, MinGW Project
@@ -243,19 +243,22 @@ int main( int argc, char **argv )
     if( (lock = pkgInitRites( progname )) >= 0 )
     {
       /* ...and proceed, only if successful.
-       * (Note that we don't capture the exit status from "climain()";
-       *  MS-Windows degenerate process model provides us with no viable
-       *  mechanism to pass it back to our parent, when the last rites
-       *  handler exits with a successful "exec()" call).
+       *  A non-zero return value indicates that a fatal error occurred.
        */
-      (void) climain( argc, argv );
+      int rc = climain( argc, argv );
 
       /* We must release the mingw-get DLL code, BEFORE we invoke
        * last rites processing, (otherwise the last rites clean-up
        * handler exhibits abnormal behaviour when it is exec'd).
        */
       FreeLibrary( my_dll );
-      return pkgLastRites( lock, progname );
+      if (rc == 0)
+        return pkgLastRites( lock, progname );
+      else
+      {
+        (void) pkgLastRites( lock, progname );
+        return EXIT_FATAL;
+      }
     }
     /* If we get to here, then we failed to acquire a lock;
      * we MUST abort!

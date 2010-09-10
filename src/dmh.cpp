@@ -1,7 +1,7 @@
 /*
  * dmh.cpp
  *
- * $Id: dmh.cpp,v 1.1 2009/11/11 21:59:43 keithmarshall Exp $
+ * $Id: dmh.cpp,v 1.2 2010/09/10 01:44:24 cwilso11 Exp $
  *
  * Written by Keith Marshall <keithmarshall@users.sourceforge.net>
  * Copyright (C) 2009, MinGW Project
@@ -66,6 +66,25 @@ class dmhTypeGUI : public dmhTypeGeneric
     virtual int printf( const char*, va_list );
 };
 
+dmh_exception::dmh_exception() throw()
+  : message("Unspecified error")
+{}
+
+dmh_exception::dmh_exception::dmh_exception(const char * msg) throw()
+  : message("Unspecified error")
+{
+  if (msg && *msg)
+    message = msg;
+}
+
+dmh_exception::~dmh_exception() throw()
+{}
+
+const char * dmh_exception::what() const throw()
+{
+  return message;
+}
+
 /* Constructors serve to initialise the message handler,
  * simply creating the class instance, and storing the specified
  * program name within it.
@@ -111,7 +130,7 @@ int abort_if_fatal( const dmh_severity code, int status )
    * of a DMH_FATAL exception.
    */
   if( code == DMH_FATAL )
-    exit( EXIT_FAILURE );
+    throw dmh_exception("Fatal error occured");
 
   /* If the exception wasn't DMH_FATAL, then fall through to
    * return the specified status code.

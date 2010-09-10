@@ -1,7 +1,7 @@
 /*
  * climain.cpp
  *
- * $Id: climain.cpp,v 1.7 2010/05/12 18:16:27 keithmarshall Exp $
+ * $Id: climain.cpp,v 1.8 2010/09/10 01:44:24 cwilso11 Exp $
  *
  * Written by Keith Marshall <keithmarshall@users.sourceforge.net>
  * Copyright (C) 2009, 2010, MinGW Project
@@ -38,6 +38,9 @@
 
 EXTERN_C int climain( int argc, char **argv )
 {
+  try
+  {
+
   /* Set up the diagnostic message handler, using the console's
    * `stderr' stream for notifications...
    */
@@ -134,6 +137,12 @@ EXTERN_C int climain( int argc, char **argv )
    * function without a return value assignment...
    */
   return dmh_notify( DMH_FATAL, "%s: cannot load configuration\n", dfile );
+
+  }
+  catch (dmh_exception &e)
+  {
+    return EXIT_FAILURE;
+  }
 }
 
 /* $RCSfile: climain.cpp,v $: end of file */

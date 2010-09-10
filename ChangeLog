@@ -1,3 +1,24 @@
+2010-09-10  Charles Wilson  <mingw@cwilson.fastmail.fm>
+
+	Fix "mingw-get deletes itself" bug in last rites handling.
+
+	* README: Add new release notes.
+
+	* configure.ac: Bump version to 0.1-alpha-4.
+
+	* src/dmh.h: If __cplusplus, include <exception> and
+	declare dmh_exception class.
+
+	* src/dmh.cpp (class dmh_exception): Implement.
+	(abort_if_fatal): If DMH_FATAL, throw dmh_exception rather
+	than calling exit().
+
+	* src/climain.cpp (climain): Wrap entry function body in try/
+	catch block. If dmh_exception is caught, return EXIT_FAILURE.
+
+	* src/clistub.c (main): Capture return value of climain(). If
+	non-zero, perform last rites and return EXIT_FAILURE.
+
 2010-08-30  Keith Marshall  <keithmarshall@users.sourceforge.net>
 
 	mingw-get-0.1-mingw32-alpha-3 released.
