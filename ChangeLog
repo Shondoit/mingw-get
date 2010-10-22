@@ -1,3 +1,26 @@
+2010-10-22  Keith Marshall  <keithmarshall@users.sourceforge.net>
+
+	Make pkgInitRites/pkgLastRites processing more robust;
+	avoid a potential race condition in mingw-get-inst.
+
+	* src/rites.c: Refactor conditional code to segregate execution of...
+	[defined IMPLEMENT_INITIATION_RITES]: ...this into distinct phases.
+	(PHASE_ONE_RITES, PHASE_TWO_RITES): Define constants to identify them.
+	(do_init_rites): Renamed to...
+	(invoke_rites): ...this; inline it.
+	(pkgLastRites): Invoke it, to pre-empt rename action of...
+	(lastrites.exe): ...this, subsequently exec()ed process.
+	(perror): Issue more informative diagnostic on exec() failure.
+
+	* src/clistub.c (IMPLEMENT_INITIATION_RITES): Stipulate as...
+	(PHASE_ONE_RITES): ...this phase of implementation only.
+
+	* src/pkgexec.cpp (IMPLEMENT_INITIATION_RITES): Define to provide...
+	(PHASE_TWO_RITES): ...this phase of implementation, facilitated by...
+	(self_upgrade_rites): ...this locally defined RITES_INLINE function.
+	(pkgActionItem::Execute): Invoke it, in remove/install loop, while...
+	[init_rites_pending]: ...new loop local variable remains true.
+
 2010-09-10  Charles Wilson  <mingw@cwilson.fastmail.fm>
 
 	Fix packaging bug in -lic package.

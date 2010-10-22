@@ -1,7 +1,7 @@
 /*
  * clistub.c
  *
- * $Id: clistub.c,v 1.6 2010/09/10 02:15:57 cwilso11 Exp $
+ * $Id: clistub.c,v 1.7 2010/10/22 22:08:52 keithmarshall Exp $
  *
  * Written by Keith Marshall <keithmarshall@users.sourceforge.net>
  * Copyright (C) 2009, 2010, MinGW Project
@@ -172,7 +172,7 @@ static const char *help_text =
 "See /mingw/var/lib/mingw-get/data/*.xml for possible package names\n"
 "and the components associated with each.\n\n";
 
-#define  IMPLEMENT_INITIATION_RITES
+#define  IMPLEMENT_INITIATION_RITES	PHASE_ONE_RITES
 #include "rites.c"
 
 int main( int argc, char **argv )

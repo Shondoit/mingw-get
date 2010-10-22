@@ -1,7 +1,7 @@
 /*
  * pkgexec.cpp
  *
- * $Id: pkgexec.cpp,v 1.10 2010/08/17 21:35:59 keithmarshall Exp $
+ * $Id: pkgexec.cpp,v 1.11 2010/10/22 22:08:52 keithmarshall Exp $
  *
  * Written by Keith Marshall <keithmarshall@users.sourceforge.net>
  * Copyright (C) 2009, 2010, MinGW Project
@@ -90,6 +90,46 @@ EXTERN_C int action_code( const char* request )
    * signal this, by returning -1.
    */
   return -1;
+}
+
+/* To circumvent MS-Windows restrictions on deletion and/or overwriting
+ * executable and shared object files, while their respective code is in
+ * use by a running application, and to facilitate upgrade of mingw-get
+ * itself, while it is the running application performing the upgrade,
+ * we introduce a "rites of passage" work around.  The first phase of
+ * this is invoked immediately on process start up, but the second
+ * phase is deferred...
+ */
+#define IMPLEMENT_INITIATION_RITES  PHASE_TWO_RITES
+#include "rites.c"
+/*
+ * ...until we know for sure that a self-upgrade has been scheduled...
+ */
+RITES_INLINE bool self_upgrade_rites( const char *name )
+{
+  /* ...as determined by inspection of package names, and deferring
+   * the rite as "pending" until a request to process "mingw-get-bin"
+   * is actually received...
+   */
+  pkgSpecs pkg( name );
+  bool pending = ((name = pkg.GetComponentClass()) == NULL)
+    || (strcmp( name, "bin" ) != 0) || ((name = pkg.GetPackageName()) == NULL)
+    || (strcmp( name, "mingw-get" ) != 0);
+
+  if( ! pending )
+    /*
+     * We've just identified a request to process "mingw-get-bin";
+     * thus the requirement to invoke the "self upgrade rites" has
+     * now become immediate, so do it...
+     */
+    invoke_rites();
+
+  /* Finally, return the requirement state as it now is, whether it
+   * remains "pending" or not, so that the caller may avoid checking
+   * the requirement for invoking the "self upgrade rites" process,
+   * after it has already been requested.
+   */
+  return pending;
 }
 
 pkgActionItem::pkgActionItem( pkgActionItem *after, pkgActionItem *before )
@@ -324,12 +364,29 @@ void pkgActionItem::Execute()
   if( this != NULL )
   {
     pkgActionItem *current = this;
+    bool init_rites_pending = true;
     while( current->prev != NULL ) current = current->prev;
     DownloadArchiveFiles( current );
     while( current != NULL )
     {
-      dmh_printf( "%s: %s\n", action_name(current->flags & ACTION_MASK),
-	  current->Selection()->GetPropVal( tarname_key, "<unknown>" ));
+      /* Print a notification of the installation process to be
+       * performed, identifying the package to be processed.
+       */
+      const char *tarname;
+      if( (tarname = current->Selection()->GetPropVal( tarname_key, NULL )) == NULL )
+	tarname = current->Selection( to_remove )->GetPropVal( tarname_key, value_unknown );
+      dmh_printf( "%s: %s\n", action_name(current->flags & ACTION_MASK), tarname );
+
+      /* Check for any outstanding requirement to invoke the
+       * "self upgrade rites" process, so that we may install an
+       * upgrade for mingw-get itself...
+       */
+      if( init_rites_pending )
+	/*
+	 * ...discontinuing the check once this has been completed,
+	 * since it need not be performed more than once.
+	 */
+        init_rites_pending = self_upgrade_rites( tarname );
 
       if( (current->flags & ACTION_REMOVE) == ACTION_REMOVE )
       {
@@ -341,7 +398,7 @@ void pkgActionItem::Execute()
 	 * manifest structure has been specified and implemented.
 	 */
 	if( current->Selection( to_remove ) != NULL )
-	  dmh_printf( " removing %s\n", current->Selection( to_remove )->GetPropVal( tarname_key, "<unknown>" ));
+	  dmh_printf( " removing %s\n", current->Selection( to_remove )->GetPropVal( tarname_key, value_unknown ));
       }
 
       if( (current->flags & ACTION_INSTALL) == ACTION_INSTALL )
