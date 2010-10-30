@@ -1,6 +1,38 @@
-Release Notes for mingw-get-0.1-mingw32-alpha-4
+Release Notes for mingw-get-0.1-mingw32-alpha-5
 
-$Id: README,v 1.5 2010/09/10 02:15:57 cwilso11 Exp $
+$Id: README,v 1.6 2010/10/30 19:06:19 keithmarshall Exp $
+
+Preamble
+--------
+
+This is the fifth alpha release of mingw-get; this is primarily a bug
+fix release, with few user visible changes.  The installation procedure
+remains the same as for previous releases.  To upgrade from a previous
+release, simply run
+
+  mingw-get update
+  mingw-get upgrade mingw-get
+
+or alternatively, unpack the -bin package over the top of the existing
+installation.  For further information, and usage advice, see:
+
+    http://mingw.org/wiki/Getting_Started
+
+
+User Visible Changes for mingw-get-0.1-mingw32-alpha-5
+------------------------------------------------------
+
+- Improved self-upgrade support; it incorporates a work around to avoid
+  a potential race condition in mingw-get-inst; (c.f. MinGW bug 3075616);
+  mingw-get.exe and mingw-get-0.dll are renamed, (to move them out of the
+  way), only when performing an explicit upgrade of the mingw-get-bin
+  package itself.
+
+
+===============================================
+
+
+Release Notes for mingw-get-0.1-mingw32-alpha-4
 
 Preamble
 --------
@@ -33,6 +65,8 @@ User Visible Changes for mingw-get-0.1-mingw32-alpha-4
 - Add --help|-h option
 
 ===============================================
+
+Release Notes for mingw-get-0.1-mingw32-alpha-3
 
 Preamble
 --------

@@ -1,3 +1,10 @@
+2010-10-29  Keith Marshall  <keithmarshall@users.sourceforge.net>
+
+	mingw-get-0.1-mingw32-alpha-5 released.
+
+	* configure.ac: Bump version to 0.1-alpha-5.
+	* README: Update release notes accordingly.
+
 2010-10-22  Keith Marshall  <keithmarshall@users.sourceforge.net>
 
 	Make pkgInitRites/pkgLastRites processing more robust;
