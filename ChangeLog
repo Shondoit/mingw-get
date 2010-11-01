@@ -1,3 +1,11 @@
+2010-11-01  Keith Marshall  <keithmarshall@users.sourceforge.net>
+
+	Lay groundwork for implentation of additional actions.
+
+	* src/climain.cpp (climain): Adjust indentation; replace `if' block...
+	[action != ACTION_UPDATE]: ...with this default `switch' case, and...
+	[action == ACTION_UPDATE]: ...this as explicit "do nothing" case.
+
 2010-10-29  Keith Marshall  <keithmarshall@users.sourceforge.net>
 
 	mingw-get-0.1-mingw32-alpha-5 released.

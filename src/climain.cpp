@@ -1,7 +1,7 @@
 /*
  * climain.cpp
  *
- * $Id: climain.cpp,v 1.8 2010/09/10 01:44:24 cwilso11 Exp $
+ * $Id: climain.cpp,v 1.9 2010/11/01 21:09:01 keithmarshall Exp $
  *
  * Written by Keith Marshall <keithmarshall@users.sourceforge.net>
  * Copyright (C) 2009, 2010, MinGW Project
@@ -39,107 +39,110 @@
 EXTERN_C int climain( int argc, char **argv )
 {
   try
-  {
-
-  /* Set up the diagnostic message handler, using the console's
-   * `stderr' stream for notifications...
-   */
-  dmh_init( DMH_SUBSYSTEM_TTY, *argv++ );
-
-  /* TODO: insert code here, to interpret any OPTIONS specified
-   * on the command line.
-   */
-
-  /* Interpret the `action keyword', specifying the action to be
-   * performed on this invocation...
-   */
-  int action = action_code( *argv );
-  if( action < 0 )
-    /*
-     * The specified action keyword was invalid;
-     * force an abort through a DMH_FATAL notification...
+  { /* Set up the diagnostic message handler, using the console's
+     * `stderr' stream for notifications...
      */
-    dmh_notify( DMH_FATAL, "%s: unknown action keyword\n", *argv );
+    dmh_init( DMH_SUBSYSTEM_TTY, *argv++ );
 
-  /* If we get to here, then the specified action identifies a
-   * valid operation; load the package database, according to the
-   * local `profile' configuration, and invoke the operation.
-   */
-  const char *dfile;
-  if( access( dfile = xmlfile( profile_key ), R_OK ) != 0 )
-  {
-    /* The user hasn't provided a custom configuration profile...
+    /* TODO: insert code here, to interpret any OPTIONS specified
+     * on the command line.
      */
-    dmh_notify( DMH_WARNING, "%s: user configuration file missing\n", dfile );
 
-    /* ...release the memory allocated by xmlfile(), to store its path name,
-     * then try the mingw-get distribution default profile instead.
+    /* Interpret the `action keyword', specifying the action to be
+     * performed on this invocation...
      */
-    free( (void *)(dfile) );
-    dmh_notify( DMH_INFO, "%s: trying system default configuration\n",
-	dfile = xmlfile( defaults_key ) );
-  }
-
-  pkgXmlDocument dbase( dfile );
-  if( dbase.IsOk() )
-  {
-    /* We successfully loaded the basic settings...
-     * The configuration file name was pushed on to the heap,
-     * by xmlfile(); we don't need that any more, (because it
-     * is reproduced within the database image itself), so
-     * free the heap copy, to avoid memory leaks.
-     */
-    free( (void *)(dfile) );
-
-    /* Merge all package lists, as specified in the "repository"
-     * section of the "profile", into the XML database tree...
-     */
-    if( dbase.BindRepositories( action == ACTION_UPDATE ) == NULL )
+    int action = action_code( *argv );
+    if( action < 0 )
       /*
-       * ...bailing out, on an invalid profile specification...
+       * The specified action keyword was invalid;
+       * force an abort through a DMH_FATAL notification...
        */
-      dmh_notify( DMH_FATAL, "%s: invalid application profile\n", dbase.Value() );
+      dmh_notify( DMH_FATAL, "%s: unknown action keyword\n", *argv );
 
-    /* If the requested action was "update", then we've already done it,
-     * as a side effect of binding the cached repository catalogues...
+    /* If we get to here, then the specified action identifies a
+     * valid operation; load the package database, according to the
+     * local `profile' configuration, and invoke the operation.
      */
-    if( action != ACTION_UPDATE )
+    const char *dfile;
+    if( access( dfile = xmlfile( profile_key ), R_OK ) != 0 )
     {
-      /* ...otherwise, we need to load the system map...
+      /* The user hasn't provided a custom configuration profile...
        */
-      dbase.LoadSystemMap();
+      dmh_notify( DMH_WARNING, "%s: user configuration file missing\n", dfile );
 
-      /* ...schedule the specified action for each additional command line
-       * argument, (each of which is assumed to represent a package name)...
+      /* ...release the memory allocated by xmlfile(), to store its path name,
+       * then try the mingw-get distribution default profile instead.
        */
-      while( --argc )
-	dbase.Schedule( (unsigned long)(action), *++argv );
-
-      /* ...finally, execute all scheduled actions, and update the
-       * system map accordingly.
-       */
-      dbase.ExecuteActions();
-      dbase.UpdateSystemMap();
+      free( (void *)(dfile) );
+      dmh_notify( DMH_INFO, "%s: trying system default configuration\n",
+	  dfile = xmlfile( defaults_key ) );
     }
 
-    /* If we get this far, then all actions completed successfully;
-     * we are done.
+    pkgXmlDocument dbase( dfile );
+    if( dbase.IsOk() )
+    {
+      /* We successfully loaded the basic settings...
+       * The configuration file name was pushed on to the heap,
+       * by xmlfile(); we don't need that any more, (because it
+       * is reproduced within the database image itself), so
+       * free the heap copy, to avoid memory leaks.
+       */
+      free( (void *)(dfile) );
+
+      /* Merge all package lists, as specified in the "repository"
+       * section of the "profile", into the XML database tree...
+       */
+      if( dbase.BindRepositories( action == ACTION_UPDATE ) == NULL )
+	/*
+	 * ...bailing out, on an invalid profile specification...
+	 */
+	dmh_notify( DMH_FATAL, "%s: invalid application profile\n", dbase.Value() );
+
+      switch( action )
+      {
+	case ACTION_UPDATE:
+	  /*
+	   * If the requested action was "update", then we've already done it,
+	   * as a side effect of binding the cached repository catalogues...
+	   */
+	  break;
+
+	default:
+	  /* ...otherwise, we need to load the system map...
+	   */
+	  dbase.LoadSystemMap();
+
+	  /* ...schedule the specified action for each additional command line
+	   * argument, (each of which is assumed to represent a package name)...
+	   */
+	  while( --argc )
+	    dbase.Schedule( (unsigned long)(action), *++argv );
+
+	  /* ...finally, execute all scheduled actions, and update the
+	   * system map accordingly.
+	   */
+	  dbase.ExecuteActions();
+	  dbase.UpdateSystemMap();
+      }
+
+      /* If we get this far, then all actions completed successfully;
+       * we are done.
+       */
+      return EXIT_SUCCESS;
+    }
+
+    /* If we get to here, then the package database load failed;
+     * once more, we force an abort through a DMH_FATAL notification...
+     *
+     * Note: although dmh_notify does not return, in the DMH_FATAL case,
+     * GCC cannot know this, so we pretend that it gives us a return value,
+     * to avoid a possible warning about reaching the end of a non-void
+     * function without a return value assignment...
      */
-    return EXIT_SUCCESS;
+    return dmh_notify( DMH_FATAL, "%s: cannot load configuration\n", dfile );
   }
 
-  /* If we get to here, then the package database load failed;
-   * once more, we force an abort through a DMH_FATAL notification...
-   *
-   * Note: although dmh_notify does not return, in the DMH_FATAL case,
-   * GCC cannot know this, so we pretend that it gives us a return value,
-   * to avoid a possible warning about reaching the end of a non-void
-   * function without a return value assignment...
-   */
-  return dmh_notify( DMH_FATAL, "%s: cannot load configuration\n", dfile );
-
-  }
-  catch (dmh_exception &e)
+  catch( dmh_exception &e )
   {
     return EXIT_FAILURE;
   }
