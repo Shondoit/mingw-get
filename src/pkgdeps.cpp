@@ -1,7 +1,7 @@
 /*
  * pkgdeps.cpp
  *
- * $Id: pkgdeps.cpp,v 1.4 2010/08/19 19:52:35 keithmarshall Exp $
+ * $Id: pkgdeps.cpp,v 1.5 2010/12/30 23:23:43 keithmarshall Exp $
  *
  * Written by Keith Marshall <keithmarshall@users.sourceforge.net>
  * Copyright (C) 2009, 2010, MinGW Project
@@ -35,6 +35,19 @@
 #include "pkgbase.h"
 #include "pkgkeys.h"
 #include "pkgtask.h"
+
+/* FIXME: the following declaration belongs in a future "pkgmsgs.h"
+ * header file, with the function implementation in a separate C or C++
+ * messages source file, with appropriate internationalisation...
+ */
+EXTERN_C const char *pkgMsgUnknownPackage( void );
+
+const char *pkgMsgUnknownPackage( void )
+{
+  /* FIXME: (see note above); return English language only, for now.
+   */
+  return "%s: unknown package\n";
+}
 
 static bool is_installed( pkgXmlNode *release )
 {
@@ -290,8 +303,10 @@ pkgXmlDocument::ResolveDependencies( pkgXmlNode* package, pkgActionItem* rank )
 	/* Regardless of the action scheduled, we must recursively
 	 * consider further dependencies of the resolved prerequisite;
 	 * FIXME: do we need to do this, when performing a removal?
+	 * Right now, I (KDM) don't think so...
 	 */
-	ResolveDependencies( selected, rank );
+	if( (request & ACTION_INSTALL) != 0 )
+	  ResolveDependencies( selected, rank );
       }
 
       if( selected == NULL )
@@ -358,7 +373,7 @@ static inline bool assert_unmatched
       !( if_match( ref, val ) || if_match( ref, name ) || if_alias( ref, alias ));
 }
 
-static inline
+static
 pkgXmlNode *assert_installed( pkgXmlNode *current, pkgXmlNode *installed )
 {
   /* Validation hook for pkgXmlDocument::Schedule(); it checks for
@@ -383,7 +398,7 @@ pkgXmlNode *assert_installed( pkgXmlNode *current, pkgXmlNode *installed )
      * Starting from the sysroot record for the specified release...
      */
     pkgXmlNode *sysroot; const char *tarname;
-    pkgSpecs lookup( tarname = current->GetPropVal( tarname_key, NULL ) );
+    pkgSpecs lookup( current->GetPropVal( tarname_key, NULL ) );
     if( (sysroot = current->GetSysRoot( lookup.GetSubSystemName() )) != NULL )
     {
       /* ...identify the first, if any, package installation record.
@@ -413,7 +428,7 @@ pkgXmlNode *assert_installed( pkgXmlNode *current, pkgXmlNode *installed )
 	{
 	  /* ...check if it matches the look-up criteria.
 	   */
-	  pkgSpecs chk( ref->GetPropVal( tarname_key, NULL ) );
+	  pkgSpecs chk( tarname = ref->GetPropVal( tarname_key, NULL ) );
 	  if( assert_unmatched( chk.GetPackageName(), refname, pkgname, alias )
 	  ||  assert_unmatched( chk.GetComponentClass(), cptname, NULL, NULL )
 	  ||  assert_unmatched( chk.GetComponentVersion(), version, NULL, NULL )  )
@@ -450,6 +465,17 @@ pkgXmlNode *assert_installed( pkgXmlNode *current, pkgXmlNode *installed )
    * not have been modified by this function.
    */
   return installed;
+}
+
+void pkgActionItem::ConfirmInstallationStatus()
+{
+  /* Set the "to_remove" selection in an action item to match the installed
+   * package entry, even when the release in question is no longer enumerated
+   * in the package catalogue; (used to identify any installed version when
+   * compiling a package reference listing).
+   */
+  selection[to_remove]
+    = assert_installed( selection[to_install], selection[to_remove] );
 }
 
 void pkgXmlDocument::Schedule( unsigned long action, const char* name )
@@ -490,6 +516,11 @@ void pkgXmlDocument::Schedule( unsigned long action, const char* name )
 	 */
 	request = action;
 
+	/* Any action request processed here is, by definition,
+	 * a request for a primary action; mark it as such.
+	 */
+	action |= ACTION_PRIMARY;
+
 	/* For each candidate release in turn...
 	 */
 	while( release != NULL )
@@ -528,6 +559,14 @@ void pkgXmlDocument::Schedule( unsigned long action, const char* name )
 	     * any dependencies for the scheduled "upgrade".
 	     */
 	    ResolveDependencies( upgrade, Schedule( action, latest ));
+
+	  else
+	    /* attempting ACTION_UPGRADE or ACTION_REMOVE
+	     * is an error; diagnose it.
+	     */
+	    dmh_notify( DMH_ERROR, "%s %s: package is not installed\n",
+		action_name( action ), name
+	      );
 	}
 
 	else if( upgrade && (upgrade != installed) )
@@ -569,7 +608,7 @@ void pkgXmlDocument::Schedule( unsigned long action, const char* name )
     /* We found no information on the requested package;
      * diagnose as a non-fatal error.
      */
-    dmh_notify( DMH_ERROR, "%s: unknown package\n", name );
+    dmh_notify( DMH_ERROR, pkgMsgUnknownPackage(), name );
 }
 
 /* $RCSfile: pkgdeps.cpp,v $: end of file */

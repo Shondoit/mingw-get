@@ -1,6 +1,6 @@
 # @configure_input@
 #
-# $Id: Makefile.in,v 1.20 2010/09/10 03:04:06 cwilso11 Exp $
+# $Id: Makefile.in,v 1.21 2010/12/30 23:23:43 keithmarshall Exp $
 
 PACKAGE_TARNAME = @PACKAGE_TARNAME@
 PACKAGE_VERSION = @PACKAGE_VERSION@
@@ -54,7 +54,7 @@ EXEEXT = @EXEEXT@
 LDFLAGS = @LDFLAGS@
 LIBS = -Wl,-Bstatic -lz -lbz2 -llzma -Wl,-Bdynamic -lwininet
 
-CORE_DLL_OBJECTS  =  climain.$(OBJEXT) \
+CORE_DLL_OBJECTS  =  climain.$(OBJEXT) pkgshow.$(OBJEXT) \
    pkgbind.$(OBJEXT) pkginet.$(OBJEXT) pkgstrm.$(OBJEXT) pkgname.$(OBJEXT) \
    pkgexec.$(OBJEXT) pkgfind.$(OBJEXT) pkginfo.$(OBJEXT) pkgspec.$(OBJEXT) \
    sysroot.$(OBJEXT) pkghash.$(OBJEXT) pkgkeys.$(OBJEXT) pkgdeps.$(OBJEXT) \

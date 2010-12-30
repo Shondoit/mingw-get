@@ -1,7 +1,7 @@
 /*
  * pkgexec.cpp
  *
- * $Id: pkgexec.cpp,v 1.11 2010/10/22 22:08:52 keithmarshall Exp $
+ * $Id: pkgexec.cpp,v 1.12 2010/12/30 23:23:43 keithmarshall Exp $
  *
  * Written by Keith Marshall <keithmarshall@users.sourceforge.net>
  * Copyright (C) 2009, 2010, MinGW Project
@@ -53,6 +53,9 @@ EXTERN_C const char *action_name( unsigned long index )
     "remove",		/* remove a previously installed package	    */
     "install",		/* install a new package			    */
     "upgrade",		/* upgrade previously installed packages	    */
+
+    "list",		/* list packages and display related information    */
+    "show",		/* a synonym for "list"				    */
 
     "update"		/* update local copy of repository catalogues	    */
   };

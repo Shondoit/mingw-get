@@ -1,7 +1,7 @@
 /*
  * climain.cpp
  *
- * $Id: climain.cpp,v 1.9 2010/11/01 21:09:01 keithmarshall Exp $
+ * $Id: climain.cpp,v 1.10 2010/12/30 23:23:43 keithmarshall Exp $
  *
  * Written by Keith Marshall <keithmarshall@users.sourceforge.net>
  * Copyright (C) 2009, 2010, MinGW Project
@@ -98,31 +98,37 @@ EXTERN_C int climain( int argc, char **argv )
 	 */
 	dmh_notify( DMH_FATAL, "%s: invalid application profile\n", dbase.Value() );
 
-      switch( action )
+      /* If the requested action was "update", then we've already done it,
+       * as a side effect of binding the cached repository catalogues...
+       */
+      if( action != ACTION_UPDATE )
       {
-	case ACTION_UPDATE:
-	  /*
-	   * If the requested action was "update", then we've already done it,
-	   * as a side effect of binding the cached repository catalogues...
-	   */
-	  break;
+	/* ...otherwise, we need to load the system map...
+	 */
+	dbase.LoadSystemMap();
 
-	default:
-	  /* ...otherwise, we need to load the system map...
-	   */
-	  dbase.LoadSystemMap();
+	/* ...and invoke the appropriate action handler.
+	 */
+	switch( action )
+	{
+	  case ACTION_LIST:
+	  case ACTION_SHOW:
+	    dbase.DisplayPackageInfo( argc, argv );
+	    break;
 
-	  /* ...schedule the specified action for each additional command line
-	   * argument, (each of which is assumed to represent a package name)...
-	   */
-	  while( --argc )
-	    dbase.Schedule( (unsigned long)(action), *++argv );
+	  default:
+	    /* ...schedule the specified action for each additional command line
+	     * argument, (each of which is assumed to represent a package name)...
+	     */
+	    while( --argc )
+	      dbase.Schedule( (unsigned long)(action), *++argv );
 
-	  /* ...finally, execute all scheduled actions, and update the
-	   * system map accordingly.
-	   */
-	  dbase.ExecuteActions();
-	  dbase.UpdateSystemMap();
+	    /* ...finally, execute all scheduled actions, and update the
+	     * system map accordingly.
+	     */
+	    dbase.ExecuteActions();
+	    dbase.UpdateSystemMap();
+	}
       }
 
       /* If we get this far, then all actions completed successfully;

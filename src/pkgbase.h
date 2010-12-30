@@ -2,7 +2,7 @@
 /*
  * pkgbase.h
  *
- * $Id: pkgbase.h,v 1.10 2010/08/19 19:52:35 keithmarshall Exp $
+ * $Id: pkgbase.h,v 1.11 2010/12/30 23:23:43 keithmarshall Exp $
  *
  * Written by Keith Marshall <keithmarshall@users.sourceforge.net>
  * Copyright (C) 2009, 2010, MinGW Project
@@ -166,15 +166,15 @@ class pkgXmlNode : public TiXmlElement
     /* Methods for retrieving the system root management records
      * for a specified installed subsystem.
      */
-    pkgXmlNode *GetSysRoot( const char *subsystem );
+    pkgXmlNode *GetSysRoot( const char* );
     pkgXmlNode *GetInstallationRecord( const char* );
 
     /* The following pair of methods provide an iterator
      * for enumerating the contained nodes, within the owner,
      * which themselves exhibit a specified tagname.
      */
-    pkgXmlNode* FindFirstAssociate( const char* tagname );
-    pkgXmlNode* FindNextAssociate( const char* tagname );
+    pkgXmlNode* FindFirstAssociate( const char* );
+    pkgXmlNode* FindNextAssociate( const char* );
 
     /* Specific to XML node elements of type "release",
      * the following pair of methods retrieve the actual name of
@@ -259,6 +259,7 @@ class pkgActionItem
        */
       return selection[ mode ];
     }
+    void ConfirmInstallationStatus();
 
     /* Method for processing all scheduled actions.
      */
@@ -363,6 +364,10 @@ class pkgXmlDocument : public TiXmlDocument
     /* Method to locate the XML database entry for a named package.
      */
     pkgXmlNode* FindPackageByName( const char*, const char* = NULL );
+
+    /* Method to display information about packages.
+     */
+    void DisplayPackageInfo( int, char** );
 
     /* Method to resolve the dependencies of a specified package,
      * by walking the chain of references specified by "requires"

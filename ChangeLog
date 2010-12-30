@@ -1,3 +1,44 @@
+2010-12-30  Keith Marshall  <keithmarshall@users.sourceforge.net>
+
+	Add preliminary CLI support for "list" and "show" actions.
+
+	* src/pkgtask.h (ACTION_PRIMARY): New manifest constant; define it.
+	(ACTION_LIST, ACTION_SHOW): Likewise; cast to enumerated values for...
+	(action_list, action_show): ...these; define them.
+
+	* src/pkgexec.cpp (action_name): Add defining text for...
+	(action_list, action_show): ...these.
+
+	* src/climain.cpp: Partially revert 2010-11-01 change...
+	(climain) [! ACTION_UPDATE]: Reinstate original "if" block, moving
+	the "switch" block within it, but without the ACTION_UPDATE case.
+	[ACTION_LIST, ACTION_SHOW]: New "switch" cases; they invoke...
+	(pkgXmlDocument::DisplayPackageInfo): ...this new method.
+
+	* src/pkgbase.h (pkgXmlDocument::DisplayPackageInfo): Declare it.
+	(pkgActionItem::ConfirmInstallationStatus): New method; declare it.
+	(pkgXmlNode::GetSysRoot): Make declaration style consistent with
+	others in the class; do not name arguments in the declaration.
+	(pkgXmlNode::FindFirstAssociate): Likewise.
+	(pkgXmlNode::FindNextAssociate): Likewise.
+
+	* src/pkgshow.cpp: New file.
+	(pkgXmlDocument::DisplayPackageInfo): Implement it.
+
+	* src/pkgdeps.cpp (pkgMsgUnknownPackage): New extern "C" function;
+	implement it temporarily, pending a future i18n reimplementation.
+	(assert_installed): Drop "inline" attribute; leave it as "static".
+	Set "tarname" correctly, to match the installed package version; (it
+	previously incorrectly returned the latest available version).
+	(pkgActionItem::ConfirmInstallationStatus): Implement it.
+	(pkgXmlDocument::Schedule) [ACTION_PRIMARY]: Set as appropriate.
+	(pkgXmlDocument::Schedule) [ACTION_REMOVE || ACTION_UPGRADE]: Complain
+	if requested package is not recorded as having been installed.
+	(pkgXmlDocument::ResolveDependencies) [! ACTION_INSTALL]: Do not
+	invoke it recursively.
+
+	* Makefile.in (pkgshow.$OBJEXT): Add reference.
+
 2010-11-01  Keith Marshall  <keithmarshall@users.sourceforge.net>
 
 	Lay groundwork for implentation of additional actions.
