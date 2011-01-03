@@ -1,10 +1,10 @@
 /*
  * pkginst.cpp
  *
- * $Id: pkginst.cpp,v 1.1 2010/04/04 15:25:36 keithmarshall Exp $
+ * $Id: pkginst.cpp,v 1.2 2011/01/03 21:25:27 keithmarshall Exp $
  *
  * Written by Keith Marshall <keithmarshall@users.sourceforge.net>
- * Copyright (C) 2010, MinGW Project
+ * Copyright (C) 2010, 2011, MinGW Project
  *
  *
  * Implementation of the primary package installation and package
@@ -383,7 +383,14 @@ EXTERN_C void pkgInstall( pkgActionItem *current )
   if( (pkg = current->Selection()) != NULL )
   {
     /* The current action item has a valid package association...
+     *
+     * FIXME: the notification here is somewhat redundant, but it
+     * does maintain symmetry with the "remove" operation, and will
+     * make "upgrade" notifications more logical; in any event, it
+     * should ultimately be made conditional on a "verbose" mode
+     * option selection.
      */
+    dmh_printf( " installing %s\n", pkg->GetPropVal( tarname_key, value_unknown ));
     if( current->Selection( to_remove ) == NULL )
     {
       /* The selected package has either not yet been installed,

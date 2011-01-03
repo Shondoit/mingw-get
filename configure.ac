@@ -1,6 +1,6 @@
 # configure.ac -*- autoconf -*- vim: filetype=config
 #
-# $Id: configure.ac,v 1.10 2010/10/30 19:06:19 keithmarshall Exp $
+# $Id: configure.ac,v 1.11 2011/01/03 21:25:27 keithmarshall Exp $
 #
 # Written by Keith Marshall <keithmarshall@users.sourceforge.net>
 # Copyright (C) 2009, 2010, MinGW Project
@@ -22,10 +22,10 @@
 # MinGW Project, accept liability for any damages, however caused,
 # arising from the use of this software.
 #
-  AC_INIT([mingw-get],[0.1-alpha-5],[http://mingw.org/reporting_bugs])
+  AC_INIT([mingw-get],[0.1-alpha-6cvs],[http://mingw.org/reporting_bugs])
 
   AC_SUBST([COPYRIGHT_HOLDER],["MinGW Project"])
-  AC_SUBST([YEARS_OF_ISSUE],["2009, 2010"])
+  AC_SUBST([YEARS_OF_ISSUE],["2009, 2010, 2011"])
 
 # Override the normal UNIX-centric autoconf default prefix;
 # substitute the MinGW standard in its place.

@@ -1,3 +1,13 @@
+2011-01-03  Keith Marshall  <keithmarshall@users.sourceforge.net>
+
+	Make "install" and "remove" notifications symmetric.
+
+	* configure.ac (AC_INIT): Bump version to "0.1-alpha-6cvs".
+	(YEARS_OF_ISSUE): Add new year.
+	
+	* src/pkginst.cpp: Update copyright notice for new year.
+	(pkgInstall): Add notification for package being installed.
+
 2010-12-30  Keith Marshall  <keithmarshall@users.sourceforge.net>
 
 	Add preliminary CLI support for "list" and "show" actions.
