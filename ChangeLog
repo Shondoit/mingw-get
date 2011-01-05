@@ -1,3 +1,11 @@
+2011-01-05  Keith Marshall  <keithmarshall@users.sourceforge.net>
+
+	Avoid a potential out-of-range action name look-up.
+
+	* src/pkgdeps.cpp: Update copyright notice for new year.
+	(pkgXmlDocument::Schedule): Mask action code with ACTION_MASK, to
+	determine correct action name when diagnosing uninstalled package.
+
 2011-01-03  Keith Marshall  <keithmarshall@users.sourceforge.net>
 
 	Make "install" and "remove" notifications symmetric.

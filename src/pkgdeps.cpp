@@ -1,10 +1,10 @@
 /*
  * pkgdeps.cpp
  *
- * $Id: pkgdeps.cpp,v 1.5 2010/12/30 23:23:43 keithmarshall Exp $
+ * $Id: pkgdeps.cpp,v 1.6 2011/01/05 21:26:44 keithmarshall Exp $
  *
  * Written by Keith Marshall <keithmarshall@users.sourceforge.net>
- * Copyright (C) 2009, 2010, MinGW Project
+ * Copyright (C) 2009, 2010, 2011, MinGW Project
  *
  *
  * Implementation of the package dependency resolver method, of the
@@ -565,7 +565,7 @@ void pkgXmlDocument::Schedule( unsigned long action, const char* name )
 	     * is an error; diagnose it.
 	     */
 	    dmh_notify( DMH_ERROR, "%s %s: package is not installed\n",
-		action_name( action ), name
+		action_name( action & ACTION_MASK ), name
 	      );
 	}
 
