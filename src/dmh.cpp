@@ -1,10 +1,10 @@
 /*
  * dmh.cpp
  *
- * $Id: dmh.cpp,v 1.2 2010/09/10 01:44:24 cwilso11 Exp $
+ * $Id: dmh.cpp,v 1.3 2011/01/05 21:56:42 keithmarshall Exp $
  *
  * Written by Keith Marshall <keithmarshall@users.sourceforge.net>
- * Copyright (C) 2009, MinGW Project
+ * Copyright (C) 2009, 2010, 2011, MinGW Project
  *
  *
  * Implementation of the diagnostic message handling subsystem.
@@ -49,7 +49,7 @@ class dmhTypeTTY : public dmhTypeGeneric
   /* Diagnostic message handler for use in console applications.
    */
   public:
-    dmhTypeTTY( const char *progname );
+    dmhTypeTTY( const char* );
     virtual uint16_t control( const uint16_t, const uint16_t );
     virtual int notify( const dmh_severity, const char*, va_list );
     virtual int printf( const char*, va_list );
@@ -60,7 +60,7 @@ class dmhTypeGUI : public dmhTypeGeneric
   /* Diagnostic message handler for use in window applications.
    */
   public:
-    dmhTypeGUI( const char *progname );
+    dmhTypeGUI( const char* );
     virtual uint16_t control( const uint16_t, const uint16_t );
     virtual int notify( const dmh_severity, const char*, va_list );
     virtual int printf( const char*, va_list );

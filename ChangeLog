@@ -1,5 +1,20 @@
 2011-01-05  Keith Marshall  <keithmarshall@users.sourceforge.net>
 
+	Reduce path names to base names, in some diagnostic message contexts.
+
+	* src/climain.cpp: Update copyright notice for new year.
+	(climain): Extract base name from argv[0], to pass as program name tag
+	in initialisation of diagnostic message handler.
+
+	* src/dmh.h, src/dmh.cpp: Update copyright notices; make some layout
+	adjustments, for more consistent formatting style.
+
+	* src/pkgbind.cpp: Update copyright notice.
+	(pkgRepository::GetPackageList): Reduce path names for catalogue files
+	to their base names, when reporting them in diagnostic messages.
+
+2011-01-05  Keith Marshall  <keithmarshall@users.sourceforge.net>
+
 	Avoid a potential out-of-range action name look-up.
 
 	* src/pkgdeps.cpp: Update copyright notice for new year.

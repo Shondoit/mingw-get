@@ -1,10 +1,10 @@
 /*
  * climain.cpp
  *
- * $Id: climain.cpp,v 1.10 2010/12/30 23:23:43 keithmarshall Exp $
+ * $Id: climain.cpp,v 1.11 2011/01/05 21:56:42 keithmarshall Exp $
  *
  * Written by Keith Marshall <keithmarshall@users.sourceforge.net>
- * Copyright (C) 2009, 2010, MinGW Project
+ * Copyright (C) 2009, 2010, 2011, MinGW Project
  *
  *
  * Implementation of the main program function, which is invoked by
@@ -27,6 +27,7 @@
  *
  */
 #include <stdio.h>
+#include <libgen.h>
 #include <string.h>
 #include <fcntl.h>
 
@@ -40,9 +41,13 @@ EXTERN_C int climain( int argc, char **argv )
 {
   try
   { /* Set up the diagnostic message handler, using the console's
-     * `stderr' stream for notifications...
+     * `stderr' stream for notifications, and tagging messages with
+     * the program basename derived from argv[0]...
      */
-    dmh_init( DMH_SUBSYSTEM_TTY, *argv++ );
+    char *dmh_progname;
+    char progname[ 1 + strlen( dmh_progname = strdup( basename( *argv++ ))) ];
+    dmh_init( DMH_SUBSYSTEM_TTY, strcpy( progname, dmh_progname ) );
+    free( dmh_progname );
 
     /* TODO: insert code here, to interpret any OPTIONS specified
      * on the command line.
