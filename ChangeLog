@@ -1,3 +1,51 @@
+2011-02-13  Keith Marshall  <keithmarshall@users.sourceforge.net>
+
+	Merge from mingw-get-0.1-mingw32-alpha-5 bug-fix branch.
+
+	* src/pkgdeps.cpp (pkgXmlDocument::ResolveDependencies): Promote
+	"install" action on new prerequisites, where a previously uninstalled
+	package is required to satisfy any "upgrade" dependency.
+
+	* src/pkgexec.cpp (pkgActionList::Execute): Don't make misleading
+	claims concerning package removal.
+
+	* src/pkgtask.h (STRICTLY_GT, STRICTLY_LT, ACTION_PRIMARY): Add one
+	level of parentheses around defining expressions.
+
+2011-02-10  Keith Marshall  <keithmarshall@users.sourceforge.net>
+
+	Publish mingw-get-0.0-mingw32-alpha-5.1 bug-fix release.
+
+	* README: Updated to reflect changes.
+
+2011-02-08  Keith Marshall  <keithmarshall@users.sourceforge.net>
+
+	Improve diagnostics for failed GUI invocation.
+
+	* src/guimain.cpp: New file; currently delivers only a diagnostic
+	stub, provided by Sze Howe Koh <axfangli@users.sourceforge.net>, to
+	pop-up a message block explaining why GUI mode cannot be invoked.
+
+	* Makefile.in (GUI_LDFLAGS): New macro; it is required by...
+	(gui$EXEEXT): ...this new build rule; add to prerequisites of...
+	(all): ...this [default] build rule; redefine this in terms of...
+	(BIN_PROGRAMS, LIBEXEC_PROGRAMS, LIBEXEC_DATA): ...these new macros;
+	define them, and also use them as loop iterator objectives for...
+	(install, install_strip): ...these; also schedule them...
+	(clean): ...for removal by this.
+
+	* src/clistub.c (Copyright): Add new year.
+	(main): Amend error message, if gui$EXEEXT doesn't start; make it
+	more intelligible to normal users.
+
+2011-02-07  Keith Marshall  <keithmarshall@users.sourceforge.net>
+
+	Correct omissions from packaged source tarball.
+
+	* Makefile.in (Copyright): Add new year.
+	(SRCDIST_FILES): Add aclocal.m4
+	(SRCDIST_SUBDIRS): Add m4
+
 2011-01-05  Keith Marshall  <keithmarshall@users.sourceforge.net>
 
 	Reduce path names to base names, in some diagnostic message contexts.
@@ -84,7 +132,7 @@
 
 	mingw-get-0.1-mingw32-alpha-5 released.
 
-	* configure.ac: Bump version to 0.1-alpha-5.
+	* configure.ac (AC_INIT): Bump version to 0.1-alpha-5.
 	* README: Update release notes accordingly.
 	* All files (r0-1-alpha-5): Tag assigned.
 

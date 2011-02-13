@@ -1,7 +1,7 @@
 /*
  * pkgdeps.cpp
  *
- * $Id: pkgdeps.cpp,v 1.6 2011/01/05 21:26:44 keithmarshall Exp $
+ * $Id: pkgdeps.cpp,v 1.7 2011/02/13 21:23:58 keithmarshall Exp $
  *
  * Written by Keith Marshall <keithmarshall@users.sourceforge.net>
  * Copyright (C) 2009, 2010, 2011, MinGW Project
@@ -167,6 +167,7 @@ const char *pkgXmlNode::GetContainerAttribute( const char *key, const char *sub 
 
 void
 pkgXmlDocument::ResolveDependencies( pkgXmlNode* package, pkgActionItem* rank )
+# define promote( request, action )  (((request) & (~ACTION_MASK)) | action )
 {
   /* For the specified "package", (nominally a "release"), identify its
    * prerequisites, (as specified by "requires" tags), and schedule actions
@@ -291,14 +292,19 @@ pkgXmlDocument::ResolveDependencies( pkgXmlNode* package, pkgActionItem* rank )
 	  rank = Schedule( fallback, wanted, rank );
 	}
 
-	else if( (request & ACTION_MASK) == ACTION_INSTALL )
+	else if( ((request & ACTION_MASK) == ACTION_INSTALL)
 	  /*
 	   * The required package is not installed...
-	   * When performing an installation, we must schedule it
+	   * When performing an installation, ...
+	   */
+	|| ((request & (ACTION_PRIMARY | ACTION_INSTALL)) == ACTION_INSTALL) )
+	  /*
+	   * or when this is a new requirement of a package
+	   * which is being upgraded, then we must schedule it
 	   * for installation now; (we may simply ignore it, if
 	   * we are performing a removal).
 	   */
-	  rank = Schedule( request, wanted, rank );
+	  rank = Schedule( promote( request, ACTION_INSTALL ), wanted, rank );
 
 	/* Regardless of the action scheduled, we must recursively
 	 * consider further dependencies of the resolved prerequisite;

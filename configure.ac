@@ -1,9 +1,9 @@
 # configure.ac -*- autoconf -*- vim: filetype=config
 #
-# $Id: configure.ac,v 1.11 2011/01/03 21:25:27 keithmarshall Exp $
+# $Id: configure.ac,v 1.12 2011/02/13 21:23:58 keithmarshall Exp $
 #
 # Written by Keith Marshall <keithmarshall@users.sourceforge.net>
-# Copyright (C) 2009, 2010, MinGW Project
+# Copyright (C) 2009, 2010, 2011, MinGW Project
 #
 #
 # Configuration script for mingw-get

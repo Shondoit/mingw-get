@@ -1,12 +1,12 @@
 # @configure_input@
 #
-# $Id: Makefile.in,v 1.21 2010/12/30 23:23:43 keithmarshall Exp $
+# $Id: Makefile.in,v 1.22 2011/02/13 21:23:58 keithmarshall Exp $
 
 PACKAGE_TARNAME = @PACKAGE_TARNAME@
 PACKAGE_VERSION = @PACKAGE_VERSION@
 
 # Written by Keith Marshall <keithmarshall@users.sourceforge.net>
-# Copyright (C) 2009, 2010, MinGW Project
+# Copyright (C) 2009, 2010, 2011, MinGW Project
 #
 #
 # Makefile template for mingw-get
@@ -63,13 +63,22 @@ CORE_DLL_OBJECTS  =  climain.$(OBJEXT) pkgshow.$(OBJEXT) \
    tinyxml.$(OBJEXT) tinyxmlparser.$(OBJEXT) \
    tinystr.$(OBJEXT) tinyxmlerror.$(OBJEXT)
 
-all: pkginfo$(EXEEXT) mingw-get$(EXEEXT) mingw-get-0.dll lastrites$(EXEEXT)
+BIN_PROGRAMS = pkginfo$(EXEEXT) mingw-get$(EXEEXT)
+LIBEXEC_PROGRAMS = gui$(EXEEXT) lastrites$(EXEEXT)
+LIBEXEC_DATA = mingw-get-0.dll
+
+all: $(BIN_PROGRAMS) $(LIBEXEC_PROGRAMS) $(LIBEXEC_DATA)
 
 pkginfo$(EXEEXT):  driver.$(OBJEXT) pkginfo.$(OBJEXT)
 	$(CC) -o $@ $(CFLAGS) $(LDFLAGS) $+
 
 mingw-get$(EXEEXT): clistub.$(OBJEXT) version.$(OBJEXT)
 	$(CXX) -o $@ $(CXXFLAGS) $(LDFLAGS) $+
+
+GUI_LDFLAGS = -mwindows $(LDFLAGS)
+
+gui$(EXEEXT): guimain.$(OBJEXT)
+	$(CXX) -o $@ $(CXXFLAGS) $(GUI_LDFLAGS) $+
 
 lastrites$(EXEEXT): rites.$(OBJEXT)
 	$(CC) -o $@ $(CFLAGS) $(LDFLAGS) $+
@@ -118,28 +127,35 @@ installdirs:
 	$(mkinstalldirs) ${PACKAGE_CONFIG_DIR}
 
 install: installdirs install-profile
-	$(INSTALL_PROGRAM) pkginfo$(EXEEXT) ${bindir}
-	$(INSTALL_PROGRAM) mingw-get$(EXEEXT) ${bindir}
-	$(INSTALL_PROGRAM) lastrites$(EXEEXT) ${libexecdir}/${PACKAGE_TARNAME}
-	$(INSTALL_DATA) mingw-get-0.dll ${libexecdir}/${PACKAGE_TARNAME}
+	for image in $(BIN_PROGRAMS); do \
+	  $(INSTALL_PROGRAM) $$image ${bindir}; \
+	  done
+	for image in $(LIBEXEC_PROGRAMS); do \
+	  $(INSTALL_PROGRAM) $$image ${libexecdir}/${PACKAGE_TARNAME}; \
+	  done
+	for image in $(LIBEXEC_DATA); do \
+	  $(INSTALL_DATA) $$image ${libexecdir}/${PACKAGE_TARNAME}; \
+	  done
 
 install-profile:
 	$(INSTALL_DATA) ${srcdir}/xml/profile.xml \
 	  ${PACKAGE_CONFIG_DIR}/defaults.xml
 
 install-strip: install
-	$(STRIP) ${bindir}/pkginfo$(EXEEXT)
-	$(STRIP) ${bindir}/mingw-get$(EXEEXT)
-	$(STRIP) ${libexecdir}/${PACKAGE_TARNAME}/lastrites$(EXEEXT)
-	$(STRIP) ${libexecdir}/${PACKAGE_TARNAME}/mingw-get-0.dll
+	for image in $(BIN_PROGRAMS); do \
+	  $(STRIP) ${bindir}/$$image; \
+	  done
+	for image in $(LIBEXEC_PROGRAMS) $(LIBEXEC_DATA); do \
+	  $(STRIP) ${libexecdir}/${PACKAGE_TARNAME}/$$image; \
+	  done
 
 # Packaging and distribution...
 #
 LICENCE_FILES = README COPYING
 SRCDIST_FILES = $(LICENCE_FILES) ChangeLog \
-  configure.ac configure Makefile.in version.c.in
+  aclocal.m4 configure.ac configure Makefile.in version.c.in
 
-SRCDIST_SUBDIRS = build-aux src src/pkginfo tinyxml xml
+SRCDIST_SUBDIRS = build-aux m4 src src/pkginfo tinyxml xml
 
 # The names of distributed pacakge archive files incorporate version
 # information, derived from PACKAGE_VERSION; this is decomposed, so that
@@ -197,7 +213,7 @@ srcdist: pkginfo.c
 # Workspace clean-up...
 #
 clean:
-	rm -f *.$(OBJEXT) *.d *.dll pkginfo$(EXEEXT) mingw-get$(EXEEXT)
+	rm -f *.$(OBJEXT) *.d *.dll $(BIN_PROGRAMS) $(LIBEXEC_PROGRAMS)
 
 distclean: clean
 	rm -f config.* version.c Makefile

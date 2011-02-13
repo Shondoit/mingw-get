@@ -1,10 +1,10 @@
 /*
  * clistub.c
  *
- * $Id: clistub.c,v 1.7 2010/10/22 22:08:52 keithmarshall Exp $
+ * $Id: clistub.c,v 1.8 2011/02/13 21:23:58 keithmarshall Exp $
  *
  * Written by Keith Marshall <keithmarshall@users.sourceforge.net>
- * Copyright (C) 2009, 2010, MinGW Project
+ * Copyright (C) 2009, 2010, 2011, MinGW Project
  *
  *
  * Initiation stub for command line invocation of mingw-get
@@ -302,8 +302,9 @@ int main( int argc, char **argv )
     /* If we get to here, then the GUI could not be started...
      * Issue a diagnostic message, before abnormal termination.
      */
-    fprintf( stderr, "%s: %S: unable to start application; status = %d\n",
-	progname, MINGW_GET_GUI, status
+    fprintf( stderr,
+	"%s: %S: unable to start GUI; helper program not installed\n",
+	progname, MINGW_GET_GUI
       );
     return EXIT_FATAL;
   }

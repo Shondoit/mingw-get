@@ -2,10 +2,10 @@
 /*
  * pkgtask.h
  *
- * $Id: pkgtask.h,v 1.3 2010/12/30 23:23:43 keithmarshall Exp $
+ * $Id: pkgtask.h,v 1.4 2011/02/13 21:23:58 keithmarshall Exp $
  *
  * Written by Keith Marshall <keithmarshall@users.sourceforge.net>
- * Copyright (C) 2009, 2010, MinGW Project
+ * Copyright (C) 2009, 2010, 2011, MinGW Project
  *
  *
  * This header provides manifest definitions for the action codes,
@@ -54,10 +54,10 @@ enum
 #define ACTION_SHOW     (unsigned long)(action_show)
 #define ACTION_UPDATE   (unsigned long)(action_update)
 
-#define STRICTLY_GT	ACTION_MASK + 1
-#define STRICTLY_LT	STRICTLY_GT << 1
+#define STRICTLY_GT	(ACTION_MASK + 1)
+#define STRICTLY_LT	(STRICTLY_GT << 1)
 
-#define ACTION_PRIMARY  STRICTLY_LT << 1
+#define ACTION_PRIMARY  (STRICTLY_LT << 1)
 
 #ifndef EXTERN_C
 # ifdef __cplusplus
