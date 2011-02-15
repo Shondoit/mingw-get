@@ -1,3 +1,34 @@
+2011-02-15  Keith Marshall  <keithmarshall@users.sourceforge.net>
+
+	Make package version comparisons more robust.
+
+	Fixes an issue reported by Chris Sutcliffe: previously, version
+	comparisons were evaluated solely on the basis of differences in the
+	package version field itself.  Henceforth, if this field compares as
+	equal, then the comparison is extended to also consider differences
+	between development phase qualifiers, and, if these too compare as
+	equal, to differences in the target subsystem version fields.
+
+	* src/pkginfo/pkginfo.h (pkgSpecs::VersionComparator): New private
+	method; declare it.
+
+	* src/pkgspec.cpp (pkgSpecs::VersionComparator): Implement it.
+	(pkgSpecs::operator<, pkgSpecs::operator<=, pkgSpecs::operator>=):
+	(pkgSpecs::operator>): Use it, replacing...
+	(version): ...this static function; now unreferenced; delete it.
+
+	* src/vercmp.h (pkgVersionInfo::pkgVersionInfo): Make it inline; it
+	now delegates the entire class construction operation to...
+	(pkgVersionInfo::Parse): ...this new private method; declare it.  This
+	is also used to facilitate implementation of...
+	(pkgVersionInfo::Reset): ...this new inline method, also requiring...
+	(pkgVersionInfo::FreeAll): ...this new inline method; also now used by
+	the class destructor, it encapsulates separate calls to...
+	(pkgVersionInfo::Free): ...this original inline method, renamed...
+	(pkgVersionInfo::FreeEntry): ...as this.
+
+	* src/vercmp.cpp (pkgVersionInfo::Parse): Implement it.
+
 2011-02-13  Keith Marshall  <keithmarshall@users.sourceforge.net>
 
 	Merge from mingw-get-0.1-mingw32-alpha-5 bug-fix branch.

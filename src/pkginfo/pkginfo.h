@@ -2,10 +2,10 @@
 /*
  * pkginfo.h
  *
- * $Id: pkginfo.h,v 1.2 2010/05/05 20:34:17 keithmarshall Exp $
+ * $Id: pkginfo.h,v 1.3 2011/02/15 21:39:13 keithmarshall Exp $
  *
  * Written by Keith Marshall <keithmarshall@users.sourceforge.net>
- * Copyright (C) 2009, 2010, MinGW Project
+ * Copyright (C) 2009, 2010, 2011, MinGW Project
  *
  *
  * Public interface for the package tarname interpreter.  Provides
@@ -113,6 +113,11 @@ class pkgSpecs
      * property field values.
      */
     const char *SetProperty( int, const char* );
+
+    /* Internal helper method, used to facilitate implementation
+     * of the comparison operators.
+     */
+    int VersionComparator( pkgSpecs& );
 
   public:
     /* Constructors...

@@ -2,10 +2,10 @@
 /*
  * vercmp.cpp
  *
- * $Id: vercmp.cpp,v 1.3 2010/04/29 17:13:15 keithmarshall Exp $
+ * $Id: vercmp.cpp,v 1.4 2011/02/15 21:39:13 keithmarshall Exp $
  *
  * Written by Keith Marshall <keithmarshall@users.sourceforge.net>
- * Copyright (C) 2009, 2010, MinGW Project
+ * Copyright (C) 2009, 2010, 2011, MinGW Project
  *
  *
  * Implementation of package version comparator module.
@@ -28,9 +28,9 @@
 #include "vercmp.h"
 #include <string.h>
 
-pkgVersionInfo::pkgVersionInfo( const char* version, const char* build )
+void pkgVersionInfo::Parse( const char* version, const char* build )
 {
-  /* Constructor...
+  /* Delegated constructor/reconstructor implementation...
    * Decompose given version number and build serial number strings,
    * storing components within the specified class structure.
    *

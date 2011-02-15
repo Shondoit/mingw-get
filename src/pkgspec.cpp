@@ -1,10 +1,10 @@
 /*
  * pkgspec.cpp
  *
- * $Id: pkgspec.cpp,v 1.2 2010/01/16 20:49:57 keithmarshall Exp $
+ * $Id: pkgspec.cpp,v 1.3 2011/02/15 21:39:13 keithmarshall Exp $
  *
  * Written by Keith Marshall <keithmarshall@users.sourceforge.net>
- * Copyright (C) 2009, 2010, MinGW Project
+ * Copyright (C) 2009, 2010, 2011, MinGW Project
  *
  *
  * Implementation for the "pkgTarName" class, as declared in header
@@ -139,13 +139,109 @@ pkgSpecs::~pkgSpecs()
 
 /* Comparison operators...
  */
-static inline
-pkgVersionInfo version( pkgSpecs& pkg )
+int pkgSpecs::VersionComparator( pkgSpecs& rhs )
 {
-  /* Local helper, to construct package version descriptors
-   * for use in version comparison operator implementations.
+  /* Private helper method, used to facilitate implementation
+   * of the comparison operator methods.  It considers the "this"
+   * pointer as a reference to the entity on the left hand side of
+   * the comparison operator, and the single argument as a reference
+   * to the entity on the right hand side.  The integer return value
+   * is zero if the two entities compare as equal, (i.e. representing
+   * identically the same package version), less than zero if the LHS
+   * entity represents a "lesser" (i.e. an earlier) version than the
+   * RHS, or greater than zero if the LHS represents a "greater"
+   * (i.e. a more recent) version than the RHS.
+   *
+   * Initially, we compare just the package version itself...
    */
-  return pkgVersionInfo( pkg.GetPackageVersion(), pkg.GetPackageBuild() );
+  pkgVersionInfo lhs_version( GetPackageVersion(), GetPackageBuild() );
+  pkgVersionInfo rhs_version( rhs.GetPackageVersion(), rhs.GetPackageBuild() );
+  /*
+   * ...returning immediately, with an appropriate return value,
+   * if LHS and RHS versions are distinct.
+   */
+  if( lhs_version < rhs_version ) return -1;
+  if( lhs_version > rhs_version ) return +1;
+
+  /* If we get to here, then the package versions of LHS and RHS
+   * are identically the same; however, we may still be able to
+   * differentiate between them, on the basis of progression in
+   * their respective development (release) status qualifiers.
+   */
+  const char *lhs_quality, *rhs_quality;
+  if( (lhs_quality = GetReleaseStatus()) != NULL )
+  {
+    /* The LHS entity is qualified as "alpha", "beta", ...
+     */
+    if( (rhs_quality = rhs.GetReleaseStatus()) == NULL )
+      /*
+       * ...but the RHS entity is not; we always consider an
+       * unqualified version to implicitly represent "stable",
+       * which is always compared as "more recent" than any
+       * "alpha", "beta" or "rc" qualified release at the
+       * same package version point, so we may immediately
+       * confirm the LHS as the "lesser" release.
+       */
+      return -1;
+
+    /* If we still haven't differentiated them, then both LHS
+     * and RHS must be qualified.  Check if we can resolve the
+     * deadlock on the basis of progression of development from
+     * "alpha" through "beta" and "rc" to "stable" phases; (note
+     * that simply checking the initial character of the phase
+     * qualifier indicates the appropriate progression).
+     */
+    int chkval = *lhs_quality - *rhs_quality;
+    if( chkval != 0 ) return chkval;
+
+    /* If we still can't resolve the deadlock, then both LHS
+     * and LHS must be qualified as being in identically the
+     * same development phase, so we must now differentiate
+     * on the basis of progression of the release index...
+     */
+    lhs_version.Reset( GetReleaseIndex() );
+    rhs_version.Reset( rhs.GetReleaseIndex() );
+    /*
+     * ...noting that these progress in the same manner as
+     * the package version number itself.
+     */
+    if( lhs_version < rhs_version ) return -1;
+    if( lhs_version > rhs_version ) return +1;
+  }
+
+  else if( rhs.GetReleaseStatus() != NULL )
+    /*
+     * In this case, the RHS entity is qualified as "alpha",
+     * "beta", ..., but the LHS is not.  Since we've already
+     * determined that both represent the same version of the
+     * package, we may infer that the LHS represents a stable
+     * derivative of the qualified RHS, and thus corresponds
+     * to a more recent release, so return the appropriate
+     * value to indicate LHS > RHS.
+     */
+    return +1;
+
+  /* If we get to here, then LHS and RHS represent the same
+   * version of the package, at the same phase of development;
+   * the only remaining determinant, which may differentiate
+   * them, is that one has been released for a more recent
+   * version of the host subsystem...
+   */
+  lhs_version.Reset( GetSubSystemVersion(), GetSubSystemBuild() );
+  rhs_version.Reset( rhs.GetSubSystemVersion(), rhs.GetSubSystemBuild() );
+  /*
+   * ...so we may compare these, just as we did initially
+   * for the package version identification.
+   */
+  if( lhs_version < rhs_version ) return -1;
+  if( lhs_version > rhs_version ) return +1;
+
+  /* Finally, if we get past all of the preceding comparisons,
+   * then the LHS and RHS cannot be differentiated on the basis
+   * of any package version comparison, so we may return zero
+   * to assert their equality.
+   */
+  return 0;
 }
 
 bool pkgSpecs::operator<( pkgSpecs& rhs )
@@ -153,7 +249,7 @@ bool pkgSpecs::operator<( pkgSpecs& rhs )
   /* Check if the given package release is less recent, as indicated
    * by its version and build date/serial number, than another.
    */
-  return version( *this ) < version( rhs );
+  return VersionComparator( rhs ) < 0;
 }
 
 bool pkgSpecs::operator<=( pkgSpecs& rhs )
@@ -161,7 +257,7 @@ bool pkgSpecs::operator<=( pkgSpecs& rhs )
   /* Check if the given package release is no more recent, as indicated
    * by its version and build date/serial number, than another.
    */
-  return version( *this ) <= version( rhs );
+  return VersionComparator( rhs ) <= 0;
 }
 
 bool pkgSpecs::operator>=( pkgSpecs& rhs )
@@ -169,7 +265,7 @@ bool pkgSpecs::operator>=( pkgSpecs& rhs )
   /* Check if the given package release is no less recent, as indicated
    * by its version and build date/serial number, than another.
    */
-  return version( *this ) >= version( rhs );
+  return VersionComparator( rhs ) >= 0;
 }
 
 bool pkgSpecs::operator>( pkgSpecs& rhs )
@@ -177,7 +273,7 @@ bool pkgSpecs::operator>( pkgSpecs& rhs )
   /* Check if the given package release is more recent, as indicated
    * by its version and build date/serial number, than another.
    */
-  return version( *this ) > version( rhs );
+  return VersionComparator( rhs ) > 0;
 }
 
 /* $RCSfile: pkgspec.cpp,v $: end of file */

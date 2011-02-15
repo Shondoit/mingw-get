@@ -2,10 +2,10 @@
 /*
  * vercmp.h
  *
- * $Id: vercmp.h,v 1.2 2010/04/29 17:13:15 keithmarshall Exp $
+ * $Id: vercmp.h,v 1.3 2011/02/15 21:39:13 keithmarshall Exp $
  *
  * Written by Keith Marshall <keithmarshall@users.sourceforge.net>
- * Copyright (C) 2009, MinGW Project
+ * Copyright (C) 2009, 2010, 2011, MinGW Project
  *
  *
  * Public interface for the package version comparator module, as
@@ -67,15 +67,33 @@ class pkgVersionInfo
    * in decomposed "major.minor.patch-datetamp-sequence" form.
    */
   public:
-    /* Constructor...
-     * This expects either one or two "char *" arguments:
-     * the first is the package version number, in "major.minor.patch"
-     * format; the second is build serial number in "datestamp-sequence"
-     * format.  If the second is omitted, the build serial number may
-     * be appended to the first, in the full format as above.
+    inline pkgVersionInfo( const char* version = "", const char* build = NULL )
+    {
+      /* Constructor...
+       * This expects either one or two "char *" arguments:
+       * the first is the package version number, in "major.minor.patch"
+       * format; the second is build serial number in "datestamp-sequence"
+       * format.  If the second is omitted, the build serial number may
+       * be appended to the first, in the full format as above.
+       *
+       * Note that we inline the constructor itself, but we then delegate
+       * its entire implementation to the Parse() method, to facilitate...
+       */
+      Parse( version, build );
+    }
+    inline void Reset( const char* version = "", const char* build = NULL )
+    {
+      /* ...implementation of this "reconstructor" method, which permits
+       * us to reassign alternative content to an existing instance of the
+       * class, (after first clearing out all previous content).
+       */
+      FreeAll(); Parse( version, build );
+    }
+
+    /* Destructor...
+     * This must release all heap memory allocated for parsed class data.
      */
-    pkgVersionInfo( const char* version = "", const char* build = NULL );
-    inline ~pkgVersionInfo(){ Free( version_string ); Free( build_string ); }
+    inline ~pkgVersionInfo(){ FreeAll(); }
 
     /* Package version comparison operators.
      */
@@ -92,10 +110,29 @@ class pkgVersionInfo
     char *version_string, *build_string;
     struct version_t version_elements[VERSION_ELEMENT_COUNT];
 
-    /* An internal comparison helper function
+    /* The separated implementation for the constructor,
+     * shared by the Reset() "reconstructor" method.
+     */
+    void Parse( const char*, const char* );
+
+    /* An internal comparison helper function.
      */
     long Compare( const pkgVersionInfo&, int );
-    inline void Free( void *mem ){ if( mem != NULL ) free( mem ); }
+
+    inline void FreeEntry( void *mem )
+    {
+      /* Helper method to release each of the two blocks of heap
+       * memory, which are allocated to store the class data...
+       */
+      if( mem != NULL ) free( mem );
+    }
+    inline void FreeAll()
+    {
+      /* ...used by this composite helper, which releases both of
+       * these allocated memory blocks with a single call.
+       */
+      FreeEntry( version_string ); FreeEntry( build_string );
+    }
 };
 
 #endif /* __cplusplus */
