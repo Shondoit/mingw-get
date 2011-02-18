@@ -2,7 +2,7 @@
 /*
  * debug.h
  *
- * $Id: debug.h,v 1.2 2010/08/27 22:08:03 keithmarshall Exp $
+ * $Id: debug.h,v 1.3 2011/02/18 01:09:03 keithmarshall Exp $
  *
  * Written by Keith Marshall <keithmarshall@users.sourceforge.net>
  * Copyright (C) 2010, MinGW Project
@@ -26,24 +26,37 @@
  * arising from the use of this software.
  *
  */
-#define DEBUG_H  1
+# define DEBUG_H  1
+
+ /* To facilitate identification of code which is added to assist
+  * in debugging, we explicitly define the DEBUG_INVOKED symbol; this
+  * explicitly expands to nothing, so that it may be incorporated
+  * as a transparent marker on any line of such code.
+  */
+# define DEBUG_INVOKED
 
 # if DEBUGLEVEL
   /* Here, we provide definitions and declarations which allow us
-   * to selectively enable compilation of (specific class of) debug
-   * specific code.
+   * to selectively enable compilation of (any specific class of)
+   * debug specific code.
    */
-#  define DEBUG_TRACE_INIT  			0x0001
+#  define DEBUG_TRACE_INIT  			0x0010
+#  define DEBUG_TRACE_TRANSACTIONS		0x0020
+#  define DEBUG_SUPPRESS_INSTALLATION		0x0040
+#  define DEBUG_UPDATE_INVENTORY		0x0080
 
 #  define DEBUG_INHIBIT_RITES_OF_PASSAGE  	0x7000
 #  define DEBUG_FAIL_FILE_RENAME_RITE		0x1000
 #  define DEBUG_FAIL_FILE_UNLINK_RITE		0x2000
 
+#  define DEBUG_INVOKE_IF( TEST, ACTION )	if( TEST ) ACTION
+
 # else /* DEBUGLEVEL == 0 */
   /* We use this space to provide any declarations which may be
    * necessary to disable compilation of debug specific code...
-   * (currently, there are none).
    */
+#  define DEBUG_INVOKE_IF( TEST, ACTION )	/* DO NOTHING */
+
 # endif /* DEBUGLEVEL */
 
 #endif /* DEBUG_H: $RCSfile: debug.h,v $: end of file */

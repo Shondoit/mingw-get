@@ -1,7 +1,7 @@
 /*
  * tarproc.cpp
  *
- * $Id: tarproc.cpp,v 1.8 2010/08/06 22:34:39 keithmarshall Exp $
+ * $Id: tarproc.cpp,v 1.9 2011/02/18 01:09:03 keithmarshall Exp $
  *
  * Written by Keith Marshall <keithmarshall@users.sourceforge.net>
  * Copyright (C) 2009, 2010, MinGW Project
@@ -37,6 +37,7 @@
 #include <errno.h>
 
 #include "dmh.h"
+#include "debug.h"
 #include "mkpath.h"
 
 #include "pkginfo.h"
@@ -511,9 +512,26 @@ int pkgTarArchiveInstaller::ProcessDirectory( const char *pathname )
   /* Create the directory infrastructure required to support
    * a specific package installation.
    */
-#if DEBUGLEVEL < 5
-  int status;
+#if DEBUGLEVEL & DEBUG_SUPPRESS_INSTALLATION
+  /*
+   * Debugging stub...
+   * FIXME:maybe adapt for 'dry-run' or 'verbose' use.
+   */
+  int status = 0;
+  dmh_printf(
+      "FIXME:ProcessDirectory<stub>:not executing: mkdir -p %s\n",
+       pathname
+    );
+# if DEBUGLEVEL & DEBUG_UPDATE_INVENTORY
+  /*
+   * Although no installation directory has actually been created,
+   * update the inventory to simulate the effect of doing so.
+   */
+  installed->AddEntry( dirname_key, pathname + sysroot_len );
+# endif
 
+#else
+  int status;
   if( (status = mkdir_recursive( pathname, 0755 )) == 0 )
     /*
      * Either the specified directory already exists,
@@ -527,22 +545,8 @@ int pkgTarArchiveInstaller::ProcessDirectory( const char *pathname )
      * diagnose this failure.
      */
     dmh_notify( DMH_ERROR, "cannot create directory `%s'\n", pathname );
-
-#else
-  /* Debugging stub...
-   *
-   * FIXME:maybe adapt for 'dry-run' or 'verbose' use.
-   */
-  int status = 0;
-
-  dmh_printf(
-      "FIXME:ProcessDirectory<stub>:not executing: mkdir -p %s\n",
-       pathname
-    );
-# if DEBUGLEVEL > 8
-  installed->AddEntry( dirname_key, pathname + sysroot_len );
-# endif
 #endif
+
   return status;
 }
 
@@ -551,7 +555,25 @@ int pkgTarArchiveInstaller::ProcessDataStream( const char *pathname )
   /* Extract file data from the archive, and copy it to the
    * associated target file stream, if any.
    */
-#if DEBUGLEVEL < 5
+#if DEBUGLEVEL & DEBUG_SUPPRESS_INSTALLATION
+  /*
+   * Debugging stub...
+   * FIXME:maybe adapt for 'dry-run' or 'verbose' use.
+   */
+  dmh_printf(
+      "FIXME:ProcessDataStream<stub>:not extracting: %s\n",
+      pathname
+    );
+# if DEBUGLEVEL & DEBUG_UPDATE_INVENTORY
+  /*
+   * Although no file has actually been installed, update
+   * the inventory to simulate the effect of doing so.
+   */
+  installed->AddEntry( filename_key, pathname + sysroot_len );
+# endif
+  return ProcessEntityData( -1 );
+
+#else
   int fd = set_output_stream( pathname, octval( header.field.mode ) );
   int status = ProcessEntityData( fd );
   if( fd >= 0 )
@@ -569,8 +591,7 @@ int pkgTarArchiveInstaller::ProcessDataStream( const char *pathname )
     }
 
     else
-    {
-      /* The target file was not successfully and completely
+    { /* The target file was not successfully and completely
        * written; discard it, and diagnose failure.
        */
       unlink( pathname );
@@ -578,20 +599,6 @@ int pkgTarArchiveInstaller::ProcessDataStream( const char *pathname )
     }
   }
   return status;
-
-#else
-  /* Debugging stub...
-   *
-   * FIXME:maybe adapt for 'dry-run' or 'verbose' use.
-   */
-  dmh_printf(
-      "FIXME:ProcessDataStream<stub>:not extracting: %s\n",
-      pathname
-    );
-# if DEBUGLEVEL > 8
-  installed->AddEntry( filename_key, pathname + sysroot_len );
-# endif
-  return ProcessEntityData( -1 );
 #endif
 }
 

@@ -1,3 +1,20 @@
+2011-02-18  Keith Marshall  <keithmarshall@users.sourceforge.net>
+
+	Tidy up some debugging hooks.
+
+	* src/debug.h (DEBUG_INVOKED): New macro; define it.
+	(DEBUG_INVOKE_IF): Likewise; this takes arguments providing for
+	conditional invocation of code when DEBUGLEVEL is non-zero; make it
+	expand to nothing, when DEBUGLEVEL is zero.
+	(DEBUG_TRACE_INIT): Redefined macro; value changed to 0x0010.
+	(DEBUG_TRACE_TRANSACTIONS, DEBUG_SUPPRESS_INSTALLATION):
+	(DEBUG_UPDATE_INVENTORY): New macros; define them.
+
+	* src/tarproc.cpp (pkgTarArchiveInstaller::ProcessDirectory):
+	(pkgTarArchiveInstaller::ProcessDataStream): Refactor debugging hooks;
+	implement them in terms of DEBUGLEVEL, with reference to...
+	(DEBUG_SUPPRESS_INSTALLATION, DEBUG_UPDATE_INVENTORY): ...these.
+
 2011-02-15  Keith Marshall  <keithmarshall@users.sourceforge.net>
 
 	Make package version comparisons more robust.
