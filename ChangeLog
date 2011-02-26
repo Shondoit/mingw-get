@@ -1,3 +1,14 @@
+2011-02-26  Keith Marshall  <keithmarshall@users.sourceforge.net>
+
+	Work-around for improper stderr buffering in MSYS mintty and rxvt.
+	(Merged from r0-1-alpha-5 branch).
+
+	* src/dmh.cpp (dmhTypeTTY::emit_and_flush): New private method.
+	(dmhTypeTTY::printf, dmhTypeTTY::notify): Use it to force an fflush()
+	after each output record is written to stderr.
+
+	* README: Update as appropriate.
+
 2011-02-18  Keith Marshall  <keithmarshall@users.sourceforge.net>
 
 	Tidy up some debugging hooks.

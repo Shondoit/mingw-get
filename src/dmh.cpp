@@ -1,7 +1,7 @@
 /*
  * dmh.cpp
  *
- * $Id: dmh.cpp,v 1.3 2011/01/05 21:56:42 keithmarshall Exp $
+ * $Id: dmh.cpp,v 1.4 2011/02/26 17:51:25 keithmarshall Exp $
  *
  * Written by Keith Marshall <keithmarshall@users.sourceforge.net>
  * Copyright (C) 2009, 2010, 2011, MinGW Project
@@ -53,6 +53,9 @@ class dmhTypeTTY : public dmhTypeGeneric
     virtual uint16_t control( const uint16_t, const uint16_t );
     virtual int notify( const dmh_severity, const char*, va_list );
     virtual int printf( const char*, va_list );
+
+  private:
+    inline int emit_and_flush( int );
 };
 
 class dmhTypeGUI : public dmhTypeGeneric
@@ -67,20 +70,20 @@ class dmhTypeGUI : public dmhTypeGeneric
 };
 
 dmh_exception::dmh_exception() throw()
-  : message("Unspecified error")
+: message( "Unspecified error" )
 {}
 
 dmh_exception::dmh_exception::dmh_exception(const char * msg) throw()
-  : message("Unspecified error")
+: message( "Unspecified error" )
 {
-  if (msg && *msg)
+  if( msg && *msg )
     message = msg;
 }
 
 dmh_exception::~dmh_exception() throw()
 {}
 
-const char * dmh_exception::what() const throw()
+const char* dmh_exception::what() const throw()
 {
   return message;
 }
@@ -130,7 +133,7 @@ int abort_if_fatal( const dmh_severity code, int status )
    * of a DMH_FATAL exception.
    */
   if( code == DMH_FATAL )
-    throw dmh_exception("Fatal error occured");
+    throw dmh_exception( "Fatal error occured" );
 
   /* If the exception wasn't DMH_FATAL, then fall through to
    * return the specified status code.
@@ -175,6 +178,21 @@ uint16_t dmhTypeTTY::control( const uint16_t request, const uint16_t mask )
   return 0;
 }
 
+inline int dmhTypeTTY::emit_and_flush( int status )
+{
+  /* Users of MSYS terminal emulators, in place of the standard
+   * MS-Windows console, may experience an I/O buffering issue on
+   * stderr (?!!) which may result in apparently erratic delivery
+   * of progress reporting diagnostics; this may lead to a false
+   * impression that mingw-get has stalled.  This inline wrapper
+   * ensures that any buffer which is improperly associated with
+   * stderr is flushed after each message is posted; this may
+   * mitigate the improper buffering issue.
+   */
+  fflush( stderr );
+  return status;
+}
+
 int dmhTypeTTY::notify( const dmh_severity code, const char *fmt, va_list argv )
 {
   /* Message dispatcher for console class applications.
@@ -192,8 +210,12 @@ int dmhTypeTTY::notify( const dmh_severity code, const char *fmt, va_list argv )
   /* Dispatch the message to standard error, terminate application
    * if DMH_FATAL, else continue, returning the message length.
    */
-  int retcode = fprintf( stderr, "%s: *** %s *** ", progname, severity[code] );
-  return abort_if_fatal( code, retcode + vfprintf( stderr, fmt, argv ) );
+  return abort_if_fatal( code,
+      emit_and_flush(
+	fprintf( stderr, "%s: *** %s *** ", progname, severity[code] )
+	+ vfprintf( stderr, fmt, argv )
+	)
+      );
 }
 
 int dmhTypeTTY::printf( const char *fmt, va_list argv )
@@ -201,7 +223,7 @@ int dmhTypeTTY::printf( const char *fmt, va_list argv )
   /* Display arbitrary text messages via the diagnostic message handler;
    * for the TTY subsystem, this is equivalent to printf() on stderr.
    */
-  return vfprintf( stderr, fmt, argv );
+  return emit_and_flush( vfprintf( stderr, fmt, argv ) );
 }
 
 EXTERN_C uint16_t dmh_control( const uint16_t request, const uint16_t mask )

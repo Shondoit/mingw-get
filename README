@@ -1,6 +1,6 @@
 Release Notes for mingw-get-0.1-mingw32-alpha-5
 
-$Id: README,v 1.7 2011/02/13 21:23:58 keithmarshall Exp $
+$Id: README,v 1.8 2011/02/26 17:51:25 keithmarshall Exp $
 
 Preamble
 --------
@@ -33,6 +33,14 @@ User Visible Changes for mingw-get-0.1-mingw32-alpha-5
   dependencies, when performing an upgrade operation.  It also provides
   more meaningful diagnostics when mingw-get is invoked without arguments,
   and corrects some omissions from the source tarball.
+
+- The follow-up release, designated as mingw-get-0.1-mingw32-alpha-5.2,
+  is a further bug-fix release.  It provides a work-around for a defect
+  in the console I/O handling of MSYS mintty and MSYS rxvt, which causes
+  the stderr stream to appear to be inappropriately buffered within either
+  of these terminal emulators.  As such, it is a recommended upgrade for
+  users of either of these emulators; it offers no tangible benefit to
+  other users.
 
 
 ===============================================
