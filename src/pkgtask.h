@@ -2,7 +2,7 @@
 /*
  * pkgtask.h
  *
- * $Id: pkgtask.h,v 1.4 2011/02/13 21:23:58 keithmarshall Exp $
+ * $Id: pkgtask.h,v 1.5 2011/02/27 16:21:36 keithmarshall Exp $
  *
  * Written by Keith Marshall <keithmarshall@users.sourceforge.net>
  * Copyright (C) 2009, 2010, 2011, MinGW Project
@@ -44,20 +44,23 @@ enum
   end_of_actions
 };
 
-#define ACTION_MASK	0x0F
+#define ACTION_MASK		0x0F
 
-#define ACTION_NONE     (unsigned long)(action_none)
-#define ACTION_REMOVE   (unsigned long)(action_remove)
-#define ACTION_INSTALL  (unsigned long)(action_install)
-#define ACTION_UPGRADE  (unsigned long)(action_upgrade)
-#define ACTION_LIST     (unsigned long)(action_list)
-#define ACTION_SHOW     (unsigned long)(action_show)
-#define ACTION_UPDATE   (unsigned long)(action_update)
+#define ACTION_NONE     	(unsigned long)(action_none)
+#define ACTION_REMOVE   	(unsigned long)(action_remove)
+#define ACTION_INSTALL  	(unsigned long)(action_install)
+#define ACTION_UPGRADE  	(unsigned long)(action_upgrade)
+#define ACTION_LIST     	(unsigned long)(action_list)
+#define ACTION_SHOW     	(unsigned long)(action_show)
+#define ACTION_UPDATE   	(unsigned long)(action_update)
 
-#define STRICTLY_GT	(ACTION_MASK + 1)
-#define STRICTLY_LT	(STRICTLY_GT << 1)
+#define STRICTLY_GT		(ACTION_MASK + 1)
+#define STRICTLY_LT		(STRICTLY_GT << 1)
 
-#define ACTION_PRIMARY  (STRICTLY_LT << 1)
+#define ACTION_PRIMARY  	(STRICTLY_LT << 1)
+
+#define ACTION_REMOVE_OK	(ACTION_PRIMARY << 1)
+#define ACTION_PREFLIGHT	(ACTION_PRIMARY << 2 | ACTION_REMOVE_OK)
 
 #ifndef EXTERN_C
 # ifdef __cplusplus

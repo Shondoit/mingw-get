@@ -1,3 +1,36 @@
+2011-02-27  Keith Marshall  <keithmarshall@users.sourceforge.net>
+
+	Initial implementation for "remove" feature.
+
+	* src/pkgbase.h: Update copyright notice; add current year.
+	(pkgActionItem::SetPrimary): New inline public method; declare it.
+	(pkgActionItem::SetAuthorities): New public method; declare it.
+
+	* src/pkgtask.h (ACTION_PREFLIGHT, ACTION_REMOVE_OK): New defines.
+
+	* src/pkgproc.h: Update copyright notice; add current year.
+	(pkgManifest::GetSysRootReference): New public method; declare it.
+	(pkgManifest::GetRoot): New inline method; declare and implement it.
+	(pkgManifest::DetachSysRoot): Argument type changed to const char*.
+	(pkgRemove): New extern "C" function; declare it.
+
+	* src/pkgexec.cpp (pkgActionItem::SetPrimary): Implement it, and...
+	(pkgXmlDocument::Schedule): ...use it to promote actions on all user
+	specified packages, as listed on the command line, to primary status.
+	(pkgActionItem::Execute): Repeatedly invoke...
+	(pkgActionItem::SetAuthorities): ...this; incorporate call of...
+	(pkgActionItem::DownloadArchiveFiles): ...this, within the loop, so
+	that we retry failed downloads at least a second time.
+	[ACTION_REMOVE]: Delete stub; invoke pkgRemove().
+
+	* src/pkgunst.cpp: New file.
+	(pkgActionItem::SetAuthorities): Implement it.
+	(pkgManifest::GetSysRootReference): Implement it.
+	(pkgManifest::DetachSysRoot): Implement it per new declaration.
+	(pkgRemove): Implement it.
+
+	* Makefile.in (CORE_DLL_OBJECTS): Add pkgunst.OBJEXT
+
 2011-02-26  Keith Marshall  <keithmarshall@users.sourceforge.net>
 
 	Work-around for improper stderr buffering in MSYS mintty and rxvt.

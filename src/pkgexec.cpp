@@ -1,7 +1,7 @@
 /*
  * pkgexec.cpp
  *
- * $Id: pkgexec.cpp,v 1.13 2011/02/13 21:23:58 keithmarshall Exp $
+ * $Id: pkgexec.cpp,v 1.14 2011/02/27 16:21:36 keithmarshall Exp $
  *
  * Written by Keith Marshall <keithmarshall@users.sourceforge.net>
  * Copyright (C) 2009, 2010, 2011, MinGW Project
@@ -323,6 +323,13 @@ pkgXmlNode *pkgActionItem::SelectIfMostRecentFit( pkgXmlNode *package )
   return Selection();
 }
 
+inline void pkgActionItem::SetPrimary( pkgActionItem* ref )
+{
+  flags = ref->flags;
+  selection[ to_install ] = ref->selection[ to_install ];
+  selection[ to_remove ] = ref->selection[ to_remove ];
+}
+
 pkgActionItem* pkgXmlDocument::Schedule
 ( unsigned long action, pkgActionItem& item, pkgActionItem* rank )
 {
@@ -332,15 +339,23 @@ pkgActionItem* pkgXmlDocument::Schedule
    */
   pkgActionItem *ref = rank ? rank : actions;
 
-  /* Don't reschedule, if we already have a prior matching item...
+  /* If we already have a prior matching item...
    */
-  if(  (actions->GetReference( item ) == NULL)
-  /*
-   * ...but, when we don't, and when this request produces a valid
-   * package reference, we raise a new scheduling request...
+  pkgActionItem *prior;
+  if( (prior = actions->GetReference( item )) != NULL )
+  {
+    /* ...then, when the current request refers to a primary action,
+     * we update the already scheduled request to reflect this...
+     */
+    if( (action & ACTION_PRIMARY) == ACTION_PRIMARY )
+      prior->SetPrimary( rank = ref->Schedule( action & ACTION_MASK, item ) );
+    return prior;
+  }
+  /* ...otherwise, when this request produces a valid package reference,
+   * we raise a new scheduling request...
    */
-  &&  ((ref = ref->Schedule( action, item )) != NULL)
-  &&  ((ref->Selection() != NULL) || (ref->Selection( to_remove ) != NULL)) )
+  else if( ((ref = ref->Schedule( action, item )) != NULL)
+  &&   ((ref->Selection() != NULL) || (ref->Selection( to_remove ) != NULL)) )
   {
     /* ...and, when successfully raised, add it to the task list...
      */
@@ -369,56 +384,55 @@ void pkgActionItem::Execute()
     pkgActionItem *current = this;
     bool init_rites_pending = true;
     while( current->prev != NULL ) current = current->prev;
-    DownloadArchiveFiles( current );
+    do {
+	 DownloadArchiveFiles( current );
+       } while( SetAuthorities( current ) > 0 );
     while( current != NULL )
     {
-      /* Print a notification of the installation process to be
-       * performed, identifying the package to be processed.
+      /* Processing only those packages with assigned actions...
        */
-      const char *tarname;
-      if( (tarname = current->Selection()->GetPropVal( tarname_key, NULL )) == NULL )
-	tarname = current->Selection( to_remove )->GetPropVal( tarname_key, value_unknown );
-      dmh_printf( "%s: %s\n", action_name(current->flags & ACTION_MASK), tarname );
-
-      /* Check for any outstanding requirement to invoke the
-       * "self upgrade rites" process, so that we may install an
-       * upgrade for mingw-get itself...
-       */
-      if( init_rites_pending )
-	/*
-	 * ...discontinuing the check once this has been completed,
-	 * since it need not be performed more than once.
-	 */
-        init_rites_pending = self_upgrade_rites( tarname );
-
-      if( (current->flags & ACTION_REMOVE) == ACTION_REMOVE )
+      if( (current->flags & ACTION_MASK) != 0 )
       {
-	/* The selected package has been marked for removal, either explicitly,
-	 * or as an implicit prerequisite for upgrade; search the installed system
-	 * manifest, to identify the specific version (if any) to be removed.
-	 *
-	 * FIXME: This implementation is a stub, to be rewritten when the system
-	 * manifest structure has been specified and implemented.
+	/* Print a notification of the installation process to be
+	 * performed, identifying the package to be processed.
 	 */
-	if( current->Selection( to_remove ) != NULL )
-	  dmh_printf( " FIXME:pkgRemove<stub>:not removing %s\n",
-	      current->Selection( to_remove )->GetPropVal( tarname_key, value_unknown )
-	    );
-      }
+	const char *tarname;
+	if( (tarname = current->Selection()->GetPropVal( tarname_key, NULL )) == NULL )
+	  tarname = current->Selection( to_remove )->GetPropVal( tarname_key, value_unknown );
+	dmh_printf( "%s: %s\n", action_name(current->flags & ACTION_MASK), tarname );
 
-      if( (current->flags & ACTION_INSTALL) == ACTION_INSTALL )
-      {
-	/* The selected package has been marked for installation, either explicitly,
-	 * or implicitly to complete a package upgrade.
+	/* Check for any outstanding requirement to invoke the
+	 * "self upgrade rites" process, so that we may install an
+	 * upgrade for mingw-get itself...
 	 */
-	pkgXmlNode *tmp = current->Selection( to_remove );
-	if( pkgOptionSelected( PKG_OPTION_REINSTALL ) )
-	  current->selection[ to_remove ] = NULL;
-	pkgInstall( current );
-	current->selection[ to_remove ] = tmp;
-      }
+	if( init_rites_pending )
+	  /*
+	   * ...discontinuing the check once this has been completed,
+	   * since it need not be performed more than once.
+	   */
+	  init_rites_pending = self_upgrade_rites( tarname );
 
-      /* Proceed to next package with scheduled actions.
+	if( (current->flags & ACTION_REMOVE) == ACTION_REMOVE )
+	{
+	  /* The selected package has been marked for removal, either explicitly,
+	   * or as an implicit prerequisite for upgrade.
+	   */
+	  pkgRemove( current );
+	}
+
+	if( (current->flags & ACTION_INSTALL) == ACTION_INSTALL )
+	{
+	  /* The selected package has been marked for installation, either explicitly,
+	   * or implicitly to complete a package upgrade.
+	   */
+	  pkgXmlNode *tmp = current->Selection( to_remove );
+	  if( pkgOptionSelected( PKG_OPTION_REINSTALL ) )
+	    current->selection[ to_remove ] = NULL;
+	  pkgInstall( current );
+	  current->selection[ to_remove ] = tmp;
+	}
+      }
+      /* Proceed to the next package, if any, with scheduled actions.
        */
       current = current->next;
     }

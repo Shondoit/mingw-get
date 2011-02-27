@@ -2,10 +2,10 @@
 /*
  * pkgproc.h
  *
- * $Id: pkgproc.h,v 1.4 2010/08/06 22:34:39 keithmarshall Exp $
+ * $Id: pkgproc.h,v 1.5 2011/02/27 16:21:36 keithmarshall Exp $
  *
  * Written by Keith Marshall <keithmarshall@users.sourceforge.net>
- * Copyright (C) 2009, 2010, MinGW Project
+ * Copyright (C) 2009, 2010, 2011, MinGW Project
  *
  *
  * Specifications for the internal architecture of package archives,
@@ -34,6 +34,7 @@
 
 EXTERN_C void pkgInstall( pkgActionItem* );
 EXTERN_C void pkgRegister( pkgXmlNode*, pkgXmlNode*, const char*, const char* );
+EXTERN_C void pkgRemove( pkgActionItem* );
 
 class pkgManifest
 {
@@ -46,7 +47,10 @@ class pkgManifest
 
     void AddEntry( const char*, const char* );
     void BindSysRoot( pkgXmlNode*, const char* );
-    void DetachSysRoot( pkgXmlNode* );
+    void DetachSysRoot( const char* );
+
+    inline pkgXmlNode *GetRoot(){ return manifest->GetRoot(); }
+    pkgXmlNode *GetSysRootReference( const char* );
 
   private:
     pkgXmlDocument *manifest;

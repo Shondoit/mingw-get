@@ -2,10 +2,10 @@
 /*
  * pkgbase.h
  *
- * $Id: pkgbase.h,v 1.11 2010/12/30 23:23:43 keithmarshall Exp $
+ * $Id: pkgbase.h,v 1.12 2011/02/27 16:21:36 keithmarshall Exp $
  *
  * Written by Keith Marshall <keithmarshall@users.sourceforge.net>
- * Copyright (C) 2009, 2010, MinGW Project
+ * Copyright (C) 2009, 2010, 2011, MinGW Project
  *
  *
  * Public interface for the package directory management routines;
@@ -239,8 +239,10 @@ class pkgActionItem
 
     /* Methods for compiling the schedule of actions.
      */
+    int SetAuthorities( pkgActionItem* );
     pkgActionItem* GetReference( pkgActionItem& );
     pkgActionItem* Schedule( unsigned long, pkgActionItem& );
+    inline void SetPrimary( pkgActionItem* );
 
     /* Methods for defining the selection criteria for
      * packages to be processed.
