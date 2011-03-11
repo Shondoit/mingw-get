@@ -1,5 +1,12 @@
 2011-03-11  Keith Marshall  <keithmarshall@users.sourceforge.net>
 
+	Remove unused 7zip and boost source code from CVS trunk.
+
+	* 7z: Directory and all content removed.
+	* boost: Likewise.
+
+2011-03-11  Keith Marshall  <keithmarshall@users.sourceforge.net>
+
 	Refactor and update existing installation and usage instructions.
 
 	* src/clistub.c (help_text): Updated.
