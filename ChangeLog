@@ -1,3 +1,29 @@
+2011-03-11  Keith Marshall  <keithmarshall@users.sourceforge.net>
+
+	Refactor and update existing installation and usage instructions.
+
+	* src/clistub.c (help_text): Updated.
+
+	* srcdist-doc: New directory.
+
+	* README: Deleted; its content refactored into...
+	* srcdist-doc/README.in srcdist-doc/INSTALL.in srcdist-doc/NEWS.in:
+	...these new template files, updated for current development state.
+
+	* srcdist-doc/gendoc.sed.in: New sed script; it directs formatting of
+	generated text files derived from the srcdist-doc templates.
+
+	* Makefile.in (SRCDIST_SUBDIRS): Add srcdist-doc.
+	(SRCDIST_FILES): Add NEWS and INSTALL.
+	(srcdist-doc): New build rule to generate README, NEWS and INSTALL.
+	(srcdist, licdist): Adjust path to locate them.
+	(readme.txt): New build rule to generate on-line package description.
+	(dist): Require it.
+	(distclean): Don't remove Makefile...
+	(maintainer-clean): ...but do it here instead.  Also remove generated
+	README, NEWS and INSTALL, the autom4te cache, and all distributable
+	zip files, in addition to tarballs, for the current version.
+
 2011-02-27  Keith Marshall  <keithmarshall@users.sourceforge.net>
 
 	Initial implementation for "remove" feature.

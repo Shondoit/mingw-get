@@ -1,0 +1,295 @@
+Installation Instructions
+=========================
+
+$Id: INSTALL.in,v 1.1 2011/03/11 20:22:30 keithmarshall Exp $
+
+The information which follows describes the procedure for installing
+and configuring mingw-get, and for keeping the installation current.
+The online version of this document is an abridged form, focussing on
+the installation of binary releases; users who prefer to build and
+install from source are advised to consult the unabridged form of
+this document, which may be found in the file "INSTALL", within the
+source code distribution tarball.
+
+Please report bugs as directed at http://mingw.org/Reporting_Bugs
+
+
+First Time Installation of a Binary Release
+-------------------------------------------
+
+To install mingw-get, visit the MinGW files repository at:
+
+    http://sourceforge.net/projects/mingw/files
+
+and, from the "Automated&nbsp;MinGW&nbsp;Installer/mingw-get" folder,
+download your choice of either:
+
+    {PACKAGE_DISTNAME}-bin.zip
+
+or (preferred, if you know how to unpack it):
+
+    {PACKAGE_DISTNAME}-bin.tar.gz
+
+Whichever of these you choose to download, you should unpack it into
+the directory in which you intend to host your MinGW installation; (we
+*strongly* recommend that you adopt our standard of C:\MinGW [*], unless
+you have an exceptional reason to make an alternative choice), then use
+your preferred method for assignment of environment variables to add the
+appropriate directory (default C:\MinGW\bin) to your PATH; (this should
+be added as a permanent PATH assignment).
+
+Having completed this phase of installation, you may then wish to review
+the following section on configuration; if nothing else, you may wish to
+copy the supplied defaults.xml file to profile.xml, even if you choose not
+to introduce any customisations.  Finally, to initialise the installation
+recording database, you should run the command [**]:
+
+    C:\> mingw-get install mingw-get
+
+
+[*] If you insist on adopting a different directory from the recommended
+default, you are *strongly* advised to avoid any directory which has white
+space in its absolute path name; in particular, those who choose to ignore
+this advice, and install MinGW into some subdirectory of (for example)
+C:\Program&nbsp;Files", usually discover to their cost that certain
+tools may not work correctly.
+
+This document will refer to files as though installed in the recommended
+default location, with a path prefix of C:\MinGW.  If, having read the
+above warning, you do decide to adopt an alternative installation path,
+then please substitute your alternative prefix, as appropriate, where this
+document refers to C:\MinGW.  
+
+[**] If you have chosen {PACKAGE_DISTNAME}-bin.tar.gz as your installation
+source, rather than {PACKAGE_DISTNAME}-bin.zip, you may like to create the
+directory:
+
+    C:\MinGW\var\cache\mingw-get\packages
+
+(together with any requisite parents, and adjusting the C:\MinGW prefix
+to suit your installation choice, if necessary).  You may then move the
+{PACKAGE_DISTNAME}-bin.tar.gz file to it, *before* you run the above
+command; this will relieve mingw-get of the overhead which would be
+incurred by downloading the file a second time.  
+
+
+Specifying the Configuration
+----------------------------
+
+When you invoke mingw-get, it will attempt to read configuration data
+from the file:
+
+    C:\MinGW\var\lib\mingw-get\data\profile.xml
+
+(with any necessary adjustment of the C:\MinGW installation prefix, as
+noted previously); if, and only if, this file cannot be read, then a
+fallback attempt will be made, to read the configuration from:
+
+    C:\MinGW\var\lib\mingw-get\data\defaults.xml
+
+instead.  Of this pair of files, profile.xml is *not* included within
+the mingw-get distribution, but defaults.xml *is*.  It is a liberally
+commented XML file, which you are advised to copy to create profile.xml;
+you may then modify this, as you see fit, to suit your own installation
+requirements. [*]
+
+At the present time, the only entries you should consider changing are
+the path names specified by the "path" attribute associated with each
+of the "sysroot" elements within the first (only) "system-map" element;
+(these specify the prefix directory path names for your installation).
+You probably want to make the path for the "mingw32" subsystem match
+your choice for your mingw-get installation; (the "%R" notation, used
+in defaults.xml, sets it up thus, regardless of whether you choose to
+install in C:\MinGW, or an alternative location).
+
+[*] The recommendation to copy defaults.xml to profile.xml may seem to
+be an unnecessary inconvenience; it is implemented this way in order to
+safeguard any configuration changes you wish to make; during an upgrade,
+defaults.xml will be overwritten, but profile.xml will not, so your
+configuration will be preserved.
+
+
+Upgrading an Existing Installation to a Newer Binary Release
+------------------------------------------------------------
+
+Once you have completed a first-time installation of mingw-get, whether
+from a binary release or by building and installing from source, you may
+wish to upgrade it, as the project team publishes new releases.  Unless
+you insist on *always* installing from source, (in which case each
+upgrade effectively becomes a fresh first-time installation from the
+new source code), and provided:
+
+- you have previously installed mingw-get-0.1-mingw32-alpha-3 or newer,
+  and
+
+- you have completed the first-time installation process, by running
+
+      C:\> mingw-get install mingw-get
+
+then you may upgrade to a newer binary release by running
+
+!     C:\> mingw-get update
+!     C:\> mingw-get upgrade mingw-get
+
+Otherwise, if you have a previously unfinalised installation, i.e. you
+did not previously run
+
+      C:\> mingw-get install mingw-get
+
+and that previous installation is of mingw-get-0.1-mingw32-alpha-3 or
+newer, then you may upgrade and finalise by running
+
+!     C:\> mingw-get update
+!     C:\> mingw-get install mingw-get
+
+Alternatively, any previous installation of mingw-get may be upgraded
+by simply performing a new first-time installation, overwriting the
+previously installed version; (this is the only option available, if
+the original installation predates mingw-get-0.1-mingw32-alpha-3).
+
+;--------8<-------------------- cut-line -------------------->8--------
+;
+; Any text added below the cut-line will be included in the INSTALL
+; file, which is to be included in the source distribution, but it
+; will be excluded from the readme.txt file, which is to be used to
+; add descriptive content on the SourceForge download page.
+;
+; Any lines, such as these, which begin with a semicolon in their
+; first column (not indented), will be excluded from both files.
+;
+
+Building and Installing from Source
+-----------------------------------
+
+In order to build mingw-get from source, you will require:
+
+- A build platform which is capable of running Bourne shell scripts,
+  which provides at least the set of core tools required by the GNU
+  Coding Standards, together with a C/C++ compiler suite generating
+  code for execution on a native MS-Windows host.  Suitable platforms
+  include MSYS, in it's normal MinGW personality, with the MinGW
+  compiler suite, or either of Cygwin or GNU/Linux, with a suitable
+  cross-compiler suite for a MinGW host. 
+
+- A statically linkable libz.a (or equal) for the native MS-Windows
+  host, together with its associated header files.
+
+- A statically linkable libbz2.a (or equal) for the native MS-Windows
+  host, together with its associated header files.
+
+- A statically linkable liblzma.a (or equal) for the native MS-Windows
+  host, together with its associated header files; (this should be built
+  from libxz sources no older than version 4.999.9beta).
+
+Having provisioned a suitable build platform, with these pre-requisite
+libraries installed, you should obtain and unpack the source tarball,
+{PACKAGE_DISTNAME}-src.tar.gz, in any working directory of your choice,
+to create your {PACKAGE_DIRNAME} source directory.
+
+At this point, you may elect to build in-source, in which case you would
+follow the conventional GNU build procedure:
+
+!   $ cd {PACKAGE_DIRNAME}
+!   $ ./configure --prefix=/mingw [options ...]
+!   $ make
+
+However, it is strongly recommended that you elect instead, to create
+and use a separate build directory.  This may be a subdirectory of your
+{PACKAGE_DIRNAME} source directory, e.g.&nbsp;build-dir, in which case
+you would proceed as follows:
+
+!   $ mkdir {PACKAGE_DIRNAME}/build-dir
+!   $ cd {PACKAGE_DIRNAME}/build-dir
+!   $ ../configure --prefix=/mingw [options ...]
+!   $ make
+
+Finally, if you are building on the host on which you intend to deploy,
+and provided the build has completed without error, you may install
+mingw-get by executing:
+
+!   $ make install
+
+or:
+
+!   $ make install-strip
+
+Alternatively, if you wish to create an installation kit for deployment
+on any remote host, you may:
+
+!   $ mkdir staged
+!   $ make prefix=`pwd`/staged install
+
+or:
+
+!   $ mkdir staged
+!   $ make prefix=`pwd`/staged install-strip
+
+and then:
+
+!   $ cd staged
+!   $ tar cf ../{PACKAGE_DISTNAME}-inst.tar .
+
+to create an installation tarball, which may be deployed simply by
+unpacking it in the /mingw root directory, on any host you choose.
+
+
+Building and Installing from Source in CVS
+------------------------------------------
+
+If, rather than building mingw-get from the source code provided in the
+form of a release tarball, you prefer to keep on the cutting edge of
+development within the public CVS repository, there are a few additional
+pre-requisites which you must satisfy on your build platform:
+
+- You must have a CVS client, which you can use to fetch the source code
+  from the repository, and subsequently keep it current.
+
+- You must have the GNU autoconf package, with a version number of 2.59
+  or later, (and preferrably 2.67 or later).
+
+- You must have a working lex, (or flex), scanner generating tool.
+
+- If you also wish to be able to generate the documentation files, as
+  included in the top level directory of a source distribution tarball,
+  you will need a working nroff implementation.
+
+Provided you can satisfy (at least the first three of) these additional
+pre-requisites, you may check out the latest source code thus [*]:
+
+!   $ export CVSROOT
+!   $ CVSROOT=:pserver:anonymous@mingw.cvs.sf.net:/cvsroot/mingw
+!   $ cvs login
+!   $ cvs -z3 co -P mingw-get
+
+This will create a working copy of the mingw-get source tree, in the
+mingw-get subdirectory of your current working directory.
+
+[*] If you are an accredited MinGW Developer, you may prefer to use the
+:ext: access protocol of CVS, in conjunction with your registered SSH
+keys, to access the CVS repository; in this case, you should know the
+appropriate procedure to use, in place of the above.
+
+Having thus obtained your working copy of the source code from the CVS
+repository, you should then:
+
+!   $ cd mingw-get
+!   $ autoconf
+
+to generate the configure script, and then:
+
+!   $ mkdir obj
+!   $ cd obj
+!   $ ../configure --prefix=/mingw [options ...]
+!   $ make
+
+to progress the build [**], as in the previous case of building from the
+source code extracted from a distribution tarball.
+
+[**] Notice that here we choose to build in a subdirectory called obj;
+when building from source in CVS, building in-source becomes even less
+desirable than it is when building from distributed source.  The choice
+of obj for the build directory name is dictated by the configuration of
+mingw-get's CVS module itself; cvs "knows" that this directory does not
+contain any source files of interest to it.
+
+$RCSfile: INSTALL.in,v $: end of file

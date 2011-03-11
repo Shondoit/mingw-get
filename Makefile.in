@@ -1,6 +1,6 @@
 # @configure_input@
 #
-# $Id: Makefile.in,v 1.23 2011/02/27 16:21:36 keithmarshall Exp $
+# $Id: Makefile.in,v 1.24 2011/03/11 20:22:30 keithmarshall Exp $
 
 PACKAGE_TARNAME = @PACKAGE_TARNAME@
 PACKAGE_VERSION = @PACKAGE_VERSION@
@@ -152,10 +152,10 @@ install-strip: install
 # Packaging and distribution...
 #
 LICENCE_FILES = README COPYING
-SRCDIST_FILES = $(LICENCE_FILES) ChangeLog \
+SRCDIST_FILES = $(LICENCE_FILES) ChangeLog NEWS INSTALL \
   aclocal.m4 configure.ac configure Makefile.in version.c.in
 
-SRCDIST_SUBDIRS = build-aux m4 src src/pkginfo tinyxml xml
+SRCDIST_SUBDIRS = build-aux m4 src src/pkginfo srcdist-doc tinyxml xml
 
 # The names of distributed pacakge archive files incorporate version
 # information, derived from PACKAGE_VERSION; this is decomposed, so that
@@ -174,7 +174,7 @@ PACKAGE_DISTVERSION = `echo $(PACKAGE_VERSION)-$(PACKAGE_SUBSYSTEM) | sed \
   -e 's,-$(PACKAGE_SUBSYSTEM),$(SNAPSHOT)&,'`
 PACKAGE_DISTNAME = $(PACKAGE_TARNAME)-$(PACKAGE_DISTVERSION)
 
-dist: srcdist bindist
+dist: srcdist bindist readme.txt
 
 bindist: all licdist
 	rm -rf staged
@@ -190,14 +190,20 @@ licdist:
 	rm -rf share
 	$(mkinstalldirs) ./share/doc/${PACKAGE_TARNAME}
 	cd ./share/doc/${PACKAGE_TARNAME}; for file in $(LICENCE_FILES); \
-	  do $(LN_S) ${abs_top_srcdir}/$$file .; done
+	  do test -f ${abs_top_srcdir}/$$file \
+	    && $(LN_S) ${abs_top_srcdir}/$$file . \
+	    || $(LN_S) ../$$file .; \
+	  done
 	tar chf - share | gzip -c > $(PACKAGE_DISTNAME)-lic.tar.gz
 	rm -rf share
 
-srcdist: pkginfo.c
+srcdist: pkginfo.c srcdist-doc
 	rm -rf ${PACKAGE_DISTROOT} && mkdir ${PACKAGE_DISTROOT}
 	cd ${PACKAGE_DISTROOT}; for file in $(SRCDIST_FILES); do \
-	  $(LN_S) ${abs_top_srcdir}/$$file .; done
+	  test -f ${abs_top_srcdir}/$$file \
+	    && $(LN_S) ${abs_top_srcdir}/$$file . \
+	    || $(LN_S) ../$$file .; \
+	  done
 	for dir in $(SRCDIST_SUBDIRS); do \
 	  mkdir ${PACKAGE_DISTROOT}/$$dir && cd ${PACKAGE_DISTROOT}/$$dir; \
 	  for file in `cd ${abs_top_srcdir}/$$dir && echo *`; do \
@@ -210,16 +216,50 @@ srcdist: pkginfo.c
 	tar chf - ${PACKAGE_DISTROOT} | gzip -c > ${PACKAGE_DISTNAME}-src.tar.gz
 	rm -rf ${PACKAGE_DISTROOT}
 
+# README, INSTALL and NEWS files to be included in the source distribution
+# are generated on demand, as indirect side effects of a set of phoney goals
+# so that they are always regenerated for each distribution, from templates
+# in srcdist-doc so that we can make them version specific.
+#
+vpath %.in ${srcdir}/srcdist-doc
+srcdist-doc: README.dist NEWS.dist INSTALL.dist
+
+%.dist: %.in gendoc.simple.sed
+	sed -f gendoc.simple.sed $< | nroff > $*
+
+%.simple.sed: %.sed.in
+	sed -e s,'$${PACKAGE_DIRNAME}',"${PACKAGE_DISTROOT}", \
+	    -e s,'$${PACKAGE_DISTNAME}',"${PACKAGE_DISTNAME}", $< > $@
+
+%.combined.sed: %.sed.in
+	sed -e s,'$${PACKAGE_DIRNAME}',"${PACKAGE_DISTROOT}", \
+	    -e s,'$${PACKAGE_DISTNAME}',"${PACKAGE_DISTNAME}", \
+	    -e s,'^# *cut:',, $< > $@
+
+# The following rule provides a mechanism for generating a composite from
+# README, INSTALL and NEWS, for use as an on-line package description.
+#
+readme.txt: README.in NEWS.in INSTALL.in gendoc.combined.sed
+	rm -f $@
+	for input in $^; do \
+	  case $$input in *.in) \
+	    sed -f gendoc.combined.sed $$input | nroff >> $@ ;; \
+	    esac; \
+	  done
+	echo '$$Document: $@ $$: end of file' >> $@
+	rm -f gendoc.combined.sed
+
 # Workspace clean-up...
 #
 clean:
 	rm -f *.$(OBJEXT) *.d *.dll $(BIN_PROGRAMS) $(LIBEXEC_PROGRAMS)
 
 distclean: clean
-	rm -f config.* version.c Makefile
+	rm -f config.* version.c
 
 maintainer-clean: distclean
-	rm -f pkginfo.c *-$(PACKAGE_DISTVERSION)-*.tar.gz
-	rm -rf ${PACKAGE_DISTROOT} staged
+	rm -f README NEWS INSTALL readme.txt Makefile pkginfo.c
+	rm -f *-$(PACKAGE_DISTVERSION)-*.tar.gz *-$(PACKAGE_DISTVERSION)-*.zip
+	rm -rf ${PACKAGE_DISTROOT} staged ${srcdir}/autom4te.cache
 
 # $RCSfile: Makefile.in,v $: end of file

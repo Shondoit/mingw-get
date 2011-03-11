@@ -1,0 +1,106 @@
+# gendoc.in -- vim:filetype=nroff
+#
+# $Id: gendoc.sed.in,v 1.1 2011/03/11 20:22:30 keithmarshall Exp $
+#
+s/{PACKAGE_DISTNAME}/${PACKAGE_DISTNAME}/g
+#
+# Written by Keith Marshall <keithmarshall@users.sourceforge.net>
+# Copyright (C) 2011, MinGW Project
+#
+#
+# Sed script to prepare README, NEWS and INSTALL distributable files
+# for formatting using nroff.
+#
+#
+# This is free software.  Permission is granted to copy, modify and
+# redistribute this software, under the provisions of the GNU General
+# Public License, Version 3, (or, at your option, any later version),
+# as published by the Free Software Foundation; see the file COPYING
+# for licensing details.
+#
+# Note, in particular, that this software is provided "as is", in the
+# hope that it may prove useful, but WITHOUT WARRANTY OF ANY KIND; not
+# even an implied WARRANTY OF MERCHANTABILITY, nor of FITNESS FOR ANY
+# PARTICULAR PURPOSE.  Under no circumstances will the author, or the
+# MinGW Project, accept liability for any damages, however caused,
+# arising from the use of this software.
+
+
+# Add nroff set-up boilerplate, at the head of the input stream.
+#
+1i \
+.pl 1 \
+.ll 72 \
+.hy 0
+
+# Identify the top level directory name in a source distribution.
+#
+s/{PACKAGE_DIRNAME}/${PACKAGE_DIRNAME}/g
+
+# Each source file is permitted to include one or more cut-lines;
+# (only the first is significant).  Any text included after the
+# first such line is discarded, when compiling a composite output
+# file.  (We MUST do this BEFORE stripping comments, since the
+# cut-line itself may most likely be flagged as a comment).
+#
+# cut:/--8<--/,$d
+# cut:/$Id[$:]/{
+# cut:  s/README.in,v/readme.txt/; t; N; d
+# cut:}
+
+# Strip comment lines; (i.e. those with semi-colon at left margin).
+#
+/^;/d
+
+# Ensure that underlining for headings and sub-headings is placed on
+# a new line, below the text of the heading.
+#
+/^[-=]\{2,\}/i \
+.br
+
+# When the author types a backslash, assume that his intent is for
+# it to appear literally in the formatted output; this means that
+# we must escape it, when input to nroff.
+#
+s/\\/\\\\/g
+
+# Since we've just made backslashes represent themselves, literally,
+# we need a mechanism for introducing some nroff special characters;
+# for this, we interpret certain XML entity codes.
+#
+s/&nbsp;/\\ /g
+
+# Handle indented blocks, with a pseudo-bullet and hanging indent
+# on the first line.
+#
+/^[-+*]  */,/^[	 ]*$/{
+  /^\(-  *\)/{
+    h; s/^\([-+*]\)\(  *\).*/.in \\w'\1\2'u\n.ti 0/
+    x; s/^\([-+*]\)\(  *\)/\\Z'-'\\h!\\w'\1\2'u!/; H; g
+  }
+  s/^ *//
+  s/^[ 	]*$/\n.in 0/
+}
+
+# Handle indented blocks, keeping the indentation uniform.
+#
+/^  */,/^[ 	]*$/{
+  /^\(  *\)/{
+    h; s/^\(  *\).*/'in \\w'\1'u/; x
+    s/^ *//; H; g
+  }
+  s/^[ 	]*$/\n.in 0/
+}
+
+# To make indented lines explicitly unfilled, we introduce them with
+# an exclamation mark in column 1, followed by at least one space.
+#
+s/^! /  /
+
+# Footnotes are introduced by one or more asterisks enclosed in square
+# brackets, and followed by one or more spaces; we want to protect the
+# initial space from possible adjustment.
+#
+s/^\(\[\*\**]  *\)/\\Z'\1'\\h!\\w'\1'u!/
+
+# $RCSfile: gendoc.sed.in,v $: end of file
