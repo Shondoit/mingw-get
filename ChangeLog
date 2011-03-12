@@ -1,3 +1,8 @@
+2011-03-12  Keith Marshall  <keithmarshall@users.sourceforge.net>
+
+	* srcdist-doc/INSTALL.in [building]: Qualify liblzma.a requirement;
+	add earliest acceptable snapshot release date.
+
 2011-03-11  Keith Marshall  <keithmarshall@users.sourceforge.net>
 
 	Remove unused 7zip and boost source code from CVS trunk.

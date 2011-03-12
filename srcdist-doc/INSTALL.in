@@ -1,7 +1,7 @@
 Installation Instructions
 =========================
 
-$Id: INSTALL.in,v 1.1 2011/03/11 20:22:30 keithmarshall Exp $
+$Id: INSTALL.in,v 1.2 2011/03/12 14:20:29 keithmarshall Exp $
 
 The information which follows describes the procedure for installing
 and configuring mingw-get, and for keeping the installation current.
@@ -179,7 +179,8 @@ In order to build mingw-get from source, you will require:
 
 - A statically linkable liblzma.a (or equal) for the native MS-Windows
   host, together with its associated header files; (this should be built
-  from libxz sources no older than version 4.999.9beta).
+  from libxz sources no older than version 4.999.9beta, with a snapshot
+  release date of 2009-12-09 or later).
 
 Having provisioned a suitable build platform, with these pre-requisite
 libraries installed, you should obtain and unpack the source tarball,
