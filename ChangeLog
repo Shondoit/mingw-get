@@ -1,5 +1,18 @@
 2011-03-12  Keith Marshall  <keithmarshall@users.sourceforge.net>
 
+	mingw-get-0.2-mingw32-alpha-1 released.
+
+	* configure.ac (AC_INIT): Set version number; correct capitalisation
+	in URI reference to bug reporting instructions.
+
+	* srcdist-doc/NEWS.in: Confirm release date.
+	[bug reporting]: Remove redundant paragraph; the information is
+	provided, via reference to mingw.org. in the README and INSTALL files.
+
+	* All files (r0-2-alpha-1): Tag assigned.
+
+2011-03-12  Keith Marshall  <keithmarshall@users.sourceforge.net>
+
 	* srcdist-doc/INSTALL.in [building]: Qualify liblzma.a requirement;
 	add earliest acceptable snapshot release date.
 

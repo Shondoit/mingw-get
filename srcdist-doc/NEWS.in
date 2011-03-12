@@ -1,7 +1,7 @@
 Release Notes
 =============
 
-$Id: NEWS.in,v 1.1 2011/03/11 20:22:30 keithmarshall Exp $
+$Id: NEWS.in,v 1.2 2011/03/12 15:45:40 keithmarshall Exp $
 
 The information presented below describes the user visible changes
 introduced with each release of mingw-get.
@@ -10,7 +10,7 @@ introduced with each release of mingw-get.
 mingw-get-0.2-mingw32-alpha-1
 -----------------------------
 
-Release date: 2011-??-??
+Release date: 2011-03-12
 
 - Added provisional support for removal of packages which have been
   previously installed.  This is fully functional, but naive with respect
@@ -207,12 +207,6 @@ This is the first alpha release of the next generation MinGW installer,
 mingw-get; it provides a more readily extensible, and more configurable
 alternative to the existing MinGW-5.1.x series of NSIS installers, for
 installing MinGW packages.
-
-At the time of this release, mingw-get is still in the early stages of
-development; this release provides an opportunity for early adopters to
-evaluate the CLI capabilities of the installer component; please report
-bugs, (but please, not the known issues identified below), to the MinGW
-bug tracker: http://sourceforge.net/tracker/?group_id=2435&atid=102435
 
 ;--------8<-------------------- cut-line -------------------->8--------
 ;
