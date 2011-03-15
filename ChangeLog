@@ -1,3 +1,13 @@
+2011-03-15  Keith Marshall  <keithmarshall@users.sourceforge.net>
+
+	Fix MinGW-Bug 3212246.
+
+	* src/keyword.c (has_keyword): Avoid incrementing the comparison
+	pointers when a significant character in one string is not matched in
+	the other; previously the pointers were left pointing one character to
+	the right of the mismatch, and this was overlooked if the mismatch
+	occurred at the rightmost character in both strings.
+
 2011-03-12  Keith Marshall  <keithmarshall@users.sourceforge.net>
 
 	mingw-get-0.2-mingw32-alpha-1 released.

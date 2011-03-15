@@ -1,7 +1,7 @@
 /*
  * keyword.c
  *
- * $Id: keyword.c,v 1.2 2010/06/24 20:49:39 keithmarshall Exp $
+ * $Id: keyword.c,v 1.3 2011/03/15 20:28:38 keithmarshall Exp $
  *
  * Written by Keith Marshall <keithmarshall@users.sourceforge.net>
  * Copyright (C) 2009, 2010 MinGW Project
@@ -50,12 +50,13 @@ int has_keyword( const char *lookup, const char *in_list )
        * unchecked section of "in_list"...
        */
       const char *inspect = lookup;
-      while( *inspect && ! isspace( *in_list ) && (*inspect++ == *in_list++) )
-	/*
-	 * ...advancing pointers to both, with no further action,
+      while( *inspect && ! isspace( *in_list ) && (*inspect == *in_list) )
+      {
+	/* ...advancing pointers to both, with no further action,
 	 * until we find a mismatch.
 	 */
-	;
+	++inspect; ++in_list;
+      }
 
       /* If the mismatch coincides with the terminating NUL for "lookup",
        * AND we've simultaneously encountered a keyword separator, or the
@@ -69,7 +70,10 @@ int has_keyword( const char *lookup, const char *in_list )
 
       /* Otherwise, we have not yet found a match...
        * Step over any remaining non-white-space characters in the current
-       * "in_list" entry, and also the following space character if any...
+       * "in_list" entry, and also the first of any following space characters.
+       * (Note that we don't need to explicitly skip over any additional space
+       * characters preceding the next list entry, if any, since they will be
+       * implicitly skipped in the outer loop).
        */
       while( *in_list && ! isspace( *in_list++ ) )
 	/*
