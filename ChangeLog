@@ -1,5 +1,13 @@
 2011-03-15  Keith Marshall  <keithmarshall@users.sourceforge.net>
 
+	mingw-get-0.2-mingw32-alpha-2 released.
+
+	* configure.ac (AC_INIT): Adjust version number.
+	* srcdist-doc/NEWS.in: Updated; add bug-fix description.
+	* All files (r0-2-alpha-2): Tag assigned.
+
+2011-03-15  Keith Marshall  <keithmarshall@users.sourceforge.net>
+
 	Fix MinGW-Bug 3212246.
 
 	* src/keyword.c (has_keyword): Avoid incrementing the comparison
