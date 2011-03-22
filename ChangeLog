@@ -1,3 +1,10 @@
+2011-03-22  Keith Marshall  <keithmarshall@users.sourceforge.net>
+
+	Avoid Unicode hyphens in generated ASCII document files.
+
+	* Makefile.in (NROFF): New macro; define it to invoke `nroff -Tascii'.
+	(%.dist, readme.txt): Use it to ensure that output is pure ASCII.
+
 2011-03-15  Keith Marshall  <keithmarshall@users.sourceforge.net>
 
 	mingw-get-0.2-mingw32-alpha-2 released.

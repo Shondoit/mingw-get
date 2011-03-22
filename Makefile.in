@@ -1,6 +1,6 @@
 # @configure_input@
 #
-# $Id: Makefile.in,v 1.24 2011/03/11 20:22:30 keithmarshall Exp $
+# $Id: Makefile.in,v 1.25 2011/03/22 19:34:43 keithmarshall Exp $
 
 PACKAGE_TARNAME = @PACKAGE_TARNAME@
 PACKAGE_VERSION = @PACKAGE_VERSION@
@@ -224,8 +224,15 @@ srcdist: pkginfo.c srcdist-doc
 vpath %.in ${srcdir}/srcdist-doc
 srcdist-doc: README.dist NEWS.dist INSTALL.dist
 
+# We need to ensure that, when we invoke nroff, the generated output
+# will be suited to an ASCII class of typesetter; without the -Tascii
+# option, GNU nroff will substitute Unicode hyphens (u2010) in place
+# of ASCII hyphens (code 45).
+#
+NROFF = nroff -Tascii
+
 %.dist: %.in gendoc.simple.sed
-	sed -f gendoc.simple.sed $< | nroff > $*
+	sed -f gendoc.simple.sed $< | $(NROFF) > $*
 
 %.simple.sed: %.sed.in
 	sed -e s,'$${PACKAGE_DIRNAME}',"${PACKAGE_DISTROOT}", \
@@ -243,7 +250,7 @@ readme.txt: README.in NEWS.in INSTALL.in gendoc.combined.sed
 	rm -f $@
 	for input in $^; do \
 	  case $$input in *.in) \
-	    sed -f gendoc.combined.sed $$input | nroff >> $@ ;; \
+	    sed -f gendoc.combined.sed $$input | $(NROFF) >> $@ ;; \
 	    esac; \
 	  done
 	echo '$$Document: $@ $$: end of file' >> $@
