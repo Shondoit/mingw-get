@@ -1,3 +1,11 @@
+2011-03-29  Keith Marshall  <keithmarshall@users.sourceforge.net>
+
+	Correct defective activation logic for some debugging hooks.
+
+	* src/pkgunst.cpp (pkg_rmdir, pkg_unlink) [DEBUG_INVOKE_IF]:
+	(pkgActionItem::SetAuthorities) [DEBUG_INVOKE_IF]: Use bit-wise `&'
+	operator, not `&&', to evaluate DEBUGLEVEL state.
+
 2011-03-22  Keith Marshall  <keithmarshall@users.sourceforge.net>
 
 	Avoid Unicode hyphens in generated ASCII document files.

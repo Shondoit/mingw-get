@@ -1,7 +1,7 @@
 /*
  * pkgunst.cpp
  *
- * $Id: pkgunst.cpp,v 1.1 2011/02/27 16:21:36 keithmarshall Exp $
+ * $Id: pkgunst.cpp,v 1.2 2011/03/29 20:04:12 keithmarshall Exp $
  *
  * Written by Keith Marshall <keithmarshall@users.sourceforge.net>
  * Copyright (C) 2011, MinGW Project
@@ -103,7 +103,7 @@ int pkgActionItem::SetAuthorities( pkgActionItem *current )
 	 * package which has been identified as "installed"...
 	 */
 	const char *tarname = ref->GetPropVal( tarname_key, value_unknown );
-	DEBUG_INVOKE_IF( DEBUGLEVEL && DEBUG_TRACE_INIT,
+	DEBUG_INVOKE_IF( DEBUGLEVEL & DEBUG_TRACE_INIT,
 	    dmh_printf( "%s: selected for %s\n",
   	      (tarname = ref->GetPropVal( tarname_key, value_unknown )),
 	      (current->flags & ACTION_INSTALL) ? "upgrade" : "removal"
@@ -116,7 +116,7 @@ int pkgActionItem::SetAuthorities( pkgActionItem *current )
 	{
 	  /* ...and then, having confirmed its validity...
 	   */
-	  DEBUG_INVOKE_IF( DEBUGLEVEL && DEBUG_TRACE_INIT,
+	  DEBUG_INVOKE_IF( DEBUGLEVEL & DEBUG_TRACE_INIT,
     	      dmh_printf( "%s: marked for %s\n",
 		ref->GetPropVal( tarname_key, value_unknown ),
   		(current->flags & ACTION_INSTALL) ? "upgrade" : "removal"
@@ -252,7 +252,7 @@ int pkg_rmdir( const char *sysroot, const char *pathname )
     char fullpath[ 1 + snprintf( NULL, 0, pkg_path_format, sysroot, pathname ) ];
     snprintf( fullpath, sizeof( fullpath ), pkg_path_format, sysroot, pathname );
 
-    DEBUG_INVOKE_IF( DEBUGLEVEL && DEBUG_TRACE_TRANSACTIONS,
+    DEBUG_INVOKE_IF( DEBUGLEVEL & DEBUG_TRACE_TRANSACTIONS,
 	dmh_printf( "  %s: rmdir\n", fullpath )
       );
 
@@ -276,7 +276,7 @@ int pkg_unlink( const char *sysroot, const char *pathname )
     char filepath[ 1 + snprintf( NULL, 0, pkg_path_format, sysroot, pathname ) ];
     snprintf( filepath, sizeof( filepath ), pkg_path_format, sysroot, pathname );
 
-    DEBUG_INVOKE_IF( DEBUGLEVEL && DEBUG_TRACE_TRANSACTIONS,
+    DEBUG_INVOKE_IF( DEBUGLEVEL & DEBUG_TRACE_TRANSACTIONS,
 	dmh_printf( "  %s: unlink file\n", filepath )
       );
 
