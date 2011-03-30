@@ -1,3 +1,11 @@
+2011-03-30  Keith Marshall  <keithmarshall@users.sourceforge.net>
+
+	Expand macros in path names for files and directories to be removed.
+
+	* src/pkgunst.cpp (pkgRemove): Format sysroot as a template, so...
+	(pkg_rmdir, pkg_unlink): ...are able to use mkpath() to construct the
+	full path name for each file or directory to be removed.
+
 2011-03-29  Keith Marshall  <keithmarshall@users.sourceforge.net>
 
 	Correct defective activation logic for some debugging hooks.

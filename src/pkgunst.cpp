@@ -1,7 +1,7 @@
 /*
  * pkgunst.cpp
  *
- * $Id: pkgunst.cpp,v 1.2 2011/03/29 20:04:12 keithmarshall Exp $
+ * $Id: pkgunst.cpp,v 1.3 2011/03/30 20:17:48 keithmarshall Exp $
  *
  * Written by Keith Marshall <keithmarshall@users.sourceforge.net>
  * Copyright (C) 2011, MinGW Project
@@ -37,6 +37,8 @@
 #include "pkgkeys.h"
 #include "pkgproc.h"
 #include "pkgtask.h"
+
+#include "mkpath.h"
 
 #define PKGERR_INVALID_MANIFEST( REASON )  \
   PKGMSG_INVALID_MANIFEST, tarname, REASON
@@ -249,8 +251,8 @@ int pkg_rmdir( const char *sysroot, const char *pathname )
      * the absolute path name, and attempt to "rmdir" it, setting
      * return value as appropriate; silently ignore failure.
      */
-    char fullpath[ 1 + snprintf( NULL, 0, pkg_path_format, sysroot, pathname ) ];
-    snprintf( fullpath, sizeof( fullpath ), pkg_path_format, sysroot, pathname );
+    char fullpath[ mkpath( NULL, sysroot, pathname, NULL ) ];
+    mkpath( fullpath, sysroot, pathname, NULL );
 
     DEBUG_INVOKE_IF( DEBUGLEVEL & DEBUG_TRACE_TRANSACTIONS,
 	dmh_printf( "  %s: rmdir\n", fullpath )
@@ -273,8 +275,8 @@ int pkg_unlink( const char *sysroot, const char *pathname )
   int retval = 0;
   if( (sysroot != NULL) && (pathname != NULL) )
   {
-    char filepath[ 1 + snprintf( NULL, 0, pkg_path_format, sysroot, pathname ) ];
-    snprintf( filepath, sizeof( filepath ), pkg_path_format, sysroot, pathname );
+    char filepath[ mkpath( NULL, sysroot, pathname, NULL ) ];
+    mkpath( filepath, sysroot, pathname, NULL );
 
     DEBUG_INVOKE_IF( DEBUGLEVEL & DEBUG_TRACE_TRANSACTIONS,
 	dmh_printf( "  %s: unlink file\n", filepath )
@@ -388,9 +390,13 @@ EXTERN_C void pkgRemove( pkgActionItem *current )
 	  /* The manifest records file pathnames relative to sysroot;
 	   * thus, first identify the pathname prefix which identifies
 	   * the absolute locations of the files and directories which
-	   * are to be purged.
+	   * are to be purged; (note that we specify this as a template
+	   * for use with mkpath(), rather than as a simple path name,
+	   * so that macros--esp. "%R"--may be correctly resolved at
+	   * point of use).
 	   */
-	  const char *syspath = pathname_lookup( sysroot, value_unknown );
+	  const char *refpath = pathname_lookup( sysroot, value_unknown );
+	  char syspath[4 + strlen( refpath )]; sprintf( syspath, "%s%%/F", refpath );
 
 	  /* Read the package manifest...
 	   */
