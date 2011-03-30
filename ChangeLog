@@ -1,5 +1,17 @@
 2011-03-30  Keith Marshall  <keithmarshall@users.sourceforge.net>
 
+	Provisional handling for http proxy authentication.
+	(Adapted from patch by Scott Michel <pingbak@users.sourceforge.net>)
+	(ref: MinGW-Patch #3158453)
+
+	* src/pkginet.cpp: Several format/layout adjustments; add comments.
+	Eliminate several instances of Microsoft specific typedef nastiness.
+	(dmh_dialogue_context): New macro; kludge definition to support...
+	(pkgInternetAgent::OpenURL) [HTTP_STATUS_PROXY_AUTH_REQ]: Detect
+	and handle it.
+
+2011-03-30  Keith Marshall  <keithmarshall@users.sourceforge.net>
+
 	Expand macros in path names for files and directories to be removed.
 
 	* src/pkgunst.cpp (pkgRemove): Format sysroot as a template, so...

@@ -1,7 +1,7 @@
 /*
  * pkginet.cpp
  *
- * $Id: pkginet.cpp,v 1.8 2010/03/30 20:29:26 keithmarshall Exp $
+ * $Id: pkginet.cpp,v 1.9 2011/03/30 20:44:38 keithmarshall Exp $
  *
  * Written by Keith Marshall <keithmarshall@users.sourceforge.net>
  * Copyright (C) 2009, 2010, MinGW Project
@@ -25,6 +25,19 @@
  *
  */
 #define WIN32_LEAN_AND_MEAN
+
+#define _WIN32_WINNT 0x0500	/* for GetConsoleWindow() kludge */
+#include <windows.h>
+/*
+ * FIXME: This kludge allows us to use the standard wininet dialogue
+ * to acquire proxy authentication credentials from the user; this is
+ * expedient for now, (if somewhat anti-social for a CLI application).
+ * We will ultimately need to provide a more robust implementation,
+ * (within the scope of the diagnostic message handler), in order to
+ * obtain a suitable window handle for use when called from the GUI
+ * implementation of mingw-get, (when it becomes available).
+ */
+#define dmh_dialogue_context()	GetConsoleWindow()
 
 #include <unistd.h>
 #include <stdlib.h>
@@ -76,26 +89,103 @@ class pkgInternetAgent
       /* Open an internet data stream.  This requires an internet
        * connection to have been established...
        */
-      if( (SessionHandle == NULL)
-      && (InternetAttemptConnect( 0 ) == ERROR_SUCCESS) )
+      if(  (SessionHandle == NULL)
+      &&   (InternetAttemptConnect( 0 ) == ERROR_SUCCESS)  )
 	/*
 	 * ...so, on first call, we perform the connection setup
-	 * which we deferred from the class constructor.
+	 * which we deferred from the class constructor; (MSDN
+	 * cautions that this MUST NOT be done in the constructor
+	 * for any global class object such as ours).
 	 */
 	SessionHandle = InternetOpen
 	  ( "MinGW Installer", INTERNET_OPEN_TYPE_PRECONFIG,
 	     NULL, NULL, 0
 	  );
-      return InternetOpenUrl( SessionHandle, URL, NULL, 0, 0, 0 );
+      HINTERNET ResourceHandle = InternetOpenUrl
+	(
+	  /* Here, we attempt to assign a URL specific resource handle,
+	   * within the scope of the SessionHandle obtained above, to
+	   * manage the connection for the requested URL.
+	   *
+	   * Note: Scott Michel suggests INTERNET_FLAG_EXISTING_CONNECT
+	   * here; MSDN tells us it is useful only for FTP connections.
+	   * Since we are primarily interested in HTTP connections, it
+	   * may not help us.  However, it does no harm, and MSDN isn't
+	   * always the reliable source of information we might like.
+	   * Persistent HTTP connections aren't entirely unknown, (and
+	   * indeed, MSDN itself tells us we need to use one, when we
+	   * negotiate proxy authentication); thus, we may just as well
+	   * specify it anyway, on the off-chance that it may introduce
+	   * an undocumented benefit beyond wishful thinking.
+	   */
+	  SessionHandle, URL, NULL, 0, INTERNET_FLAG_EXISTING_CONNECT, 0
+	);
+      if( ResourceHandle != NULL )
+      {
+	/* We got a handle for the URL resource, but we cannot yet be
+	 * sure that it is ready for use; we may still need to handle
+	 * proxy or server authentication.  Thus, we must capture any
+	 * error code which may have been returned, BEFORE we move on
+	 * to evaluate the resource status, (since the procedure for
+	 * checking status may change the error code).
+	 */
+	unsigned long ResourceStatus = GetLastError();
+	if( QueryStatus( ResourceHandle ) == HTTP_STATUS_PROXY_AUTH_REQ )
+	{
+	  /* We've identified a requirement for proxy authentication;
+	   * here we simply hand the task off to the Microsoft handler,
+	   * to solicit the appropriate response from the user.
+	   *
+	   * FIXME: this may be a reasonable approach when running in
+	   * a GUI context, but is rather inelegant in the CLI context.
+	   * Furthermore, this particular implementation provides only
+	   * for proxy authentication, ignoring the possibility that
+	   * server authentication may be required.  We may wish to
+	   * revisit this later.
+	   */
+	  unsigned long user_response;
+	  do { user_response = InternetErrorDlg
+		 ( dmh_dialogue_context(), ResourceHandle, ResourceStatus,
+		   FLAGS_ERROR_UI_FILTER_FOR_ERRORS |
+		   FLAGS_ERROR_UI_FLAGS_CHANGE_OPTIONS |
+		   FLAGS_ERROR_UI_FLAGS_GENERATE_DATA,
+		   NULL
+		 );
+	       /* Having obtained authentication credentials from
+		* the user, we may retry the open URL request...
+		*/
+	       if(  (user_response == ERROR_INTERNET_FORCE_RETRY)
+	       &&  HttpSendRequest( ResourceHandle, NULL, 0, 0, 0 )  )
+	       {
+		 /* ...and, if successful...
+		  */
+		 ResourceStatus = GetLastError();
+		 if( QueryStatus( ResourceHandle ) == HTTP_STATUS_OK )
+		   /*
+		    * ...ensure that the response is anything but 'retry',
+		    * so that we will break out of the retry loop...
+		    */
+		   user_response ^= -1L;
+	       }
+	       /* ...otherwise, we keep retrying when appropriate.
+		*/
+	     } while( user_response == ERROR_INTERNET_FORCE_RETRY );
+	}
+      }
+      /* Ultimately, we return the resource handle for the opened URL,
+       * or NULL if the open request failed.
+       */
+      return ResourceHandle;
     }
-    inline DWORD QueryStatus( HINTERNET id )
+    inline unsigned long QueryStatus( HINTERNET id )
     {
-      DWORD ok, idx = 0, len = sizeof( ok );
-      if( HttpQueryInfo( id, HTTP_QUERY_FLAG_NUMBER | HTTP_QUERY_STATUS_CODE, &ok, &len, &idx ) )
-	return ok;
+      unsigned long ok, idx = 0, len = sizeof( ok );
+      if( HttpQueryInfo( id, HTTP_QUERY_FLAG_NUMBER | HTTP_QUERY_STATUS_CODE,
+	    &ok, &len, &idx )
+	) return ok;
       return 0;
     }
-    inline int Read( HINTERNET dl, char *buf, size_t max, DWORD *count )
+    inline int Read( HINTERNET dl, char *buf, size_t max, unsigned long *count )
     {
       return InternetReadFile( dl, buf, max, count );
     }
