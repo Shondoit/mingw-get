@@ -1,3 +1,11 @@
+2011-03-31  Keith Marshall  <keithmarshall@users.sourceforge.net>
+
+	mingw-get-0.2-mingw32-alpha-3 released.
+
+	* configure.ac (AC_INIT): Adjust version number.
+	* srcdist-doc/NEWS.in: Updated; add bug-fix description.
+	* All files (r0-2-alpha-3): Tag assigned.
+
 2011-03-30  Keith Marshall  <keithmarshall@users.sourceforge.net>
 
 	Provisional handling for http proxy authentication.
