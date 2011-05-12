@@ -1,3 +1,26 @@
+2011-05-12  Keith Marshall  <keithmarshall@users.sourceforge.net>
+
+	Diagnose and aggressively retry failed download connections.
+
+	* src/debug.h (DEBUG_TRACE_INTERNET_REQUESTS): New macro; define it.
+
+	* src/pkginet.cpp (debug.h): #include it.
+	(pkgDownloadMeter): New abstract class; declare it and implement its
+	default (non-abstract) data and methods; derive...
+	(pkgDownloadMeterTTY): ...this new class from it; implement it...
+	(pkgInternetStreamingAgent::Get): ...and instantiate it (naively for
+	now), as associated pkgDownloadMeter object; add tracing diagnostic.
+	(pkgInternetAgent::OpenURL): Don't inline it; move implementation out
+	of line; add retry loops to aggressively retry failed connections.
+	(pkgInternetAgent::QueryContentLength): New method; implement it.
+	(pkgInternetStreamingAgent::TransferData): Avoid Microsoft specific
+	data type `DWORD'; prefer equivalent standard `unsigned long'.  Add
+	tracing diagnostic.  Remove progress diagnostic; replace it with an
+	`Update' request to associated pkgDownloadMeter.
+	(pkgInternetLzmaStreamingAgent::GetRawData): Avoid `DWORD' data type.
+	(pkgInternetLzmaStreamingAgent::TransferData): Likewise; add tracing
+	diagnostic on failure.
+
 2011-03-31  Keith Marshall  <keithmarshall@users.sourceforge.net>
 
 	mingw-get-0.2-mingw32-alpha-3 released.

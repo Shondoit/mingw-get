@@ -2,10 +2,10 @@
 /*
  * debug.h
  *
- * $Id: debug.h,v 1.3 2011/02/18 01:09:03 keithmarshall Exp $
+ * $Id: debug.h,v 1.4 2011/05/12 20:00:22 keithmarshall Exp $
  *
  * Written by Keith Marshall <keithmarshall@users.sourceforge.net>
- * Copyright (C) 2010, MinGW Project
+ * Copyright (C) 2010, 2011, MinGW Project
  *
  *
  * Hooks to facilitate conditional compilation of code to activate
@@ -44,6 +44,8 @@
 #  define DEBUG_TRACE_TRANSACTIONS		0x0020
 #  define DEBUG_SUPPRESS_INSTALLATION		0x0040
 #  define DEBUG_UPDATE_INVENTORY		0x0080
+
+#  define DEBUG_TRACE_INTERNET_REQUESTS  	0x0100
 
 #  define DEBUG_INHIBIT_RITES_OF_PASSAGE  	0x7000
 #  define DEBUG_FAIL_FILE_RENAME_RITE		0x1000

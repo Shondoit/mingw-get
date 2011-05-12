@@ -1,10 +1,10 @@
 /*
  * pkginet.cpp
  *
- * $Id: pkginet.cpp,v 1.9 2011/03/30 20:44:38 keithmarshall Exp $
+ * $Id: pkginet.cpp,v 1.10 2011/05/12 20:00:22 keithmarshall Exp $
  *
  * Written by Keith Marshall <keithmarshall@users.sourceforge.net>
- * Copyright (C) 2009, 2010, MinGW Project
+ * Copyright (C) 2009, 2010, 2011, MinGW Project
  *
  *
  * Implementation of the package download machinery for mingw-get.
@@ -47,10 +47,172 @@
 
 #include "dmh.h"
 #include "mkpath.h"
+#include "debug.h"
 
 #include "pkgbase.h"
 #include "pkgkeys.h"
 #include "pkgtask.h"
+
+class pkgDownloadMeter
+{
+  /* Abstract base class, from which facilities for monitoring the
+   * progress of file downloads may be derived.
+   */
+  public:
+    /* The working method to refresh the download progress display;
+     * each derived class MUST furnish an implementation for this.
+     */
+    virtual int Update( unsigned long length ) = 0;
+
+  protected:
+    /* Storage for the expected size of the active download...
+     */
+    unsigned long content_length;
+
+    /* ...and a method to format it for human readable display.
+     */
+    int SizeFormat( char*, unsigned long );
+};
+
+class pkgDownloadMeterTTY : public pkgDownloadMeter
+{
+  /* Implementation of a download meter class, displaying download
+   * statistics within a CLI application context.
+   */
+  public:
+    pkgDownloadMeterTTY( const char*, unsigned long );
+    virtual ~pkgDownloadMeterTTY();
+
+    virtual int Update( unsigned long );
+
+  private:
+    /* This buffer is used to store each compiled status report,
+     * in preparation for display on the console.
+     */
+    const char *source_url;
+    char status_report[80];
+};
+
+pkgDownloadMeterTTY::pkgDownloadMeterTTY( const char *url, unsigned long length )
+{
+  source_url = url;
+  content_length = length;
+}
+
+pkgDownloadMeterTTY::~pkgDownloadMeterTTY()
+{
+  if( source_url == NULL )
+    dmh_printf( "\n" );
+}
+
+static inline __attribute__((__always_inline__))
+unsigned long pow10mul( register unsigned long x, unsigned power )
+{
+  /* Inline helper to perform a fast integer multiplication of "x"
+   * by a specified power of ten.
+   */
+  while( power-- )
+  {
+    /* Each cycle multiplies by ten, first shifting to get "x * 2"...
+     */
+    x <<= 1;
+    /*
+     * ...then further shifting that intermediate result, and adding,
+     * to achieve the effect of "x * 2 + x * 2 * 4".
+     */
+    x += (x << 2);
+  }
+  return x;
+}
+
+static inline __attribute__((__always_inline__))
+unsigned long percentage( unsigned long x, unsigned long q )
+{
+  /* Inline helper to compute "x" as an integer percentage of "q".
+   */
+  return pow10mul( x, 2 ) / q;
+}
+
+int pkgDownloadMeterTTY::Update( unsigned long count )
+{
+  /* Implementation of method to update the download progress report,
+   * displaying the current byte count and anticipated final byte count,
+   * each formatted in a conveniently human readable style, followed by
+   * approximate percentage completion, both as a 48-segment bar graph,
+   * and as a numeric tally.
+   */
+  char *p = status_report;
+  int barlen = (content_length > count)
+    ? (((count << 1) + count) << 4) / content_length
+    : (content_length > 0) ? 48 : 0;
+
+  /* We may safely use sprintf() to assemble the status report, because
+   * we control the field lengths to always fit within the buffer.
+   */
+  p += SizeFormat( p, count );
+  p += sprintf( p, " / " );
+  p += (content_length > 0)
+    ? SizeFormat( p, content_length )
+    : sprintf( p, "????.?? ??" );
+  p += sprintf( p, "%*c", status_report + 25 - p, '|' ); p[barlen] = '\0';
+  p += sprintf( p, "%-48s", (char *)(memset( p, '=', barlen )) );
+  p += ( (content_length > 0) && (content_length >= count) )
+    ? sprintf( p, "|%4lu", percentage( count, content_length ) )
+    : sprintf( p, "| ???" );
+
+  if( source_url != NULL )
+  {
+    dmh_printf( "%s\n", source_url );
+    source_url = NULL;
+  }
+  return dmh_printf( "\r%s%%", status_report );
+}
+
+int pkgDownloadMeter::SizeFormat( char *buf, unsigned long filesize )
+{
+  /* Helper method to format raw byte counts as B, kB, MB, GB, TB, as
+   * appropriate; (this NEVER requires more than ten characters).
+   */
+  int retval;
+  const unsigned long sizelimit = 1 << 10; /* 1k */
+
+  if( filesize < sizelimit )
+    /*
+     * Raw byte count is less than 1 kB; we may simply emit it.
+     */
+    retval = sprintf( buf, "%lu B", filesize );
+
+  else
+  {
+    /* The raw byte count is too large to be readily assimilated; we
+     * scale it down to an appropriate value, and append the appropriate
+     * scaling indicator.
+     */
+    unsigned long frac = filesize;
+    const unsigned long fracmask = sizelimit - 1;
+    const char *scale_indicator = "kMGT";
+
+    /* A ten bit right shift scales by a factor of 1k; continue shifting
+     * until the ultimate value is less than 1k...
+     */
+    while( (filesize >>= 10) >= sizelimit )
+    {
+      /* ...noting the residual at each shift, and adjusting the scaling
+       * indicator selection to suit.
+       */
+      frac = filesize;
+      ++scale_indicator;
+    }
+    /* Finally, emit the scaled result to the nearest one hundredth part
+     * of the ultimate scaling unit.
+     */
+    retval = sprintf
+      ( buf, "%lu.%02lu %cB",
+	filesize, percentage( frac & fracmask, sizelimit ), *scale_indicator
+      );
+  }
+  return retval;
+}
 
 class pkgInternetAgent
 {
@@ -80,109 +242,25 @@ class pkgInternetAgent
       if( SessionHandle != NULL )
 	Close( SessionHandle );
     }
+    HINTERNET OpenURL( const char* );
 
     /* Remaining methods are simple inline wrappers for the
      * wininet functions we plan to use...
      */
-    inline HINTERNET OpenURL( const char *URL )
-    {
-      /* Open an internet data stream.  This requires an internet
-       * connection to have been established...
-       */
-      if(  (SessionHandle == NULL)
-      &&   (InternetAttemptConnect( 0 ) == ERROR_SUCCESS)  )
-	/*
-	 * ...so, on first call, we perform the connection setup
-	 * which we deferred from the class constructor; (MSDN
-	 * cautions that this MUST NOT be done in the constructor
-	 * for any global class object such as ours).
-	 */
-	SessionHandle = InternetOpen
-	  ( "MinGW Installer", INTERNET_OPEN_TYPE_PRECONFIG,
-	     NULL, NULL, 0
-	  );
-      HINTERNET ResourceHandle = InternetOpenUrl
-	(
-	  /* Here, we attempt to assign a URL specific resource handle,
-	   * within the scope of the SessionHandle obtained above, to
-	   * manage the connection for the requested URL.
-	   *
-	   * Note: Scott Michel suggests INTERNET_FLAG_EXISTING_CONNECT
-	   * here; MSDN tells us it is useful only for FTP connections.
-	   * Since we are primarily interested in HTTP connections, it
-	   * may not help us.  However, it does no harm, and MSDN isn't
-	   * always the reliable source of information we might like.
-	   * Persistent HTTP connections aren't entirely unknown, (and
-	   * indeed, MSDN itself tells us we need to use one, when we
-	   * negotiate proxy authentication); thus, we may just as well
-	   * specify it anyway, on the off-chance that it may introduce
-	   * an undocumented benefit beyond wishful thinking.
-	   */
-	  SessionHandle, URL, NULL, 0, INTERNET_FLAG_EXISTING_CONNECT, 0
-	);
-      if( ResourceHandle != NULL )
-      {
-	/* We got a handle for the URL resource, but we cannot yet be
-	 * sure that it is ready for use; we may still need to handle
-	 * proxy or server authentication.  Thus, we must capture any
-	 * error code which may have been returned, BEFORE we move on
-	 * to evaluate the resource status, (since the procedure for
-	 * checking status may change the error code).
-	 */
-	unsigned long ResourceStatus = GetLastError();
-	if( QueryStatus( ResourceHandle ) == HTTP_STATUS_PROXY_AUTH_REQ )
-	{
-	  /* We've identified a requirement for proxy authentication;
-	   * here we simply hand the task off to the Microsoft handler,
-	   * to solicit the appropriate response from the user.
-	   *
-	   * FIXME: this may be a reasonable approach when running in
-	   * a GUI context, but is rather inelegant in the CLI context.
-	   * Furthermore, this particular implementation provides only
-	   * for proxy authentication, ignoring the possibility that
-	   * server authentication may be required.  We may wish to
-	   * revisit this later.
-	   */
-	  unsigned long user_response;
-	  do { user_response = InternetErrorDlg
-		 ( dmh_dialogue_context(), ResourceHandle, ResourceStatus,
-		   FLAGS_ERROR_UI_FILTER_FOR_ERRORS |
-		   FLAGS_ERROR_UI_FLAGS_CHANGE_OPTIONS |
-		   FLAGS_ERROR_UI_FLAGS_GENERATE_DATA,
-		   NULL
-		 );
-	       /* Having obtained authentication credentials from
-		* the user, we may retry the open URL request...
-		*/
-	       if(  (user_response == ERROR_INTERNET_FORCE_RETRY)
-	       &&  HttpSendRequest( ResourceHandle, NULL, 0, 0, 0 )  )
-	       {
-		 /* ...and, if successful...
-		  */
-		 ResourceStatus = GetLastError();
-		 if( QueryStatus( ResourceHandle ) == HTTP_STATUS_OK )
-		   /*
-		    * ...ensure that the response is anything but 'retry',
-		    * so that we will break out of the retry loop...
-		    */
-		   user_response ^= -1L;
-	       }
-	       /* ...otherwise, we keep retrying when appropriate.
-		*/
-	     } while( user_response == ERROR_INTERNET_FORCE_RETRY );
-	}
-      }
-      /* Ultimately, we return the resource handle for the opened URL,
-       * or NULL if the open request failed.
-       */
-      return ResourceHandle;
-    }
     inline unsigned long QueryStatus( HINTERNET id )
     {
       unsigned long ok, idx = 0, len = sizeof( ok );
       if( HttpQueryInfo( id, HTTP_QUERY_FLAG_NUMBER | HTTP_QUERY_STATUS_CODE,
 	    &ok, &len, &idx )
 	) return ok;
+      return 0;
+    }
+    inline unsigned long QueryContentLength( HINTERNET id )
+    {
+      unsigned long content_len, idx = 0, len = sizeof( content_len );
+      if( HttpQueryInfo( id, HTTP_QUERY_FLAG_NUMBER | HTTP_QUERY_CONTENT_LENGTH,
+	    &content_len, &len, &idx )
+	) return content_len;
       return 0;
     }
     inline int Read( HINTERNET dl, char *buf, size_t max, unsigned long *count )
@@ -211,6 +289,7 @@ class pkgInternetStreamingAgent
 
     char *dest_file;
     HINTERNET dl_host;
+    pkgDownloadMeter *dl_meter;
     int dl_status;
 
   private:
@@ -244,18 +323,202 @@ pkgInternetStreamingAgent::~pkgInternetStreamingAgent()
   free( (void *)(dest_file) );
 }
 
+HINTERNET pkgInternetAgent::OpenURL( const char *URL )
+{
+  /* Open an internet data stream.
+   */
+  HINTERNET ResourceHandle;
+
+  /* This requires an internet
+   * connection to have been established...
+   */
+  if(  (SessionHandle == NULL)
+  &&   (InternetAttemptConnect( 0 ) == ERROR_SUCCESS)  )
+    /*
+     * ...so, on first call, we perform the connection setup
+     * which we deferred from the class constructor; (MSDN
+     * cautions that this MUST NOT be done in the constructor
+     * for any global class object such as ours).
+     */
+    SessionHandle = InternetOpen
+      ( "MinGW Installer", INTERNET_OPEN_TYPE_PRECONFIG,
+	 NULL, NULL, 0
+      );
+  
+  /* Aggressively attempt to acquire a resource handle, which we may use
+   * to access the specified URL; (schedule a maximum of five attempts).
+   */
+  int retries = 5;
+  do { ResourceHandle = InternetOpenUrl
+	 (
+	   /* Here, we attempt to assign a URL specific resource handle,
+	    * within the scope of the SessionHandle obtained above, to
+	    * manage the connection for the requested URL.
+	    *
+	    * Note: Scott Michel suggests INTERNET_FLAG_EXISTING_CONNECT
+	    * here; MSDN tells us it is useful only for FTP connections.
+	    * Since we are primarily interested in HTTP connections, it
+	    * may not help us.  However, it does no harm, and MSDN isn't
+	    * always the reliable source of information we might like.
+	    * Persistent HTTP connections aren't entirely unknown, (and
+	    * indeed, MSDN itself tells us we need to use one, when we
+	    * negotiate proxy authentication); thus, we may just as well
+	    * specify it anyway, on the off-chance that it may introduce
+	    * an undocumented benefit beyond wishful thinking.
+	    */
+	   SessionHandle, URL, NULL, 0, INTERNET_FLAG_EXISTING_CONNECT, 0
+	 );
+       if( ResourceHandle == NULL )
+       {
+	 /* We failed to acquire a handle for the URL resource; we may retry
+	  * unless we have exhausted the specified retry limit...
+	  */
+	 if( --retries < 1 )
+	   /*
+	    * ...in which case, we diagnose failure to open the URL.
+	    */
+	   dmh_notify( DMH_ERROR, "%s:cannot open URL\n", URL );
+
+	 else DEBUG_INVOKE_IF( DEBUGLEVEL & DEBUG_TRACE_INTERNET_REQUESTS,
+	   dmh_printf( "%s\nConnecting ... failed(status=%u); retrying...\n",
+	     URL, GetLastError() )
+	   );
+       }
+       else
+       { /* We got a handle for the URL resource, but we cannot yet be sure
+	  * that it is ready for use; we may still need to address a need for
+	  * proxy or server authentication, or other temporary fault.
+	  */
+	 int retry = 5;
+	 unsigned long ResourceStatus, ResourceErrno;
+	 do { /* We must capture any error code which may have been returned,
+	       * BEFORE we move on to evaluate the resource status, (since the
+	       * procedure for checking status may change the error code).
+	       */
+	      ResourceErrno = GetLastError();
+	      ResourceStatus = QueryStatus( ResourceHandle );
+	      if( ResourceStatus == HTTP_STATUS_PROXY_AUTH_REQ )
+	      {
+		/* We've identified a requirement for proxy authentication;
+		 * here we simply hand the task off to the Microsoft handler,
+		 * to solicit the appropriate response from the user.
+		 *
+		 * FIXME: this may be a reasonable approach when running in
+		 * a GUI context, but is rather inelegant in the CLI context.
+		 * Furthermore, this particular implementation provides only
+		 * for proxy authentication, ignoring the possibility that
+		 * server authentication may be required.  We may wish to
+		 * revisit this later.
+		 */
+		unsigned long user_response;
+		do { user_response = InternetErrorDlg
+		       ( dmh_dialogue_context(), ResourceHandle, ResourceErrno,
+			 FLAGS_ERROR_UI_FILTER_FOR_ERRORS |
+			 FLAGS_ERROR_UI_FLAGS_CHANGE_OPTIONS |
+			 FLAGS_ERROR_UI_FLAGS_GENERATE_DATA,
+			 NULL
+		       );
+		     /* Having obtained authentication credentials from
+		      * the user, we may retry the open URL request...
+		      */
+		     if(  (user_response == ERROR_INTERNET_FORCE_RETRY)
+		     &&  HttpSendRequest( ResourceHandle, NULL, 0, 0, 0 )  )
+		     {
+		       /* ...and, if successful...
+			*/
+		       ResourceErrno = GetLastError();
+		       ResourceStatus = QueryStatus( ResourceHandle );
+		       if( ResourceStatus == HTTP_STATUS_OK )
+			 /*
+			  * ...ensure that the response is anything but 'retry',
+			  * so that we will break out of the retry loop...
+			  */
+			 user_response ^= -1L;
+		     }
+		     /* ...otherwise, we keep retrying when appropriate.
+		      */
+		   } while( user_response == ERROR_INTERNET_FORCE_RETRY );
+	      }
+	      else if( ResourceStatus != HTTP_STATUS_OK )
+	      {
+		/* Other failure modes may not be so readily recoverable;
+		 * with little hope of success, retry anyway.
+		 */
+		DEBUG_INVOKE_IF( DEBUGLEVEL & DEBUG_TRACE_INTERNET_REQUESTS,
+		    dmh_printf( "%s: abnormal request status = %u; retrying...\n",
+			URL, ResourceStatus
+		      )
+		  );
+		if( HttpSendRequest( ResourceHandle, NULL, 0, 0, 0 ) )
+		  ResourceStatus = QueryStatus( ResourceHandle );
+	      }
+	    } while( (ResourceStatus != HTTP_STATUS_OK) && (retry-- > 0) );
+
+	 /* Confirm that the URL was (eventually) opened successfully...
+	  */
+	 if( ResourceStatus == HTTP_STATUS_OK )
+	   /*
+	    * ...in which case, we have no need to schedule any further
+	    * retries.
+	    */
+	   retries = 0;
+
+	 else
+	 { /* The resource handle we've acquired isn't useable; discard it,
+	    * so we can reclaim any resources associated with it.
+	    */
+	   Close( ResourceHandle );
+
+	   /* When we have exhausted our retry limit...
+	    */
+	   if( --retries < 1 )
+	   {
+	     /* Give up; nullify our resource handle to indicate failure.
+	      */
+	     ResourceHandle = NULL;
+
+	     /* Issue a diagnostic advising the user to refer the problem
+	      * to the mingw-get maintainer for possible follow-up.
+	      */
+	     dmh_control( DMH_BEGIN_DIGEST );
+	     dmh_notify( DMH_WARNING,
+		 "%s: opened with unexpected status: code = %u\n",
+		 URL, ResourceStatus
+	       );
+	     dmh_notify( DMH_WARNING,
+		 "please report this to the mingw-get maintainer\n"
+	       );
+	     dmh_control( DMH_END_DIGEST );
+	   }
+	 }
+       }
+       /* If we haven't yet acquired a valid resource handle, and we haven't
+	* yet exhausted our retry limit, go back and try again.
+	*/
+     } while( retries > 0 );
+
+  /* Ultimately, we return the resource handle for the opened URL,
+   * or NULL if the open request failed.
+   */
+  return ResourceHandle;
+}
+
 int pkgInternetStreamingAgent::TransferData( int fd )
 {
   /* In the case of this base class implementation,
    * we simply read the file's data from the Internet source,
    * and write a verbatim copy to the destination file.
    */
-  char buf[8192]; DWORD count, tally = 0;
+  char buf[8192]; unsigned long count, tally = 0;
   do { dl_status = pkgDownloadAgent.Read( dl_host, buf, sizeof( buf ), &count );
-       dmh_printf( "\rdownloading: %s: %I32d b", filename, tally += count );
+       dl_meter->Update( tally += count );
        write( fd, buf, count );
      } while( dl_status && (count > 0) );
-  dmh_printf( "\rdownloading: %s: %I32d b\n", filename, tally );
+
+  DEBUG_INVOKE_IF(
+      (DEBUGLEVEL & DEBUG_TRACE_INTERNET_REQUESTS) && (dl_status == 0),
+      dmh_printf( "\nInternetReadFile:download error:%d\n", GetLastError() )
+    );
   return dl_status;
 }
 
@@ -335,8 +598,16 @@ int pkgInternetStreamingAgent::Get( const char *from_url )
 	/* With the download transaction fully specified, we may
 	 * request processing of the file transfer...
 	 */
+	pkgDownloadMeterTTY download_meter
+	  (
+	    from_url, pkgDownloadAgent.QueryContentLength( dl_host )
+	  );
+	dl_meter = &download_meter;
 	dl_status = TransferData( fd );
       }
+      else DEBUG_INVOKE_IF( DEBUGLEVEL & DEBUG_TRACE_INTERNET_REQUESTS,
+	  dmh_printf( "OpenURL:error:%d\n", GetLastError() )
+	);
 
       /* We are done with the URL handle; close it.
        */
@@ -498,7 +769,7 @@ int pkgInternetLzmaStreamingAgent::GetRawData( int fd, uint8_t *buf, size_t max 
    * the decompression filter's input buffer, whence the TransferData routine
    * may retrieve it, via the filter, as an uncompressed stream.
    */
-  DWORD count;
+  unsigned long count;
   dl_status = pkgDownloadAgent.Read( dl_host, (char *)(buf), max, &count );
   return (int)(count);
 }
@@ -509,10 +780,15 @@ int pkgInternetLzmaStreamingAgent::TransferData( int fd )
    * stream it through the lzma decompression filter, and write a copy
    * of the resultant decompressed data to the destination file.
    */
-  char buf[8192]; DWORD count;
+  char buf[8192]; unsigned long count;
   do { count = pkgLzmaArchiveStream::Read( buf, sizeof( buf ) );
        write( fd, buf, count );
      } while( dl_status && (count > 0) );
+
+  DEBUG_INVOKE_IF(
+      (DEBUGLEVEL & DEBUG_TRACE_INTERNET_REQUESTS) && (dl_status == 0),
+      dmh_printf( "\nInternetReadFile:download error:%d\n", GetLastError() )
+    );
   return dl_status;
 }
 
