@@ -1,7 +1,7 @@
 /*
  * pkginet.cpp
  *
- * $Id: pkginet.cpp,v 1.10 2011/05/12 20:00:22 keithmarshall Exp $
+ * $Id: pkginet.cpp,v 1.11 2011/05/12 20:33:51 keithmarshall Exp $
  *
  * Written by Keith Marshall <keithmarshall@users.sourceforge.net>
  * Copyright (C) 2009, 2010, 2011, MinGW Project
@@ -673,6 +673,7 @@ void pkgActionItem::DownloadArchiveFiles( pkgActionItem *current )
 	{
 	  /* ...if not, ask the download agent to fetch it...
 	   */
+	  current->flags |= ACTION_DOWNLOAD;
 	  const char *url_template = get_host_info( current->Selection(), uri_key );
 	  if( url_template != NULL )
 	  {
@@ -682,7 +683,14 @@ void pkgActionItem::DownloadArchiveFiles( pkgActionItem *current )
 	    const char *mirror = get_host_info( current->Selection(), mirror_key );
 	    char package_url[mkpath( NULL, url_template, package_name, mirror )];
 	    mkpath( package_url, url_template, package_name, mirror );
-	    if( ! (download.Get( package_url ) > 0) )
+	    if( download.Get( package_url ) > 0 )
+	      /*
+	       * Download was successful; clear the pending flag.
+	       */
+	      current->flags &= ~ACTION_DOWNLOAD;
+	    else
+	      /* Diagnose failure; leave pending flag set.
+	       */
 	      dmh_notify( DMH_ERROR,
 		  "Get package: %s: download failed\n", package_url
 		);

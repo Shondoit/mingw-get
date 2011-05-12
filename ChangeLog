@@ -1,5 +1,26 @@
 2011-05-12  Keith Marshall  <keithmarshall@users.sourceforge.net>
 
+	Fix MinGW-Bug #3297660 (reported by Chris Sutcliffe).
+
+	* src/pkgbase.h (pkgActionItem::SetAuthorities): Return unsigned long.
+	(pkgActionItem::HasAttribute): New inline method; implement it.
+
+	* src/pkgtask.h (ACTION_DOWNLOAD, ACTION_DOWNLOAD_OK): New macros.
+
+	* src/pkginet.cpp (pkgActionItem::DownloadArchiveFiles):
+	[ACTION_DOWNLOAD]: Assert it at commencement of each package download;
+	clear it again, on successful download completion.
+
+	* src/pkginst.cpp (pkgtask.h): #include it.
+	(pkgInstall) [ACTION_DOWNLOAD]: Don't proceed with installation when
+	set; this indicates failed download; diagnose it.
+
+	* src/pkgunst.cpp (pkgRemove) [ACTION_DOWNLOAD && ACTION_UPGRADE]:
+	Don't proceed with pre-emptive removal when both set; this indicates
+	failed download of replacement package; diagnose it.
+
+2011-05-12  Keith Marshall  <keithmarshall@users.sourceforge.net>
+
 	Fix MinGW-Bug #3295526 (reported by Charles Wilson).
 
 	* src/pkgunst.cpp (sys/stat.h): #include it; we need it for...

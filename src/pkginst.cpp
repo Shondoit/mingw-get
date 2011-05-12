@@ -1,7 +1,7 @@
 /*
  * pkginst.cpp
  *
- * $Id: pkginst.cpp,v 1.2 2011/01/03 21:25:27 keithmarshall Exp $
+ * $Id: pkginst.cpp,v 1.3 2011/05/12 20:33:51 keithmarshall Exp $
  *
  * Written by Keith Marshall <keithmarshall@users.sourceforge.net>
  * Copyright (C) 2010, 2011, MinGW Project
@@ -35,6 +35,7 @@
 #include "pkginfo.h"
 #include "pkgkeys.h"
 #include "pkgproc.h"
+#include "pkgtask.h"
 
 EXTERN_C const char *hashed_name( int, const char *, const char * );
 
@@ -383,57 +384,75 @@ EXTERN_C void pkgInstall( pkgActionItem *current )
   if( (pkg = current->Selection()) != NULL )
   {
     /* The current action item has a valid package association...
-     *
-     * FIXME: the notification here is somewhat redundant, but it
-     * does maintain symmetry with the "remove" operation, and will
-     * make "upgrade" notifications more logical; in any event, it
-     * should ultimately be made conditional on a "verbose" mode
-     * option selection.
      */
-    dmh_printf( " installing %s\n", pkg->GetPropVal( tarname_key, value_unknown ));
-    if( current->Selection( to_remove ) == NULL )
+    if( current->HasAttribute( ACTION_DOWNLOAD ) == 0 )
     {
-      /* The selected package has either not yet been installed,
-       * or any prior installation has been removed in preparation
-       * for re-installation or upgrade.
+      /* ...and the required package has been successfully downloaded.
+       *
+       * FIXME: the notification here is somewhat redundant, but it
+       * does maintain symmetry with the "remove" operation, and will
+       * make "upgrade" notifications more logical; in any event, it
+       * should ultimately be made conditional on a "verbose" mode
+       * option selection.
        */
-      const char *pkgfile, *tarname;
-      if(  match_if_explicit( pkgfile = pkg->ArchiveName(), value_none )
-      && ((tarname = pkg->GetPropVal( tarname_key, NULL )) != NULL)       )
+      dmh_printf( " installing %s\n", pkg->GetPropVal( tarname_key, value_unknown ));
+      if( current->Selection( to_remove ) == NULL )
       {
-	/* In this case, the selected package has no associated archive,
-	 * (i.e. it is a "virtual" package); provided we can identify an
-	 * associated "sysroot"...
+	/* The selected package has either not yet been installed,
+	 * or any prior installation has been removed in preparation
+	 * for re-installation or upgrade.
 	 */
-	pkgXmlNode *sysroot;
-	pkgSpecs lookup( tarname );
-        if( (sysroot = pkg->GetSysRoot( lookup.GetSubSystemName() )) != NULL )
-	  /*
-	   * ...the installation process becomes a simple matter of
-	   * recording the state of this virtual package as "installed",
-	   * in the sysroot manifest, and itemising its prerequisites.
+	const char *pkgfile, *tarname;
+	if(  match_if_explicit( pkgfile = pkg->ArchiveName(), value_none )
+	&& ((tarname = pkg->GetPropVal( tarname_key, NULL )) != NULL)       )
+	{
+	  /* In this case, the selected package has no associated archive,
+	   * (i.e. it is a "virtual" package); provided we can identify an
+	   * associated "sysroot"...
 	   */
-	  pkgRegister( sysroot, pkg, tarname, pkgfile );
+	  pkgXmlNode *sysroot;
+	  pkgSpecs lookup( tarname );
+	  if( (sysroot = pkg->GetSysRoot( lookup.GetSubSystemName() )) != NULL )
+	    /*
+	     * ...the installation process becomes a simple matter of
+	     * recording the state of this virtual package as "installed",
+	     * in the sysroot manifest, and itemising its prerequisites.
+	     */
+	    pkgRegister( sysroot, pkg, tarname, pkgfile );
+	}
+	else
+	{
+	  /* Here we have a "real" (physical) package to install;
+	   * for the time being, we assume it is packaged in our
+	   * standard "tar" archive format.
+	   */
+	  pkgTarArchiveInstaller install( pkg );
+	  if( install.IsOk() )
+	    install.Process();
+	}
       }
       else
-      {
-	/* Here we have a "real" (physical) package to install;
-	 * for the time being, we assume it is packaged in our
-	 * standard "tar" archive format.
+	/* There is a prior installation of the selected package, which
+	 * prevents us from proceeding; diagnose and otherwise ignore...
 	 */
-	pkgTarArchiveInstaller install( pkg );
-	if( install.IsOk() )
-	  install.Process();
-      }
+	dmh_notify( DMH_ERROR,
+	    "package %s is already installed\n",
+	    current->Selection()->GetPropVal( tarname_key, value_unknown )
+	  );
     }
     else
-      /* There is a prior installation of the selected package, which
-       * prevents us from proceeding; diagnose and otherwise ignore...
+    { /* We have a valid package selection, but the required package is
+       * not present in the local cache; this indicates that the package
+       * has never been successfully downloaded.
        */
-      dmh_notify( DMH_ERROR,
-	  "package %s is already installed\n",
-	  current->Selection()->GetPropVal( tarname_key, "<unknown>" )
+      int action = current->HasAttribute( ACTION_MASK );
+      dmh_notify( DMH_ERROR, "required package file is not available\n" );
+      dmh_notify( DMH_ERROR, "cannot %s%s%s\n", action_name( action ),
+	  (action == ACTION_UPGRADE) ? " to " : " ",
+	  pkg->GetPropVal( tarname_key, value_unknown )
 	);
+      dmh_notify( DMH_ERROR, "due to previous download failure\n" );
+    }
   }
 }
 

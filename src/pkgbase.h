@@ -2,7 +2,7 @@
 /*
  * pkgbase.h
  *
- * $Id: pkgbase.h,v 1.12 2011/02/27 16:21:36 keithmarshall Exp $
+ * $Id: pkgbase.h,v 1.13 2011/05/12 20:33:51 keithmarshall Exp $
  *
  * Written by Keith Marshall <keithmarshall@users.sourceforge.net>
  * Copyright (C) 2009, 2010, 2011, MinGW Project
@@ -239,7 +239,11 @@ class pkgActionItem
 
     /* Methods for compiling the schedule of actions.
      */
-    int SetAuthorities( pkgActionItem* );
+    unsigned long SetAuthorities( pkgActionItem* );
+    inline unsigned long HasAttribute( unsigned long required )
+    {
+      return flags & required;
+    }
     pkgActionItem* GetReference( pkgActionItem& );
     pkgActionItem* Schedule( unsigned long, pkgActionItem& );
     inline void SetPrimary( pkgActionItem* );

@@ -1,7 +1,7 @@
 /*
  * pkgunst.cpp
  *
- * $Id: pkgunst.cpp,v 1.4 2011/05/12 20:11:52 keithmarshall Exp $
+ * $Id: pkgunst.cpp,v 1.5 2011/05/12 20:33:51 keithmarshall Exp $
  *
  * Written by Keith Marshall <keithmarshall@users.sourceforge.net>
  * Copyright (C) 2011, MinGW Project
@@ -77,11 +77,11 @@ const char *pathname_lookup( pkgXmlNode *reftag, const char *fallback )
   return reftag->GetPropVal( pathname_key, fallback );
 }
 
-int pkgActionItem::SetAuthorities( pkgActionItem *current )
+unsigned long pkgActionItem::SetAuthorities( pkgActionItem *current )
 {
   /* Helper method to either grant or revoke authority for removal of
    * any package, either permanently when the user requests that it be
-   * removed, or temporarily in preparation for replacement be a newer
+   * removed, or temporarily in preparation for replacement by a newer
    * version, when scheduled for upgrade.
    *
    * This is a multiple pass method, iterating over the entire list
@@ -302,7 +302,8 @@ EXTERN_C void pkgRemove( pkgActionItem *current )
   /* Common handler for all package removal tasks...
    */
   pkgXmlNode *pkg;
-  if( (pkg = current->Selection( to_remove )) != NULL )
+  if( ((pkg = current->Selection( to_remove )) != NULL)
+  &&  (current->HasAttribute( ACTION_DOWNLOAD_OK ) == ACTION_REMOVE_OK)  )
   {
     /* We've identified a candidate package for removal;
      * first, identify the canonical tarname for the package,
@@ -516,6 +517,18 @@ EXTERN_C void pkgRemove( pkgActionItem *current )
 	sysroot->SetAttribute( modified_key, value_yes );
       }
     }
+  }
+  else if( (pkg != NULL) && current->HasAttribute( ACTION_DOWNLOAD ) )
+  {
+    /* This condition arises only when an upgrade has been requested,
+     * but the package archive for the new version is not available in
+     * the local package cache, and all attempts to download it have
+     * been unsuccessful; diagnose, and otherwise ignore it.
+     */
+    dmh_notify( DMH_WARNING, "not removing installed %s\n", pkg->GetName() );
+    dmh_notify( DMH_WARNING, "%s is still installed\n",
+	pkg->GetPropVal( tarname_key, value_unknown )
+      );
   }
 }
 
