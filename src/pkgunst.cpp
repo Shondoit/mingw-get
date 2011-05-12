@@ -1,7 +1,7 @@
 /*
  * pkgunst.cpp
  *
- * $Id: pkgunst.cpp,v 1.3 2011/03/30 20:17:48 keithmarshall Exp $
+ * $Id: pkgunst.cpp,v 1.4 2011/05/12 20:11:52 keithmarshall Exp $
  *
  * Written by Keith Marshall <keithmarshall@users.sourceforge.net>
  * Copyright (C) 2011, MinGW Project
@@ -263,6 +263,14 @@ int pkg_rmdir( const char *sysroot, const char *pathname )
   return retval;
 }
 
+/* We want the following "unlink" function to emulate "rm -f"
+ * semantics; thus we need to ensure that each file we attempt
+ * to unlink is writeable.  To do this, we call "chmod()" prior
+ * to "unlink()"; we need sys/stat.h for the S_IWRITE mode we
+ * are required to set.
+ */
+#include <sys/stat.h>
+
 static __inline__ __attribute__((__always_inline__))
 int pkg_unlink( const char *sysroot, const char *pathname )
 {
@@ -282,6 +290,7 @@ int pkg_unlink( const char *sysroot, const char *pathname )
 	dmh_printf( "  %s: unlink file\n", filepath )
       );
 
+    chmod( filepath, S_IWRITE );
     if( ((retval = unlink( filepath )) != 0) && (errno != ENOENT) )
       dmh_notify( DMH_WARNING, "%s:unlink failed; %s\n", filepath, strerror( errno ) );
   }

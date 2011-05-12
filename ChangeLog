@@ -1,5 +1,12 @@
 2011-05-12  Keith Marshall  <keithmarshall@users.sourceforge.net>
 
+	Fix MinGW-Bug #3295526 (reported by Charles Wilson).
+
+	* src/pkgunst.cpp (sys/stat.h): #include it; we need it for...
+	(pkg_unlink): ...chmod( file, S_IWRITE ), emulating `rm -f' semantics.
+
+2011-05-12  Keith Marshall  <keithmarshall@users.sourceforge.net>
+
 	Diagnose and aggressively retry failed download connections.
 
 	* src/debug.h (DEBUG_TRACE_INTERNET_REQUESTS): New macro; define it.
