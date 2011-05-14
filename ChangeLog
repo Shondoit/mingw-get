@@ -1,3 +1,11 @@
+2011-05-14  Keith Marshall  <keithmarshall@users.sourceforge.net>
+
+	mingw-get-0.2-mingw32-alpha-4 released.
+
+	* configure.ac (AC_INIT): Adjust version number.
+	* srcdist-doc/NEWS.in: Updated; add bug-fix/feature descriptions.
+	* All files (r0-2-alpha-4): Tag assigned.
+
 2011-05-12  Keith Marshall  <keithmarshall@users.sourceforge.net>
 
 	Fix MinGW-Bug #3297660 (reported by Chris Sutcliffe).

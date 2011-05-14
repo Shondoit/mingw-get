@@ -1,10 +1,33 @@
 Release Notes
 =============
 
-$Id: NEWS.in,v 1.4 2011/03/31 20:07:40 keithmarshall Exp $
+$Id: NEWS.in,v 1.5 2011/05/14 07:05:57 keithmarshall Exp $
 
 The information presented below describes the user visible changes
 introduced with each release of mingw-get.
+
+
+mingw-get-0.2-mingw32-alpha-4
+-----------------------------
+
+Release date: 2011-05-14
+
+- This is yet another bug-fix release; it addresses the issue
+  identified in MinGW-Bug&nbsp;3295526, so ensuring that mingw-get
+  always removes files it has installed, regardless of any read-only
+  attribute setting, (provided the user is sufficiently privileged).
+
+- It also addresses the issue identified in MinGW-Bug&nbsp;3297660, so
+  ensuring that packages are not erroneously reported as "installed"
+  following a failed download, and that packages previously installed
+  are not removed during upgrade, when the replacement version has not
+  been successfully downloaded.
+
+- This release also incorporates additional code to aggressively retry
+  failed internet requests, when attempting to download packages.  The
+  release has been compiled with internet request tracing diagnostics
+  enabled; it is hoped that this will permit users to provide more
+  useful information when reporting download problems.
 
 
 mingw-get-0.2-mingw32-alpha-3
