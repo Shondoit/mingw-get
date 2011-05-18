@@ -1,3 +1,26 @@
+2011-05-18  Keith Marshall  <keithmarshall@users.sourceforge.net>
+
+	Augment known development status keywords and accept CMS labels.
+
+	* src/pkginfo/pkginfo.l (CMS_KEYWORDS): Define new provisional list;
+	add transitional state scanner rule and code to interpret them.
+	(STATUS_KEYWORDS): Add "pre" and "rc" to existing list; modify scanner
+	code to maintain consistency with CMS_KEYWORDS processing; also extend
+	this coding strategy to other rules.
+
+	* src/pkginfo/driver.c (spec): Strip initial '$' token from displayed
+	field values; (we expect it only for a CMS_KEYWORDS field value).
+
+	* src/pkgreqs.cpp (pkgSpecs::GetTarName): Remove any initial '$' token
+	from PACKAGE_RELEASE_STATUS field, when performing reverse of tarname
+	decomposition transformation.
+
+2011-05-18  Keith Marshall  <keithmarshall@users.sourceforge.net>
+
+	Correct omission from 2011-02-18 commit.
+
+	* src/tarproc.cpp (Copyright Notice): Add 2011 as year of release.
+
 2011-05-14  Keith Marshall  <keithmarshall@users.sourceforge.net>
 
 	mingw-get-0.2-mingw32-alpha-4 released.

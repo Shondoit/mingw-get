@@ -1,10 +1,10 @@
 /*
  * driver.c
  *
- * $Id: driver.c,v 1.2 2009/11/12 22:33:26 keithmarshall Exp $
+ * $Id: driver.c,v 1.3 2011/05/18 18:34:51 keithmarshall Exp $
  *
  * Written by Keith Marshall <keithmarshall@users.sourceforge.net>
- * Copyright (C) 2009, MinGW Project
+ * Copyright (C) 2009, 2011, MinGW Project
  *
  *
  * Simple driver program, for the lexical package name analyser, as
@@ -48,7 +48,7 @@ char *spec( char *tag )
 
   if( tag == NULL )
     return unspecified;
-  return tag;
+  return (*tag == '$') ? ++tag : tag;
 }
 
 int main( int argc, char **argv )

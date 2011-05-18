@@ -1,10 +1,10 @@
 /*
  * pkginfo.l
  *
- * $Id: pkginfo.l,v 1.2 2010/05/05 20:34:17 keithmarshall Exp $
+ * $Id: pkginfo.l,v 1.3 2011/05/18 18:34:51 keithmarshall Exp $
  *
  * Written by Keith Marshall <keithmarshall@users.sourceforge.net>
- * Copyright (C) 2009, 2010, MinGW Project
+ * Copyright (C) 2009, 2010, 2011, MinGW Project
  *
  *
  * A simple lexical analyser for decomposing package archive names into their
@@ -33,7 +33,7 @@
  *
  *   <system-name>	 ::= !("0".."9"|"-"|"."){!("-"|".")}
  *
- *   <status>		 ::= ("alpha"|"beta"|"stable")[[-<build-id>]]
+ *   <status>		 ::= ("alpha"|"beta"|"pre"|"rc"|"stable")[[-<build-id>]]
  *
  *   <component-id>	 ::= <component-class>[["-"<component-version>]]
  *
@@ -51,9 +51,15 @@
  *   <compression-type> is expected to take one of the nominal values from the
  *   set "bz2"|"gz"|"lzma"; however, this is similarly not enforced.
  *
+ *   In addition to the list of keywords identified above, <status> may be
+ *   assigned any of a nominal set of CMS identifiers, (see the definition of
+ *   CMS_KEYWORDS in the code below); in such cases, a "$" token is prefixed
+ *   to the effective <status> value, resulting in a ranking precedence lower
+ *   than that of "alpha".
+ *
  *   Additionally, "?" is used as a sentinel, and is not permitted *anywhere*
  *   in <archive-name>; (possibly something like ASCII <ETX> would be a more
- *   useful choice for this purpose.
+ *   useful choice for this purpose).
  *
  *
  * This is free software.  Permission is granted to copy, modify and
@@ -76,7 +82,8 @@
 
 %x	TRANS FINAL
 
-STATUS_KEYWORDS (alpha|beta|stable)
+STATUS_KEYWORDS (alpha|beta|pre|rc|stable)
+CMS_KEYWORDS (bzr|cms|cvs|darcs|git|hg|mono|scm|svn|vcs)
 
     #include "pkginfo.h"
     #define YY_DECL int yylex( int start, pkginfo_t signature, char *name )
@@ -121,23 +128,50 @@ STATUS_KEYWORDS (alpha|beta|stable)
      * Identify a following package development <status> descriptor;
      * revert to INITIAL state, to continue the <archive-name> scan.
      */
-    BEGIN INITIAL;
+    BEGIN INITIAL; yyless( 0 );
     if( index < PACKAGE_RELEASE_STATUS )
     {
       /* and, when the <status> descriptor is appropriately placed,
        * set up `signature' storage to capture it, adjusting phase to
        * detect a following <build-id>, (representing a release id).
        */
-      name[mark] = '\0';
-      signature[index = PACKAGE_RELEASE_STATUS] = name + mark + 1;
+      name[mark++] = '\0';
+      signature[index = PACKAGE_RELEASE_STATUS] = name + mark;
       phase = 1;
     }
     /* otherwise we simply ignore a misplaced <status> descriptor,
      * but in either case, we continue the scan at the start of the
      * apparent <status> descriptor, which has been detected.
      */
-    ++mark;
-    yyless( 0 );
+    else ++mark;
+  }
+
+<TRANS>{CMS_KEYWORDS}- {
+    /*
+     * Transitional case rule...
+     * Designate a following CMS label as a <status> descriptor;
+     * revert to INITIAL state, to continue the <archive-name> scan.
+     */
+    BEGIN INITIAL; yyless( 0 );
+    if( index < PACKAGE_RELEASE_STATUS )
+    {
+      /* and, when the <status> descriptor is appropriately placed,
+       * set up `signature' storage to capture it, adjusting phase to
+       * detect a following <build-id>, (representing a release id).
+       */
+      int tail;
+      name[mark++] = '\0';
+      signature[index = PACKAGE_RELEASE_STATUS] = name + mark;
+      for( tail = mark + strlen( name + mark ) + 1; tail > mark; --tail )
+	name[tail] = name[tail - 1];
+      unput( name[mark] = '$' );
+      phase = 1;
+    }
+    /* otherwise we simply ignore a misplaced <status> descriptor,
+     * but in either case, we continue the scan at the start of the
+     * apparent <status> descriptor, which has been detected.
+     */
+    else ++mark;
   }
 
 <TRANS>([%&*]|[^-0-9.][^-.]+)(-[0-9][^-.]*){0,1}(\.[^-.]+){1,2}\? {
@@ -167,14 +201,14 @@ STATUS_KEYWORDS (alpha|beta|stable)
        * terminate the preceding name element, and set up the
        * `signature' table to capture the version number.
        */
-      name[mark] = '\0';
-      signature[++index] = name + mark + 1;
+      name[mark++] = '\0';
+      signature[++index] = name + mark;
     }
     /* For any other numeric element class,
      * simply advance the position marker, and leave the content
      * to be retrieved by a general (INITIAL) case rule.
      */
-    ++mark;
+    else ++mark;
     yyless( 0 );
   }
 
@@ -190,7 +224,7 @@ STATUS_KEYWORDS (alpha|beta|stable)
       /* When processing a <version> or <build-id> element,
        * terminate it.
        */
-      name[mark] = '\0';
+      name[mark++] = '\0';
       if( phase < 2 )
 	/*
 	 * ...and if we haven't reached a <build-id>, then
@@ -202,13 +236,13 @@ STATUS_KEYWORDS (alpha|beta|stable)
        * (which should be <subsystem-name>),
        * and reset phase accordingly.
        */
-      signature[++index] = name + mark + 1;
+      signature[++index] = name + mark;
       phase = 0;
     }
     /* Update element marker, and leave content to be scanned
      * on return to the INITIAL state.
      */
-    ++mark;
+    else ++mark;
     yyless( 0 );
   }
 
@@ -268,7 +302,7 @@ STATUS_KEYWORDS (alpha|beta|stable)
 
 void *get_pkginfo( const char *name, pkginfo_t signature )
 {
-  if( (*signature = malloc( strlen( name ) + 2)) != NULL )
+  if( (*signature = malloc( strlen( name ) + 3)) != NULL )
   {
     int start = PACKAGE_NAME;
     sprintf( *signature, "%s?", name );
