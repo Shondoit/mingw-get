@@ -1,7 +1,7 @@
 /*
  * clistub.c
  *
- * $Id: clistub.c,v 1.9 2011/03/11 20:22:30 keithmarshall Exp $
+ * $Id: clistub.c,v 1.10 2011/05/21 18:38:11 keithmarshall Exp $
  *
  * Written by Keith Marshall <keithmarshall@users.sourceforge.net>
  * Copyright (C) 2009, 2010, 2011, MinGW Project
@@ -33,6 +33,8 @@
 #include <libgen.h>
 #include <process.h>
 #include <getopt.h>
+
+#include "pkgopts.h"
 
 #define EXIT_FATAL  EXIT_FAILURE + 1
 
@@ -163,7 +165,15 @@ static const char *help_text =
 "  mingw-get [OPTIONS] {show | list} [package-spec ...]\n\n"
 "Options:\n"
 "  --help, -h      Show this help text\n"
-"  --version, -V   Show version and licence information\n\n"
+"  --version, -V   Show version and licence information\n"
+"  --verbose, -v   Increase verbosity of diagnostic or\n"
+"                  progress reporting output; repeat up\n"
+"                  to three times for maximum verbosity\n"
+"  --verbose=N     Set verbosity level to N; (0 <= N <= 3)\n"
+#if DEBUGLEVEL & DEBUG_TRACE_DYNAMIC
+"  --trace=N       Enable tracing feature N; (debugging aid)\n"
+#endif
+"\n"
 "Actions:\n"
 "  update          Update local copy of repository catalogues\n"
 "  list, show      List and show details of available packages\n"
@@ -180,6 +190,137 @@ static const char *help_text =
 #define  IMPLEMENT_INITIATION_RITES	PHASE_ONE_RITES
 #include "rites.c"
 
+static __inline__ __attribute__((__always_inline__))
+char **cli_setargv( HMODULE my_dll, struct pkgopts *opts, char **argv )
+{
+  /* A local wrapper function to facilitate passing pre-parsed
+   * command line options while performing the "climain()" call
+   * into mingw-get-0.dll
+   *
+   * Note that this requires a version of mingw-get-0.dll which
+   * provides the "cli_setopts()" hook...
+   */
+  typedef void (*dll_hook)(struct pkgopts *);
+  dll_hook cli_setopts = (dll_hook)(GetProcAddress( my_dll, "cli_setopts" ));
+  if( cli_setopts != NULL )
+    /*
+     * ...which allows us to pass the pre-parsed options.
+     */
+    cli_setopts( opts );
+
+  /* In any case, we always return the argument vector which is
+   * to be passed in the "climain()" call itself.
+   */
+  return argv;
+}
+
+/* FIXME: We may ultimately choose to factor the following atoi() replacement
+ * into a separate, free-standing module.  For now we keep it here, as a static
+ * function, but we keep the required #include adjacent.
+ */
+#include <ctype.h>
+
+static int xatoi( const char *input )
+{
+  /* A replacement for the standard atoi() function; this implementation
+   * supports conversion of octal or hexadecimal representations, in addition
+   * to the decimal representation required by standard atoi().
+   *
+   * We begin by initialising the result accumulator to zero...
+   */
+  int result = 0;
+
+  /* ...then, provided we have an input string to interpret...
+   */
+  if( input != NULL )
+  {
+    /* ...we proceed with interpretation and accumulation of the result,
+     * noting that we may have to handle an initial minus sign, (but we
+     * don't know yet, so assume that not for now).
+     */
+    int negate = 0;
+    while( isspace( *input ) )
+      /*
+       * Ignore leading white space.
+       */
+      ++input;
+
+    if( *input == '-' )
+      /*
+       * An initial minus sign requires negation
+       * of the accumulated result...
+       */
+      negate = *input++;
+
+    else if( *input == '+' )
+      /*
+       * ...while an initial plus sign is redundant,
+       * and may simply be ignored.
+       */
+      ++input;
+
+    if( *input == '0' )
+    {
+      /* An initial zero signifies either hexadecimal
+       * or octal representation...
+       */
+      if( (*++input | '\x20') == 'x' )
+	/*
+	 * ...with following 'x' or 'X' indicating
+	 * the hexadecimal case.
+	 */
+	while( isxdigit( *++input ) )
+	{
+	  /* Interpret sequence of hexadecimal digits...
+	   */
+	  result = (result << 4) + *input;
+	  if( *input > 'F' )
+	    /*
+	     * ...with ASCII to binary conversion for
+	     * lower case digits 'a'..'f',...
+	     */
+	    result -= 'a' - 10;
+
+	  else if( *input > '9' )
+	    /*
+	     * ...ASCII to binary conversion for
+	     * upper case digits 'A'..'F',...
+	     */
+	    result -= 'A' - 10;
+
+	  else
+	    /* ...or ASCII to decimal conversion,
+	     * as appropriate.
+	     */
+	    result -= '0';
+	}
+      else while( (*input >= '0') && (*input < '8') )
+	/*
+	 * Interpret sequence of octal digits...
+	 */
+	result = (result << 3) + *input++ - '0';
+    }
+
+    else while( isdigit( *input ) )
+      /*
+       * Interpret sequence of decimal digits...
+       */
+      result = (result << 1) + (result << 3) + *input++ - '0';
+
+    if( negate )
+      /*
+       * We had an initial minus sign, so we must
+       * return the negated result...
+       */
+      return (0 - result);
+  }
+  /* ...otherwise, we simply return the accumulated result
+   */
+  return result;
+}
+
+#define minval( a, b )  ((a) < (b)) ? (a) : (b)
+
 int main( int argc, char **argv )
 {
   /* Make a note of...
@@ -187,19 +328,30 @@ int main( int argc, char **argv )
   const char *progname = basename( *argv );	/* ...this program's name    */
   wchar_t *approot;				/* and where it is installed */
 
+  /* Provide storage for interpretation of any parsed command line options.
+   * Note that we could also initialise them here, but then we would need to
+   * give attention to the number of initialisers required; to save us that
+   * concern we will defer to an initialisation loop, below.
+   */
+  struct pkgopts parsed_options;
+
   if( argc > 1 )
   {
     /* The user specified arguments on the command line...
      * Interpret any which specify processing options for this application,
      * (these are all specified in GNU `long only' style).
      */
+    int optref;
     struct option options[] =
     {
-      /* Option Name              Argument Category    Store To   Return Value
-       * ----------------------   ------------------   --------   ------------
+      /* Option Name      Argument Category    Store To   Return Value
+       * --------------   ------------------   --------   --------------
        */
-      { "version",                no_argument,         NULL,      'V'        },
-      { "help",                   no_argument,         NULL,      'h'        },
+      { "v",              no_argument,         NULL,      'v'            },
+      { "version",        no_argument,         NULL,      'V'            },
+      { "help",           no_argument,         NULL,      'h'            },
+      { "trace",          required_argument,   &optref,   OPTION_TRACE   },
+      { "verbose",        optional_argument,   NULL,      OPTION_VERBOSE },
 
       /* This list must be terminated by a null definition...
        */
@@ -207,7 +359,17 @@ int main( int argc, char **argv )
     };
 
     int opt, offset;
+    for( opt = OPTION_FLAGS; opt < OPTION_TABLE_SIZE; ++opt )
+      /*
+       * Ensure that all entries within the options table are initialised
+       * to zero, (equivalent to NULL for pointer entries)...
+       */
+      parsed_options.flags[opt].numeric = 0;
+
     while( (opt = getopt_long_only( argc, argv, "Vh", options, &offset )) != -1 )
+      /*
+       * Parse any user specified options from the command line...
+       */
       switch( opt )
       {
 	case 'V':
@@ -218,9 +380,50 @@ int main( int argc, char **argv )
 	  return EXIT_SUCCESS;
 
 	case 'h':
-	  /* This is a request to display help text and quit. */
+	  /* This is a request to display help text and quit.
+	   */
 	  printf( help_text );
 	  return EXIT_SUCCESS;
+
+	case OPTION_VERBOSE:
+	  /* This is a request to set an explicit verbosity level,
+	   * (minimum zero, maximum three), or if no explicit argument
+	   * is specified, to increment verbosity as does "-v".
+	   */
+	  if( optarg != NULL )
+	  {
+	    /* This is the case where an explicit level was specified...
+	     */
+	    unsigned verbosity = xatoi( optarg );
+	    parsed_options.flags[OPTION_FLAGS].numeric &= ~OPTION_VERBOSE;
+	    parsed_options.flags[OPTION_FLAGS].numeric |= minval( verbosity, 3 );
+	    break;
+	  }
+
+	case 'v':
+	  /* This is a request to increment the verbosity level
+	   * from its initial zero setting, to a maximum of three.
+	   */
+	  if( (parsed_options.flags[OPTION_FLAGS].numeric & OPTION_VERBOSE) < 3 )
+	    ++parsed_options.flags[OPTION_FLAGS].numeric;
+	  break;
+
+	case 0:
+	  switch( optref & OPTION_STORAGE_CLASS )
+	  {
+	    case OPTION_STORE_STRING:
+	      parsed_options.flags[optref & 0xfff].string = optarg;
+	      break;
+
+	    case OPTION_STORE_NUMBER:
+	      parsed_options.flags[optref & 0xfff].numeric = xatoi( optarg );
+	      break;
+
+	    case OPTION_MERGE_NUMBER:
+	      parsed_options.flags[optref & 0xfff].numeric |= xatoi( optarg );
+	      break;
+	  }
+	  break;
 
 	default:
 	  /* User specified an invalid or unsupported option...
@@ -245,7 +448,7 @@ int main( int argc, char **argv )
     putenv( approot_setup );
   }
 
-  if( --argc )
+  if( argc > 1 )
   {
     /* The user specified arguments on the command line...
      * we load the supporting DLL into the current process context,
@@ -253,6 +456,7 @@ int main( int argc, char **argv )
      * command line processing routine...
      */
     int lock;
+    char *argv_base = *argv;
     typedef int (*dll_entry)( int, char ** );
     HMODULE my_dll = LoadLibraryW( AppPathNameW( MINGW_GET_DLL ) );
     dll_entry climain = (dll_entry)(GetProcAddress( my_dll, "climain" ));
@@ -266,6 +470,16 @@ int main( int argc, char **argv )
       return EXIT_FATAL;
     }
 
+    /* Adjust argc and argv to discount parsed options...
+     */
+    argc -= optind;
+    argv += optind - 1;
+    /*
+     * ...while preserving the original argv[0] reference within
+     * the first remaining argument to be passed to climain().
+     */
+    *argv = argv_base;
+
     /* We want only one mingw-get process accessing the XML database
      * at any time; attempt to acquire an exclusive access lock...
      */
@@ -274,7 +488,7 @@ int main( int argc, char **argv )
       /* ...and proceed, only if successful.
        *  A non-zero return value indicates that a fatal error occurred.
        */
-      int rc = climain( argc, argv );
+      int rc = climain( argc, cli_setargv( my_dll, &parsed_options, argv ) );
 
       /* We must release the mingw-get DLL code, BEFORE we invoke
        * last rites processing, (otherwise the last rites clean-up

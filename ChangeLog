@@ -1,3 +1,23 @@
+2011-05-21  Keith Marshall  <keithmarshall@users.sourceforge.net>
+
+	Implement protocol for processing global program options.
+
+	* src/pkgopts.h: New file.
+
+	* src/climain.cpp (cli_setopts): New function; implement it.
+	(pkgOptions): Likewise.
+
+	* src/clistub.c (xatoi): New function; implement it.
+	(cli_setargv): New inline helper function; implement it.
+	(main): Use it.  Also incorporate implementation of...
+	(parsed_options): New structure; it accommodates...
+	(verbose, trace): New options; interpret them, and...
+	(help_text): ...document them.
+
+	* src/pkgbind.cpp (pkgRepository::GetPackageList): Make catalogue
+	loading notifications and progress reports conditional on...
+	[OPTION_VERBOSE > 1]: ...this.
+
 2011-05-18  Keith Marshall  <keithmarshall@users.sourceforge.net>
 
 	Augment known development status keywords and accept CMS labels.
