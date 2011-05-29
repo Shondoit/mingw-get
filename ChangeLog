@@ -1,5 +1,20 @@
 2011-05-29  Keith Marshall  <keithmarshall@users.sourceforge.net>
 
+	Work around bugs in MinGW and GNU getopt_long_only() implementations.
+
+	* src/getopt.c: New file; this is a free-standing replacement for any
+	implementation provided by system libraries.  We will always use this
+	to ensure correct operation irrespective of system bugs; (different
+	bug manifestations have been identified in the stock MinGW and GNU
+	implementations).
+
+	* Makefile.in (mingw-get.EXEEXT): Use it.
+
+	* src/clistub.c (options): Remove redundant declaration of `-v' as a
+	long form option.
+
+2011-05-29  Keith Marshall  <keithmarshall@users.sourceforge.net>
+
 	Implement user selection of traceable features at run-time.
 
 	* src.pkgopts.h (OPTION_VERBOSE_MAX): New macro; define it.

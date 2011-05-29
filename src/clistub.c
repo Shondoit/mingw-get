@@ -1,7 +1,7 @@
 /*
  * clistub.c
  *
- * $Id: clistub.c,v 1.11 2011/05/29 20:53:37 keithmarshall Exp $
+ * $Id: clistub.c,v 1.12 2011/05/29 21:24:11 keithmarshall Exp $
  *
  * Written by Keith Marshall <keithmarshall@users.sourceforge.net>
  * Copyright (C) 2009, 2010, 2011, MinGW Project
@@ -355,19 +355,9 @@ int main( int argc, char **argv )
     int optref;
     struct option options[] =
     {
-      /* FIXME: There is a bug in MinGW's library implementation of the
-       * getopt_long_only() function, which prevents it from correctly
-       * identifying "-v" when intended as a short form option, in the
-       * presence of "-verbose" vs. "-version" ambiguity.
-       *
-       * Until this bug has been fixed, we must explicitly declare "-v"
-       * both here, as a long form option, and as a short form option in
-       * the subsequent getopts_long_only() function call.
-       *
-       * Option Name      Argument Category    Store To   Return Value
+      /* Option Name      Argument Category    Store To   Return Value
        * --------------   ------------------   --------   --------------
        */
-      { "v",              no_argument,         NULL,      'v'            },
       { "version",        no_argument,         NULL,      'V'            },
       { "help",           no_argument,         NULL,      'h'            },
       { "verbose",        optional_argument,   NULL,      OPTION_VERBOSE },
