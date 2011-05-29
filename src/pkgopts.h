@@ -2,7 +2,7 @@
 /*
  * pkgopts.h
  *
- * $Id: pkgopts.h,v 1.1 2011/05/21 18:38:11 keithmarshall Exp $
+ * $Id: pkgopts.h,v 1.2 2011/05/29 20:53:37 keithmarshall Exp $
  *
  * Written by Keith Marshall <keithmarshall@users.sourceforge.net>
  * Copyright (C) 2011, MinGW Project
@@ -76,6 +76,7 @@ struct pkgopts
 /* Options controlled by bit-mapped flags within OPTION_FLAGS...
  */
 #define OPTION_VERBOSE		(0x00000003)
+#define OPTION_VERBOSE_MAX	(0x00000003)
 
 #if __cplusplus
 /*

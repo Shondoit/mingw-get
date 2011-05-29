@@ -1,7 +1,7 @@
 /*
  * clistub.c
  *
- * $Id: clistub.c,v 1.10 2011/05/21 18:38:11 keithmarshall Exp $
+ * $Id: clistub.c,v 1.11 2011/05/29 20:53:37 keithmarshall Exp $
  *
  * Written by Keith Marshall <keithmarshall@users.sourceforge.net>
  * Copyright (C) 2009, 2010, 2011, MinGW Project
@@ -26,6 +26,8 @@
  */
 #define _WIN32_WINNT 0x500
 #define WIN32_LEAN_AND_MEAN
+
+#include "debug.h"
 
 #include <windows.h>
 #include <stdio.h>
@@ -158,11 +160,14 @@ extern const char *version_identification;
 
 static const char *help_text =
 "Manage MinGW and MSYS installations (command line user interface).\n\n"
+
 "Usage:\n"
 "  mingw-get [OPTIONS] ACTION [package-spec ...]\n\n"
+
 "  mingw-get update\n"
 "  mingw-get [OPTIONS] {install | upgrade | remove} package-spec ...\n"
 "  mingw-get [OPTIONS] {show | list} [package-spec ...]\n\n"
+
 "Options:\n"
 "  --help, -h      Show this help text\n"
 "  --version, -V   Show version and licence information\n"
@@ -170,7 +175,11 @@ static const char *help_text =
 "                  progress reporting output; repeat up\n"
 "                  to three times for maximum verbosity\n"
 "  --verbose=N     Set verbosity level to N; (0 <= N <= 3)\n"
-#if DEBUGLEVEL & DEBUG_TRACE_DYNAMIC
+
+/* The "--trace" option is available only when dynamic tracing
+ * debugging support is compiled in; don't advertise it otherwise.
+ */
+#if DEBUG_ENABLED( DEBUG_TRACE_DYNAMIC )
 "  --trace=N       Enable tracing feature N; (debugging aid)\n"
 #endif
 "\n"
@@ -180,10 +189,12 @@ static const char *help_text =
 "  install         Install new packages\n"
 "  upgrade         Upgrade previously installed packages\n"
 "  remove          Remove previously installed packages\n\n"
+
 "Package Specifications:\n"
 "  [subsystem-]name[-component]:\n"
 "  msys-bash-doc   The 'doc' component of the bash package for MSYS\n"
 "  mingw32-gdb     All components of the gdb package for MinGW\n\n"
+
 "Use 'mingw-get list' to identify possible package names\n"
 "and the components associated with each.\n\n";
 
@@ -319,7 +330,7 @@ static int xatoi( const char *input )
   return result;
 }
 
-#define minval( a, b )  ((a) < (b)) ? (a) : (b)
+#define atmost( lim, val )		((lim) < (val)) ? (lim) : (val)
 
 int main( int argc, char **argv )
 {
@@ -344,14 +355,29 @@ int main( int argc, char **argv )
     int optref;
     struct option options[] =
     {
-      /* Option Name      Argument Category    Store To   Return Value
+      /* FIXME: There is a bug in MinGW's library implementation of the
+       * getopt_long_only() function, which prevents it from correctly
+       * identifying "-v" when intended as a short form option, in the
+       * presence of "-verbose" vs. "-version" ambiguity.
+       *
+       * Until this bug has been fixed, we must explicitly declare "-v"
+       * both here, as a long form option, and as a short form option in
+       * the subsequent getopts_long_only() function call.
+       *
+       * Option Name      Argument Category    Store To   Return Value
        * --------------   ------------------   --------   --------------
        */
       { "v",              no_argument,         NULL,      'v'            },
       { "version",        no_argument,         NULL,      'V'            },
       { "help",           no_argument,         NULL,      'h'            },
-      { "trace",          required_argument,   &optref,   OPTION_TRACE   },
       { "verbose",        optional_argument,   NULL,      OPTION_VERBOSE },
+
+#     if DEBUG_ENABLED( DEBUG_TRACE_DYNAMIC )
+	/* The "--trace" option is supported only when dynamic tracing
+	 * debugging support has been compiled in.
+	 */
+      { "trace",          required_argument,   &optref,   OPTION_TRACE   },
+#     endif
 
       /* This list must be terminated by a null definition...
        */
@@ -366,7 +392,7 @@ int main( int argc, char **argv )
        */
       parsed_options.flags[opt].numeric = 0;
 
-    while( (opt = getopt_long_only( argc, argv, "Vh", options, &offset )) != -1 )
+    while( (opt = getopt_long_only( argc, argv, "vVh", options, &offset )) != -1 )
       /*
        * Parse any user specified options from the command line...
        */
@@ -394,9 +420,9 @@ int main( int argc, char **argv )
 	  {
 	    /* This is the case where an explicit level was specified...
 	     */
-	    unsigned verbosity = xatoi( optarg );
-	    parsed_options.flags[OPTION_FLAGS].numeric &= ~OPTION_VERBOSE;
-	    parsed_options.flags[OPTION_FLAGS].numeric |= minval( verbosity, 3 );
+	    parsed_options.flags[OPTION_FLAGS].numeric =
+	      (parsed_options.flags[OPTION_FLAGS].numeric & ~OPTION_VERBOSE)
+	      | atmost( OPTION_VERBOSE_MAX, xatoi( optarg ));
 	    break;
 	  }
 

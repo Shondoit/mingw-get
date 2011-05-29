@@ -1,10 +1,10 @@
 /*
  * sysroot.cpp
  *
- * $Id: sysroot.cpp,v 1.5 2010/08/15 13:37:54 keithmarshall Exp $
+ * $Id: sysroot.cpp,v 1.6 2011/05/29 20:53:37 keithmarshall Exp $
  *
  * Written by Keith Marshall <keithmarshall@users.sourceforge.net>
- * Copyright (C) 2010, MinGW Project
+ * Copyright (C) 2010, 2011, MinGW Project
  *
  *
  * Implementation of the system map loader, sysroot management and
@@ -167,9 +167,9 @@ void pkgXmlDocument::LoadSystemMap()
 	/* This system map is a candidate for loading;
 	 * process all of its subsystem specific sysroot declarations...
 	 */
-#	if DEBUGLEVEL & DEBUG_TRACE_INIT
-	  fprintf( stderr, "Load system map: id = %s\n", id );
-#	endif
+ 	DEBUG_INVOKE_IF( DEBUG_REQUEST( DEBUG_TRACE_INIT ),
+	    dmh_printf( "Load system map: id = %s\n", id )
+	  );
 	pkgXmlNode *subsystem = sysmap->FindFirstAssociate( sysroot_key );
 	while( subsystem != NULL )
 	{
@@ -188,11 +188,10 @@ void pkgXmlDocument::LoadSystemMap()
 	    && ! samepath( path, sysroot->GetPropVal( pathname_key, NULL )) )
 	      sysroot = sysroot->FindNextAssociate( sysroot_key );
 
-#	    if DEBUGLEVEL & DEBUG_TRACE_INIT
-	      fprintf( stderr, "Bind subsystem %s: sysroot = %s\n",
+ 	    DEBUG_INVOKE_IF( DEBUG_REQUEST( DEBUG_TRACE_INIT ),
+		dmh_printf( "Bind subsystem %s: sysroot = %s\n",
 		  subsystem->GetPropVal( subsystem_key, "<unknown>" ), path
-		);
-#	    endif
+	      ));
 
 	    if( sysroot == NULL )
 	    {

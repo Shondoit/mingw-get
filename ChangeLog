@@ -1,3 +1,29 @@
+2011-05-29  Keith Marshall  <keithmarshall@users.sourceforge.net>
+
+	Implement user selection of traceable features at run-time.
+
+	* src.pkgopts.h (OPTION_VERBOSE_MAX): New macro; define it.
+
+	* src/debug.h (DEBUG_ENABLED): New macro; define it.
+	(DEBUG_REQUEST, DEBUG_REQUEST_FLAGS, DEBUG_TRACE_DYNAMIC): Likewise.
+
+	* src/clistub.c (main) [--trace]: Don't make it available unless...
+	[DEBUG_ENABLED(DEBUG_TRACE_DYNAMIC)]: ...this is set (at compile-time).
+	[--verbose]: Limit to OPTION_VERBOSE_MAX, using...
+	(atmost): ...this new macro; define it.
+	(options): Declare `-v' as both long and short form, pending bug fix
+	in MinGW's getopt_long_only() implementation.
+
+	* src/pkginet.cpp (pkgInternetAgent::OpenURL): Use DEBUG_REQUEST.
+	(pkgInternetLzmaStreamingAgent::TransferData): Likewise.
+	(pkgInternetStreamingAgent::TransferData): Likewise.
+	(pkgInternetStreamingAgent::Get): Likewise.
+
+	* src/pkgunst.cpp (pkgActionItem::SetAuthorities): Use DEBUG_REQUEST.
+	(pkg_rmdir, pkg_unlink): Likewise.
+
+	* src/sysroot.cpp (pkgXmlDocument::LoadSystemMap): Use DEBUG_REQUEST.
+
 2011-05-21  Keith Marshall  <keithmarshall@users.sourceforge.net>
 
 	Implement protocol for processing global program options.
