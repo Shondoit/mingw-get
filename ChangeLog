@@ -1,5 +1,13 @@
 2011-05-30  Keith Marshall  <keithmarshall@users.sourceforge.net>
 
+	mingw-get-0.3-mingw32-alpha-1 released.
+
+	* configure.ac (AC_INIT): Adjust version number.
+	* srcdist-doc/NEWS.in: Updated; document new features.
+	* All files (r0-3-alpha-1): Tag assigned.
+
+2011-05-30  Keith Marshall  <keithmarshall@users.sourceforge.net>
+
 	Support assignment of DEBUGLEVEL at configure time.
 
 	* configure.ac (DEBUGLEVEL): Declare as a precious variable, using

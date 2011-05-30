@@ -1,10 +1,43 @@
 Release Notes
 =============
 
-$Id: NEWS.in,v 1.5 2011/05/14 07:05:57 keithmarshall Exp $
+$Id: NEWS.in,v 1.6 2011/05/30 09:01:52 keithmarshall Exp $
 
 The information presented below describes the user visible changes
 introduced with each release of mingw-get.
+
+
+mingw-get-0.3-mingw32-alpha-1
+-----------------------------
+
+Release date: 2011-05-30
+
+- Augmented support for package development status identification;
+  packages may now be classified as alpha < beta < pre < rc < stable,
+  with implied development progression in this ranking order within any
+  release group identified by a common version number.
+
+- Added support for identification of snapshot releases, using common
+  Content Management System (CMS) labels, (e.g. cvs, svn, hg, git), in
+  place of an alpha..stable classification.  Releases identified by any
+  CMS label are deemed to pre-date any alpha..stable release with the
+  same version number.
+
+- Implemented protocol for processing command line options, (beyond the
+  limited scope of the "--help" and "--version" options, each of which
+  causes immediate program termination after interpretation).
+
+- Reduced verbosity of progress reports; implemented "--verbose" ("-v")
+  option, (with levels from 0..3), to restore it.
+
+- Added debug level support for conditional feature tracing.  Features
+  to be traced may now be selected by the user, at run time, by means of
+  a new "--trace" option; (however, the availability of this option, and
+  the range features which may be traced is selected at compile time).
+
+  It is anticipated that this "--trace" facility will be supported for
+  all future "alpha" and "beta" releases, but not for any officially
+  distributed "pre", "rc" or "stable" release.
 
 
 mingw-get-0.2-mingw32-alpha-4
