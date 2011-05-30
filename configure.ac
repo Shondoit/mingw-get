@@ -1,6 +1,6 @@
 # configure.ac -*- autoconf -*- vim: filetype=config
 #
-# $Id: configure.ac,v 1.16 2011/05/14 07:05:57 keithmarshall Exp $
+# $Id: configure.ac,v 1.17 2011/05/30 08:42:52 keithmarshall Exp $
 #
 # Written by Keith Marshall <keithmarshall@users.sourceforge.net>
 # Copyright (C) 2009, 2010, 2011, MinGW Project
@@ -80,6 +80,12 @@
 # for stripping binaries is compatible with the compiler
 #
   AC_CHECK_TOOL([STRIP],[strip],[strip])
+
+# Identify features to be traced to facilitate debugging; make
+# it precious, to avoid introducing accidental inconsistencies.
+#
+  AC_ARG_VAR([DEBUGLEVEL],[tracing flags to facilitate debugging])
+  AC_SUBST([DEBUGLEVEL],[${DEBUGLEVEL-0}])
 
 # Establish the product version banner, and create a makefile
 #

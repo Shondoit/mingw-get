@@ -1,3 +1,12 @@
+2011-05-30  Keith Marshall  <keithmarshall@users.sourceforge.net>
+
+	Support assignment of DEBUGLEVEL at configure time.
+
+	* configure.ac (DEBUGLEVEL): Declare as a precious variable, using
+	AC_ARG_VAR; also declare with AC_SUBST, to ensure it is initialised.
+
+	* Makefile.in (DEBUGLEVEL): Let AC_SUBST assign it.
+
 2011-05-29  Keith Marshall  <keithmarshall@users.sourceforge.net>
 
 	Work around bugs in MinGW and GNU getopt_long_only() implementations.
