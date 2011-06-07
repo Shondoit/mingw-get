@@ -1,7 +1,7 @@
 /*
  * tarproc.cpp
  *
- * $Id: tarproc.cpp,v 1.10 2011/05/18 18:34:51 keithmarshall Exp $
+ * $Id: tarproc.cpp,v 1.11 2011/06/07 21:03:37 keithmarshall Exp $
  *
  * Written by Keith Marshall <keithmarshall@users.sourceforge.net>
  * Copyright (C) 2009, 2010, 2011, MinGW Project
@@ -512,41 +512,39 @@ int pkgTarArchiveInstaller::ProcessDirectory( const char *pathname )
   /* Create the directory infrastructure required to support
    * a specific package installation.
    */
-#if DEBUGLEVEL & DEBUG_SUPPRESS_INSTALLATION
-  /*
-   * Debugging stub...
-   * FIXME:maybe adapt for 'dry-run' or 'verbose' use.
-   */
   int status = 0;
-  dmh_printf(
-      "FIXME:ProcessDirectory<stub>:not executing: mkdir -p %s\n",
-       pathname
-    );
-# if DEBUGLEVEL & DEBUG_UPDATE_INVENTORY
-  /*
-   * Although no installation directory has actually been created,
-   * update the inventory to simulate the effect of doing so.
-   */
-  installed->AddEntry( dirname_key, pathname + sysroot_len );
-# endif
-
-#else
-  int status;
-  if( (status = mkdir_recursive( pathname, 0755 )) == 0 )
-    /*
-     * Either the specified directory already exists,
-     * or we just successfully created it; attach a reference
-     * in the installation manifest for the current package.
+  if( DEBUG_REQUEST( DEBUG_SUPPRESS_INSTALLATION ) )
+  {
+    /* Debugging stub...
+     * FIXME:maybe adapt for 'dry-run' or 'verbose' use.
      */
-    installed->AddEntry( dirname_key, pathname + sysroot_len );
-
+    dmh_printf(
+	"FIXME:ProcessDirectory<stub>:not executing: mkdir -p %s\n",
+	 pathname
+      );
+    if( DEBUG_REQUEST( DEBUG_UPDATE_INVENTORY ) )
+      /*
+       * Although no installation directory has actually been created,
+       * update the inventory to simulate the effect of doing so.
+       */
+      installed->AddEntry( dirname_key, pathname + sysroot_len );
+  }
   else
-    /* A required subdirectory could not be created;
-     * diagnose this failure.
-     */
-    dmh_notify( DMH_ERROR, "cannot create directory `%s'\n", pathname );
-#endif
+  {
+    if( (status = mkdir_recursive( pathname, 0755 )) == 0 )
+      /*
+       * Either the specified directory already exists,
+       * or we just successfully created it; attach a reference
+       * in the installation manifest for the current package.
+       */
+      installed->AddEntry( dirname_key, pathname + sysroot_len );
 
+    else
+      /* A required subdirectory could not be created;
+       * diagnose this failure.
+       */
+      dmh_notify( DMH_ERROR, "cannot create directory `%s'\n", pathname );
+  }
   return status;
 }
 
@@ -555,51 +553,52 @@ int pkgTarArchiveInstaller::ProcessDataStream( const char *pathname )
   /* Extract file data from the archive, and copy it to the
    * associated target file stream, if any.
    */
-#if DEBUGLEVEL & DEBUG_SUPPRESS_INSTALLATION
-  /*
-   * Debugging stub...
-   * FIXME:maybe adapt for 'dry-run' or 'verbose' use.
-   */
-  dmh_printf(
-      "FIXME:ProcessDataStream<stub>:not extracting: %s\n",
-      pathname
-    );
-# if DEBUGLEVEL & DEBUG_UPDATE_INVENTORY
-  /*
-   * Although no file has actually been installed, update
-   * the inventory to simulate the effect of doing so.
-   */
-  installed->AddEntry( filename_key, pathname + sysroot_len );
-# endif
-  return ProcessEntityData( -1 );
-
-#else
-  int fd = set_output_stream( pathname, octval( header.field.mode ) );
-  int status = ProcessEntityData( fd );
-  if( fd >= 0 )
+  if( DEBUG_REQUEST( DEBUG_SUPPRESS_INSTALLATION ) )
   {
-    /* File stream was written; close it...
+    /* Debugging stub...
+     * FIXME:maybe adapt for 'dry-run' or 'verbose' use.
      */
-    close( fd );
-    if( status == 0 )
-    {
-      /* ...and on successful completion, commit it and
-       * record it in the installation database.
+    dmh_printf(
+	"FIXME:ProcessDataStream<stub>:not extracting: %s\n",
+	pathname
+      );
+    if( DEBUG_REQUEST( DEBUG_UPDATE_INVENTORY ) )
+      /*
+       * Although no file has actually been installed, update
+       * the inventory to simulate the effect of doing so.
        */
-      commit_saved_entity( pathname, octval( header.field.mtime ) );
       installed->AddEntry( filename_key, pathname + sysroot_len );
-    }
 
-    else
-    { /* The target file was not successfully and completely
-       * written; discard it, and diagnose failure.
-       */
-      unlink( pathname );
-      dmh_notify( DMH_ERROR, "%s: extraction failed\n", pathname );
-    }
+    return ProcessEntityData( -1 );
   }
-  return status;
-#endif
+  else
+  {
+    int fd = set_output_stream( pathname, octval( header.field.mode ) );
+    int status = ProcessEntityData( fd );
+    if( fd >= 0 )
+    {
+      /* File stream was written; close it...
+       */
+      close( fd );
+      if( status == 0 )
+      {
+	/* ...and on successful completion, commit it and
+	 * record it in the installation database.
+	 */
+	commit_saved_entity( pathname, octval( header.field.mtime ) );
+	installed->AddEntry( filename_key, pathname + sysroot_len );
+      }
+
+      else
+      { /* The target file was not successfully and completely
+	 * written; discard it, and diagnose failure.
+	 */
+	unlink( pathname );
+	dmh_notify( DMH_ERROR, "%s: extraction failed\n", pathname );
+      }
+    }
+    return status;
+  }
 }
 
 /* $RCSfile: tarproc.cpp,v $: end of file */

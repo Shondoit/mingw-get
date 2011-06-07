@@ -1,3 +1,14 @@
+2011-06-07  Keith Marshall  <keithmarshall@users.sourceforge.net>
+
+	Provisional correction for MinGW-bug #3309438.
+
+	* src/debug.h [DEBUGLEVEL == 0]: Provide defaults for...
+	(DEBUG_ENABLED, DEBUG_REQUEST): ...these macros.
+
+	* src/tarproc.cpp (pkgTarArchiveInstaller::ProcessDirectory):
+	(pkgTarArchiveInstaller::ProcessDataStream): Use DEBUG_REQUEST to
+	enable runtime trace activation for previous compile time choices.
+
 2011-05-30  Keith Marshall  <keithmarshall@users.sourceforge.net>
 
 	mingw-get-0.3-mingw32-alpha-1 released.

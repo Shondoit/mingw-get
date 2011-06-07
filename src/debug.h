@@ -2,7 +2,7 @@
 /*
  * debug.h
  *
- * $Id: debug.h,v 1.5 2011/05/29 20:53:37 keithmarshall Exp $
+ * $Id: debug.h,v 1.6 2011/06/07 21:03:37 keithmarshall Exp $
  *
  * Written by Keith Marshall <keithmarshall@users.sourceforge.net>
  * Copyright (C) 2010, 2011, MinGW Project
@@ -81,6 +81,13 @@
    * necessary to disable compilation of debug specific code...
    */
 #  define DEBUG_INVOKE_IF( TEST, ACTION )	/* DO NOTHING */
+
+  /* The following pair of macros may be used to provide
+   * a conditional expression in `if' or `while' statements;
+   * ensure they evaluate to FALSE when DEBUGLEVEL == 0.
+   */
+#  define DEBUG_ENABLED( OPTION )		0
+#  define DEBUG_REQUEST( OPTION )		0
 
 # endif /* DEBUGLEVEL */
 
