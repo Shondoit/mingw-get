@@ -1,7 +1,7 @@
 /*
  * pkginfo.l
  *
- * $Id: pkginfo.l,v 1.3 2011/05/18 18:34:51 keithmarshall Exp $
+ * $Id: pkginfo.l,v 1.4 2011/06/11 12:39:01 keithmarshall Exp $
  *
  * Written by Keith Marshall <keithmarshall@users.sourceforge.net>
  * Copyright (C) 2009, 2010, 2011, MinGW Project
@@ -153,7 +153,7 @@ CMS_KEYWORDS (bzr|cms|cvs|darcs|git|hg|mono|scm|svn|vcs)
      * revert to INITIAL state, to continue the <archive-name> scan.
      */
     BEGIN INITIAL; yyless( 0 );
-    if( index < PACKAGE_RELEASE_STATUS )
+    if( (PACKAGE_NAME < index) && (index < PACKAGE_RELEASE_STATUS) )
     {
       /* and, when the <status> descriptor is appropriately placed,
        * set up `signature' storage to capture it, adjusting phase to
