@@ -1,7 +1,7 @@
 /*
  * pkgbind.cpp
  *
- * $Id: pkgbind.cpp,v 1.6 2011/05/21 18:38:11 keithmarshall Exp $
+ * $Id: pkgbind.cpp,v 1.7 2011/06/12 19:38:11 keithmarshall Exp $
  *
  * Written by Keith Marshall <keithmarshall@users.sourceforge.net>
  * Copyright (C) 2009, 2010, 2011, MinGW Project
@@ -26,7 +26,6 @@
  */
 #include <stdio.h>
 #include <stdlib.h>
-#include <libgen.h>
 #include <string.h>
 #include <unistd.h>
 
@@ -78,11 +77,13 @@ void pkgRepository::GetPackageList( const char *dname )
       /* Check for a locally cached copy of the "package-list" file...
        */
       if( force_update || (access( dfile, F_OK ) != 0) )
-	/*
-	 * When performing an "update", or if no local copy is available...
+      {
+	/* When performing an "update", or if no local copy is available...
 	 * Force a "sync", to fetch a copy from the public host.
 	 */
+	dmh_printf( "Update catalogue: %s.xml\n", dname );
 	owner->SyncRepository( dname, repository );
+      }
 
       /* We SHOULD now have a locally cached copy of the package-list;
        * attempt to merge it into the active profile database...
@@ -93,11 +94,8 @@ void pkgRepository::GetPackageList( const char *dname )
 	/* We successfully loaded the XML catalogue; refer to its
 	 * root element...
 	 */
-	char catname[ 1 + strlen( merge.Value() ) ];
 	if( pkgOptions()->Test( OPTION_VERBOSE ) > 1 )
-	  dmh_printf(
-	      "Load catalogue: %s\n", basename( strcpy( catname, merge.Value() ))
-	    );
+	  dmh_printf( "Load catalogue: %s.xml\n", dname );
 	pkgXmlNode *catalogue, *pkglist;
 	if( (catalogue = merge.GetRoot()) != NULL )
 	{
@@ -127,10 +125,7 @@ void pkgRepository::GetPackageList( const char *dname )
       { /* The specified catalogue could not be successfully loaded;
 	 * emit a warning diagnostic message, and otherwise ignore it.
 	 */
-	char catname[ 1 + strlen( dfile ) ];
-	dmh_notify( DMH_WARNING,
-	    "Load catalogue: FAILED: %s\n", basename( strcpy( catname, dfile ))
-	  );
+	dmh_notify( DMH_WARNING, "Load catalogue: FAILED: %s.xml\n", dname );
       }
 
       /* However we handled it, the XML file's path name in "dfile" was

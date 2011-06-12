@@ -1,3 +1,11 @@
+2011-06-12  Keith Marshall  <keithmarshall@users.sourceforge.net>
+
+	Don't require -vv to report progress of update operation.
+
+	* src/pkgbind.cpp (pkgRepository::GetPackageList): Eliminate all
+	basename() calls; `dname' already tells us what it should return.
+	[update]: Report progress, irrespective of verbosity setting.
+
 2011-06-11  Keith Marshall  <keithmarshall@users.sourceforge.net>
 
 	Fix MinGW-Bug #3313806.
