@@ -1,3 +1,24 @@
+2011-06-13  Keith Marshall  <keithmarshall@users.sourceforge.net>
+
+	Implement --reinstall option.
+
+	* src/pkgopts.h (OPTION_REINSTALL): New macro; define it.
+	(OPTION_GENERIC, OPTION_SHIFT_MASK): Likewise.
+	(OPTION_EXTRA_FLAGS): New field; declare it.
+
+	* src/clistub.c (options): Add "reinstall".
+	(OPTION_GENERIC): Use it where appropriate; within its scope...
+	(OPTION_STORAGE_CLASS): Improve descriptive comments; add handling for
+	default case of flag type options requiring an alignment shift.
+
+	* src/pkgexec.cpp: Remove previous "always reinstall" kludge.
+	(pkgOptionSelected, PKG_OPTION_REINSTALL): Remove obsolete macros.
+	(pkgActionItem::Execute): Check for "upgrade" request on any package
+	which is already up to date; report this state, otherwise...
+	[OPTION_REINSTALL || ACTION_UPGRADE]: Mark package as "removed", to
+	avoid bail-out on "package already installed", when calling...
+	(pkgInstall): ...this.
+
 2011-06-12  Keith Marshall  <keithmarshall@users.sourceforge.net>
 
 	Don't require -vv to report progress of update operation.

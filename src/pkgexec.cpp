@@ -1,7 +1,7 @@
 /*
  * pkgexec.cpp
  *
- * $Id: pkgexec.cpp,v 1.14 2011/02/27 16:21:36 keithmarshall Exp $
+ * $Id: pkgexec.cpp,v 1.15 2011/06/13 19:00:14 keithmarshall Exp $
  *
  * Written by Keith Marshall <keithmarshall@users.sourceforge.net>
  * Copyright (C) 2009, 2010, 2011, MinGW Project
@@ -31,15 +31,8 @@
 #include "pkgkeys.h"
 #include "pkginfo.h"
 #include "pkgtask.h"
+#include "pkgopts.h"
 #include "pkgproc.h"
-
-/* FIXME: temporarily establish "install" behaviour as if the
- * "--reinstall" option is selected; remove this kludge, when we
- * have an effective "uninstall" implementation, and have provided
- * a mechanism for specifying options.
- */
-#define pkgOptionSelected( OPT )  OPT
-#define PKG_OPTION_REINSTALL	  true
 
 EXTERN_C const char *action_name( unsigned long index )
 {
@@ -412,24 +405,46 @@ void pkgActionItem::Execute()
 	   */
 	  init_rites_pending = self_upgrade_rites( tarname );
 
-	if( (current->flags & ACTION_REMOVE) == ACTION_REMOVE )
-	{
-	  /* The selected package has been marked for removal, either explicitly,
-	   * or as an implicit prerequisite for upgrade.
+	/* If we are performing an upgrade...
+	 */
+	if( ((current->flags & ACTION_MASK) == ACTION_UPGRADE)
+	/*
+	 * ...and the latest version of the package is already installed...
+	 */
+	&&  (current->Selection() == current->Selection( to_remove ))
+	/*
+	 * ...and the `--reinstall' option hasn't been specified...
+	 */
+	&&  (pkgOptions()->Test( OPTION_REINSTALL ) == 0)  )
+	  /*
+	   * ...then simply report the up-to-date status...
 	   */
-	  pkgRemove( current );
-	}
+	  dmh_notify( DMH_INFO, "package %s is up to date\n", tarname );
 
-	if( (current->flags & ACTION_INSTALL) == ACTION_INSTALL )
-	{
-	  /* The selected package has been marked for installation, either explicitly,
-	   * or implicitly to complete a package upgrade.
+	else
+	{ /* ...otherwise, proceed to perform remove and install
+	   * operations, as appropriate.
 	   */
-	  pkgXmlNode *tmp = current->Selection( to_remove );
-	  if( pkgOptionSelected( PKG_OPTION_REINSTALL ) )
-	    current->selection[ to_remove ] = NULL;
-	  pkgInstall( current );
-	  current->selection[ to_remove ] = tmp;
+	  if( (current->flags & ACTION_REMOVE) == ACTION_REMOVE )
+	  {
+	    /* The selected package has been marked for removal,
+	     * either explicitly, or as an implicit prerequisite for upgrade.
+	     */
+	    pkgRemove( current );
+	  }
+
+	  if( (current->flags & ACTION_INSTALL) == ACTION_INSTALL )
+	  {
+	    /* The selected package has been marked for installation,
+	     * either explicitly, or implicitly to complete a package upgrade.
+	     */
+	    pkgXmlNode *tmp = current->Selection( to_remove );
+	    if(   pkgOptions()->Test( OPTION_REINSTALL )
+	    ||  ((current->flags & ACTION_MASK) == ACTION_UPGRADE)  )
+	      current->selection[ to_remove ] = NULL;
+	    pkgInstall( current );
+	    current->selection[ to_remove ] = tmp;
+	  }
 	}
       }
       /* Proceed to the next package, if any, with scheduled actions.

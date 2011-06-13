@@ -1,7 +1,7 @@
 /*
  * clistub.c
  *
- * $Id: clistub.c,v 1.12 2011/05/29 21:24:11 keithmarshall Exp $
+ * $Id: clistub.c,v 1.13 2011/06/13 19:00:14 keithmarshall Exp $
  *
  * Written by Keith Marshall <keithmarshall@users.sourceforge.net>
  * Copyright (C) 2009, 2010, 2011, MinGW Project
@@ -356,17 +356,19 @@ int main( int argc, char **argv )
     struct option options[] =
     {
       /* Option Name      Argument Category    Store To   Return Value
-       * --------------   ------------------   --------   --------------
+       * --------------   ------------------   --------   ----------------
        */
-      { "version",        no_argument,         NULL,      'V'            },
-      { "help",           no_argument,         NULL,      'h'            },
-      { "verbose",        optional_argument,   NULL,      OPTION_VERBOSE },
+      { "version",        no_argument,         NULL,      'V'              },
+      { "help",           no_argument,         NULL,      'h'              },
+      { "verbose",        optional_argument,   NULL,      OPTION_VERBOSE   },
+
+      { "reinstall",      no_argument,         &optref,   OPTION_REINSTALL },
 
 #     if DEBUG_ENABLED( DEBUG_TRACE_DYNAMIC )
 	/* The "--trace" option is supported only when dynamic tracing
 	 * debugging support has been compiled in.
 	 */
-      { "trace",          required_argument,   &optref,   OPTION_TRACE   },
+      { "trace",          required_argument,   &optref,   OPTION_TRACE     },
 #     endif
 
       /* This list must be terminated by a null definition...
@@ -424,20 +426,52 @@ int main( int argc, char **argv )
 	    ++parsed_options.flags[OPTION_FLAGS].numeric;
 	  break;
 
-	case 0:
+	case OPTION_GENERIC:
 	  switch( optref & OPTION_STORAGE_CLASS )
 	  {
+	    /* This represents a generic option specification,
+	     * allowing for storage of a option argument of the
+	     * specified class into a specified option slot...
+	     */
+	    unsigned shift;
+
 	    case OPTION_STORE_STRING:
+	      /* This is a simple store of a option argument
+	       * which represents a character string.
+	       */
 	      parsed_options.flags[optref & 0xfff].string = optarg;
 	      break;
 
 	    case OPTION_STORE_NUMBER:
+	      /* This is also a simple store of the argument value,
+	       * in this case interpreted as a number.
+	       */
 	      parsed_options.flags[optref & 0xfff].numeric = xatoi( optarg );
 	      break;
 
 	    case OPTION_MERGE_NUMBER:
+	      /* In this case, we combine the value of the argument,
+	       * again interpreted as a number, with the original value
+	       * stored in the option slot, forming the bitwise logical
+	       * .OR. of the pair of values.
+	       */
 	      parsed_options.flags[optref & 0xfff].numeric |= xatoi( optarg );
 	      break;
+
+	    default:
+	      /* This is a mask and store operation for a specified
+	       * bit-field within the first pair of flags slots; in
+	       * this case, the optref value itself specifies a 12-bit
+	       * value, a 12-bit combining mask, and an alignment shift
+	       * count between 0 and 52, in 4-bit increments.
+	       */
+	      if( (shift = (optref & OPTION_SHIFT_MASK) >> 22) < 53 )
+	      {
+		uint64_t value = optref & 0xfff;
+		uint64_t mask = (optref & 0xfff000) >> 12;
+		*(uint64_t *)(parsed_options.flags) &= ~(mask << shift);
+		*(uint64_t *)(parsed_options.flags) |= value << shift;
+	      }
 	  }
 	  break;
 

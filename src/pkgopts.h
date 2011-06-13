@@ -2,7 +2,7 @@
 /*
  * pkgopts.h
  *
- * $Id: pkgopts.h,v 1.2 2011/05/29 20:53:37 keithmarshall Exp $
+ * $Id: pkgopts.h,v 1.3 2011/06/13 19:00:14 keithmarshall Exp $
  *
  * Written by Keith Marshall <keithmarshall@users.sourceforge.net>
  * Copyright (C) 2011, MinGW Project
@@ -28,11 +28,16 @@
  */
 #define PKGOPTS_H  1
 
+#include <stdint.h>		/* required for uint64_t typedef */
+
+#define OPTION_GENERIC  0
+
 enum
 { /* Specification of symbolic names (keys) for each of the individual
    * entries in the options parameter array.
    */
   OPTION_FLAGS,
+  OPTION_EXTRA_FLAGS,
   OPTION_DEBUGLEVEL,
 
   /* This final entry specifies the size of the parameter array which
@@ -60,6 +65,7 @@ struct pkgopts
 
 /* Bit-mapped control tags used by the CLI options parsing code...
  */
+#define OPTION_SHIFT_MASK	(0x0000000f << 24)
 #define OPTION_STORAGE_CLASS	(0x00000007 << 28)
 /*
  * ...to determine how option arguments are to be inserted into the
@@ -77,6 +83,8 @@ struct pkgopts
  */
 #define OPTION_VERBOSE		(0x00000003)
 #define OPTION_VERBOSE_MAX	(0x00000003)
+
+#define OPTION_REINSTALL	(0x00000010)
 
 #if __cplusplus
 /*
