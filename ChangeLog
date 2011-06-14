@@ -1,3 +1,9 @@
+2011-06-14  Keith Marshall  <keithmarshall@users.sourceforge.net>
+
+	Support use of Mercurial within a CVS working copy.
+
+	* .cvsignore (.hg, .hgignore): Don't have CVS track these.
+
 2011-06-13  Keith Marshall  <keithmarshall@users.sourceforge.net>
 
 	Implement --reinstall option.
