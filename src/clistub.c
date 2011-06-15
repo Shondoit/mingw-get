@@ -1,7 +1,7 @@
 /*
  * clistub.c
  *
- * $Id: clistub.c,v 1.13 2011/06/13 19:00:14 keithmarshall Exp $
+ * $Id: clistub.c,v 1.14 2011/06/15 18:48:10 keithmarshall Exp $
  *
  * Written by Keith Marshall <keithmarshall@users.sourceforge.net>
  * Copyright (C) 2009, 2010, 2011, MinGW Project
@@ -182,6 +182,13 @@ static const char *help_text =
 #if DEBUG_ENABLED( DEBUG_TRACE_DYNAMIC )
 "  --trace=N       Enable tracing feature N; (debugging aid)\n"
 #endif
+
+/* The following are always available...
+ */
+"  --reinstall     When performing an install or upgrade\n"
+"                  operation, reinstall any named package\n"
+"                  for which the most recent release is\n"
+"                  already installed\n"
 "\n"
 "Actions:\n"
 "  update          Update local copy of repository catalogues\n"

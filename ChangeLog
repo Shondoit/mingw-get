@@ -1,3 +1,9 @@
+2011-06-15  Keith Marshall  <keithmarshall@users.sourceforge.net>
+
+	Add internal documentation for --reinstall option.
+
+	* src/clistub.c (help_text): Add description for "--reinstall".
+
 2011-06-14  Keith Marshall  <keithmarshall@users.sourceforge.net>
 
 	Support use of Mercurial within a CVS working copy.
