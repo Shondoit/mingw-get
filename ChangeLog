@@ -1,3 +1,11 @@
+2011-06-17  Keith Marshall  <keithmarshall@users.sourceforge.net>
+
+	mingw-get-0.3-mingw32-alpha-2 released.
+
+	* configure.ac (AC_INIT): Adjust version number.
+	* srcdist-doc/NEWS.in: Updated; document new features and bugs fixed.
+	* All files (r0-3-alpha-2): Tag assigned.
+
 2011-06-15  Keith Marshall  <keithmarshall@users.sourceforge.net>
 
 	Add internal documentation for --reinstall option.

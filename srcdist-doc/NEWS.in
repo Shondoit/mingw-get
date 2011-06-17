@@ -1,10 +1,45 @@
 Release Notes
 =============
 
-$Id: NEWS.in,v 1.6 2011/05/30 09:01:52 keithmarshall Exp $
+$Id: NEWS.in,v 1.7 2011/06/17 07:02:18 keithmarshall Exp $
 
 The information presented below describes the user visible changes
 introduced with each release of mingw-get.
+
+
+mingw-get-0.3-mingw32-alpha-2
+-----------------------------
+
+Release date: 2011-06-17
+
+This is primarily a bug fix release; it also provides some limited
+additional functional capability.  All users are recommended to upgrade
+to this release.
+
+- Fixes MinGW-Bug #3309438; this release now supports dynamic selection
+  of all internally defined debugging trace options at run time, without
+  prejudice to normal operation.
+
+- Fixes MinGW-Bug #3313806; CMS_KEYWORDS are no longer matched within
+  the package name field of a canonical package tarname.  Thus, packages
+  such as "msys-cvs" are now correctly identified again, while resolving
+  dependencies.
+
+- The "mingw-get update" operation now emits "Update catalogue ..."
+  messages for each catalogue processed, irrespective of the verbosity
+  option setting.  This removes the requirement to specify the "-vv"
+  option to avoid protracted silent operation, which may have given
+  a false impression that the previous release had hung while
+  performing this operation.
+
+- The "--reinstall" option is now formally supported; this release will
+  no longer behave as if this option is unconditionally specified; thus,
+  the command syntax:
+
+      $ mingw-get upgrade --reinstall <package-name>
+
+  is now required to force reinstallation of any package which has been
+  recorded as already installed.
 
 
 mingw-get-0.3-mingw32-alpha-1
