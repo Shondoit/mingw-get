@@ -1,5 +1,11 @@
 2011-06-18  Keith Marshall  <keithmarshall@users.sourceforge.net>
 
+	Mercurial support revisited.
+
+	* .cvsignore (.hgtags): Add to CVS untracked list.
+
+2011-06-18  Keith Marshall  <keithmarshall@users.sourceforge.net>
+
 	Update readme.txt ID tag-line to track NEWS rather than README.
 
 	* Makefile.in (readme.txt.in): New rule; implement it.
