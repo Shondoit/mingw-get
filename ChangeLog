@@ -1,5 +1,13 @@
 2011-06-18  Keith Marshall  <keithmarshall@users.sourceforge.net>
 
+	Avoid accidental RCS keyword substitutions.
+
+	* Makefile.in (DOLLAR): New macro; define it.
+	(readme.txt, readme.txt.in): Use it, where unexpanded RCS Id keyword
+	matching is intended.
+
+2011-06-18  Keith Marshall  <keithmarshall@users.sourceforge.net>
+
 	Mercurial support revisited.
 
 	* .cvsignore (.hgtags): Add to CVS untracked list.
