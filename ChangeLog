@@ -1,3 +1,11 @@
+2011-06-18  Keith Marshall  <keithmarshall@users.sourceforge.net>
+
+	Update readme.txt ID tag-line to track NEWS rather than README.
+
+	* Makefile.in (readme.txt.in): New rule; implement it.
+	(readme.txt.tag): Likewise; this implements the tag-line tracking.
+	(readme.txt): Rule redefined in terms of the preceding pair.
+
 2011-06-17  Keith Marshall  <keithmarshall@users.sourceforge.net>
 
 	mingw-get-0.3-mingw32-alpha-2 released.
