@@ -1,3 +1,25 @@
+2011-07-27  Keith Marshall  <keithmarshall@users.sourceforge.net>
+
+	Correct handling of release status in requirements specifications.
+
+	* src/debug.h (DEBUG_TRACE_DEPENDENCIES): New tracing hook; define it.
+	* src/pkgexec.cpp (pkgActionItem::SelectIfMostRecentFit): Use it; add
+	function entry/exit tracing report hooks.
+	* src/pkgdeps.cpp (pkgXmlDocument::ResolveDependencies): Likewise;
+	also add internal trace point reporting, which may also require...
+	(show_required): ...this new static inline DEBUG_INVOKED function.
+
+	* src/pkgreqs.cpp (requirement): Propagate release status and release
+	reference index fields from requirer, when package version requirement
+	is specified by a '%' token, and no explicit release status override
+	is included in the requirement specification.
+
+	* src/pkgspec.cpp (is_wildcard_spec): New static inline helper.
+	(pkgSpecs::VersionComparator): Use it to identify any package version
+	specification which may require the extension of a wildcard match, to
+	span the package version and release status fields; also add tracing
+	hooks, triggered on DEBUG_TRACE_DEPENDENCIES, to facilitate debugging.
+
 2011-06-18  Keith Marshall  <keithmarshall@users.sourceforge.net>
 
 	Avoid accidental RCS keyword substitutions.

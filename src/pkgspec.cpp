@@ -1,7 +1,7 @@
 /*
  * pkgspec.cpp
  *
- * $Id: pkgspec.cpp,v 1.3 2011/02/15 21:39:13 keithmarshall Exp $
+ * $Id: pkgspec.cpp,v 1.4 2011/07/27 20:36:00 keithmarshall Exp $
  *
  * Written by Keith Marshall <keithmarshall@users.sourceforge.net>
  * Copyright (C) 2009, 2010, 2011, MinGW Project
@@ -25,6 +25,9 @@
  * arising from the use of this software.
  *
  */
+#include "dmh.h"
+#include "debug.h"
+
 #include "pkginfo.h"
 #include "pkgkeys.h"
 #include "vercmp.h"
@@ -139,6 +142,21 @@ pkgSpecs::~pkgSpecs()
 
 /* Comparison operators...
  */
+static inline bool
+is_wildcard_spec( const char *version_number, const char *build_number )
+{
+  /* Local helper to identify wildcard version specifications, so
+   * we may match them to anything within the version comparator.
+   */
+  register int result = false;
+  register const char *wildcard = build_number;
+  if( wildcard == NULL ) wildcard = version_number;
+  if( wildcard != NULL )
+    while( *wildcard )
+      result = (*wildcard++ == '*');
+  return result;
+}
+
 int pkgSpecs::VersionComparator( pkgSpecs& rhs )
 {
   /* Private helper method, used to facilitate implementation
@@ -151,75 +169,112 @@ int pkgSpecs::VersionComparator( pkgSpecs& rhs )
    * entity represents a "lesser" (i.e. an earlier) version than the
    * RHS, or greater than zero if the LHS represents a "greater"
    * (i.e. a more recent) version than the RHS.
-   *
-   * Initially, we compare just the package version itself...
    */
-  pkgVersionInfo lhs_version( GetPackageVersion(), GetPackageBuild() );
-  pkgVersionInfo rhs_version( rhs.GetPackageVersion(), rhs.GetPackageBuild() );
-  /*
-   * ...returning immediately, with an appropriate return value,
+  const char *lhs_version_spec = GetPackageVersion();
+  const char *lhs_build_spec = GetPackageBuild();
+
+  const char *rhs_version_spec = rhs.GetPackageVersion();
+  const char *rhs_build_spec = rhs.GetPackageBuild();
+
+  DEBUG_INVOKE_IF( DEBUG_REQUEST( DEBUG_TRACE_DEPENDENCIES ),
+      dmh_printf( "  LHS: %s-%s-%s-%s\n  RHS: %s-%s-%s-%s\n",
+	lhs_version_spec, lhs_build_spec, GetReleaseStatus(), GetReleaseIndex(),
+	rhs_version_spec, rhs_build_spec, rhs.GetReleaseStatus(), rhs.GetReleaseIndex())
+      );
+
+  /* Initially, we compare just the package version itself...
+   */
+  pkgVersionInfo lhs_version( lhs_version_spec, lhs_build_spec );
+  pkgVersionInfo rhs_version( rhs_version_spec, rhs_build_spec );
+
+  /* ...returning immediately with an appropriate return value,
    * if LHS and RHS versions are distinct.
    */
   if( lhs_version < rhs_version ) return -1;
   if( lhs_version > rhs_version ) return +1;
 
+  DEBUG_INVOKE_IF( DEBUG_REQUEST( DEBUG_TRACE_DEPENDENCIES ),
+      dmh_printf( "   base versions match\n" )
+    );
+
   /* If we get to here, then the package versions of LHS and RHS
-   * are identically the same; however, we may still be able to
-   * differentiate between them, on the basis of progression in
-   * their respective development (release) status qualifiers.
+   * are effectively matched; however, unless there is a wildcard
+   * specification in effect, (in which case we have an automatic
+   * match), we may still be able to differentiate between them,
+   * by comparing their respective development (release) status
+   * qualifiers; thus...
    */
-  const char *lhs_quality, *rhs_quality;
-  if( (lhs_quality = GetReleaseStatus()) != NULL )
+  if( ! is_wildcard_spec( lhs_version_spec, lhs_build_spec )
+  &&  ! is_wildcard_spec( rhs_version_spec, rhs_build_spec )  )
   {
-    /* The LHS entity is qualified as "alpha", "beta", ...
+    /* ...we progress this only when there is no wildcard
+     * specification in effect.
      */
-    if( (rhs_quality = rhs.GetReleaseStatus()) == NULL )
-      /*
-       * ...but the RHS entity is not; we always consider an
-       * unqualified version to implicitly represent "stable",
-       * which is always compared as "more recent" than any
-       * "alpha", "beta" or "rc" qualified release at the
-       * same package version point, so we may immediately
-       * confirm the LHS as the "lesser" release.
+    const char *lhs_quality, *rhs_quality;
+    if( (lhs_quality = GetReleaseStatus()) != NULL )
+    {
+      /* The LHS entity is qualified as "alpha", "beta", ...
        */
-      return -1;
+      if( (rhs_quality = rhs.GetReleaseStatus()) == NULL )
+      {
+	/* ...but the RHS entity is not; we always consider an
+	 * unqualified version to implicitly represent "stable",
+	 * which is always compared as "more recent" than any
+	 * "alpha", "beta" or "rc" qualified release at the
+	 * same package version point, so we may immediately
+	 * confirm the LHS as the "lesser" release.
+	 */
+	DEBUG_INVOKE_IF( DEBUG_REQUEST( DEBUG_TRACE_DEPENDENCIES ),
+	    dmh_printf( "  mismatched: LHS is qualified; RHS is not, and is not a wildcard\n" )
+	  );
+	return -1;
+      }
 
-    /* If we still haven't differentiated them, then both LHS
-     * and RHS must be qualified.  Check if we can resolve the
-     * deadlock on the basis of progression of development from
-     * "alpha" through "beta" and "rc" to "stable" phases; (note
-     * that simply checking the initial character of the phase
-     * qualifier indicates the appropriate progression).
-     */
-    int chkval = *lhs_quality - *rhs_quality;
-    if( chkval != 0 ) return chkval;
+      /* If we still haven't differentiated them, then both LHS
+       * and RHS must be qualified.  Check if we can resolve the
+       * deadlock on the basis of progression of development from
+       * "alpha" through "beta" and "rc" to "stable" phases; (note
+       * that simply checking the initial character of the phase
+       * qualifier indicates the appropriate progression).
+       */
+      int chkval = *lhs_quality - *rhs_quality;
+      if( chkval != 0 ) return chkval;
 
-    /* If we still can't resolve the deadlock, then both LHS
-     * and LHS must be qualified as being in identically the
-     * same development phase, so we must now differentiate
-     * on the basis of progression of the release index...
-     */
-    lhs_version.Reset( GetReleaseIndex() );
-    rhs_version.Reset( rhs.GetReleaseIndex() );
-    /*
-     * ...noting that these progress in the same manner as
-     * the package version number itself.
-     */
-    if( lhs_version < rhs_version ) return -1;
-    if( lhs_version > rhs_version ) return +1;
+      /* If we still can't resolve the deadlock, then both LHS
+       * and LHS must be qualified as being in identically the
+       * same development phase, so we must now differentiate
+       * on the basis of progression of the release index...
+       */
+      lhs_version.Reset( GetReleaseIndex() );
+      rhs_version.Reset( rhs.GetReleaseIndex() );
+      /*
+       * ...noting that these progress in the same manner as
+       * the package version number itself.
+       */
+      if( lhs_version < rhs_version ) return -1;
+      if( lhs_version > rhs_version ) return +1;
+    }
+
+    else if( rhs.GetReleaseStatus() != NULL )
+    {
+      /*
+       * In this case, the RHS entity is qualified as "alpha",
+       * "beta", ..., but the LHS is not.  Since we've already
+       * determined that both represent the same version of the
+       * package, we may infer that the LHS represents a stable
+       * derivative of the qualified RHS, and thus corresponds
+       * to a more recent release, so return the appropriate
+       * value to indicate LHS > RHS.
+       */
+      DEBUG_INVOKE_IF( DEBUG_REQUEST( DEBUG_TRACE_DEPENDENCIES ),
+	  dmh_printf( "  mismatched: RHS qualified; LHS is not, and is not a wildcard\n" )
+	);
+      return +1;
+    }
   }
-
-  else if( rhs.GetReleaseStatus() != NULL )
-    /*
-     * In this case, the RHS entity is qualified as "alpha",
-     * "beta", ..., but the LHS is not.  Since we've already
-     * determined that both represent the same version of the
-     * package, we may infer that the LHS represents a stable
-     * derivative of the qualified RHS, and thus corresponds
-     * to a more recent release, so return the appropriate
-     * value to indicate LHS > RHS.
-     */
-    return +1;
+  DEBUG_INVOKE_IF( DEBUG_REQUEST( DEBUG_TRACE_DEPENDENCIES ),
+      dmh_printf( "   package versions match; checking subsystem\n" )
+    );
 
   /* If we get to here, then LHS and RHS represent the same
    * version of the package, at the same phase of development;
@@ -241,6 +296,9 @@ int pkgSpecs::VersionComparator( pkgSpecs& rhs )
    * of any package version comparison, so we may return zero
    * to assert their equality.
    */
+  DEBUG_INVOKE_IF( DEBUG_REQUEST( DEBUG_TRACE_DEPENDENCIES ),
+      dmh_printf( "   match found\n" )
+    );
   return 0;
 }
 

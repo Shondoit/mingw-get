@@ -2,7 +2,7 @@
 /*
  * debug.h
  *
- * $Id: debug.h,v 1.6 2011/06/07 21:03:37 keithmarshall Exp $
+ * $Id: debug.h,v 1.7 2011/07/27 20:36:00 keithmarshall Exp $
  *
  * Written by Keith Marshall <keithmarshall@users.sourceforge.net>
  * Copyright (C) 2010, 2011, MinGW Project
@@ -69,6 +69,7 @@
 #  define DEBUG_UPDATE_INVENTORY		0x0080
 
 #  define DEBUG_TRACE_INTERNET_REQUESTS  	0x0100
+#  define DEBUG_TRACE_DEPENDENCIES	  	0x0200
 
 #  define DEBUG_INHIBIT_RITES_OF_PASSAGE  	0x7000
 #  define DEBUG_FAIL_FILE_RENAME_RITE		0x1000

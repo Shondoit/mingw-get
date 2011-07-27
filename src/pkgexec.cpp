@@ -1,7 +1,7 @@
 /*
  * pkgexec.cpp
  *
- * $Id: pkgexec.cpp,v 1.15 2011/06/13 19:00:14 keithmarshall Exp $
+ * $Id: pkgexec.cpp,v 1.16 2011/07/27 20:36:00 keithmarshall Exp $
  *
  * Written by Keith Marshall <keithmarshall@users.sourceforge.net>
  * Copyright (C) 2009, 2010, 2011, MinGW Project
@@ -276,6 +276,9 @@ pkgActionItem::GetReference( pkgActionItem& item )
 
 pkgXmlNode *pkgActionItem::SelectIfMostRecentFit( pkgXmlNode *package )
 {
+  DEBUG_INVOKE_IF( DEBUG_REQUEST( DEBUG_TRACE_DEPENDENCIES ),
+      dmh_printf( "SelectIfMostRecentFit: begin function\n" )
+    );
   /* Assign "package" as the "selection" for the referring action item,
    * provided it matches the specified selection criteria and it represents
    * a more recent release than any current selection.
@@ -313,6 +316,9 @@ pkgXmlNode *pkgActionItem::SelectIfMostRecentFit( pkgXmlNode *package )
 
   /* Whatever choice we make, we return the resultant selection...
    */
+  DEBUG_INVOKE_IF( DEBUG_REQUEST( DEBUG_TRACE_DEPENDENCIES ),
+      dmh_printf( "SelectIfMostRecentFit: end function\n" )
+    );
   return Selection();
 }
 

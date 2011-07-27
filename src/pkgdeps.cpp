@@ -1,7 +1,7 @@
 /*
  * pkgdeps.cpp
  *
- * $Id: pkgdeps.cpp,v 1.7 2011/02/13 21:23:58 keithmarshall Exp $
+ * $Id: pkgdeps.cpp,v 1.8 2011/07/27 20:36:00 keithmarshall Exp $
  *
  * Written by Keith Marshall <keithmarshall@users.sourceforge.net>
  * Copyright (C) 2009, 2010, 2011, MinGW Project
@@ -30,6 +30,7 @@
 #include <string.h>
 
 #include "dmh.h"
+#include "debug.h"
 
 #include "pkginfo.h"
 #include "pkgbase.h"
@@ -165,6 +166,14 @@ const char *pkgXmlNode::GetContainerAttribute( const char *key, const char *sub 
   return sub;
 }
 
+DEBUG_INVOKED static void
+DEBUG_INVOKED show_required( pkgSpecs *req )
+DEBUG_INVOKED {
+DEBUG_INVOKED   const char *tarname = NULL;
+DEBUG_INVOKED   dmh_printf( " require: %s\n", req->GetTarName( tarname ) );
+DEBUG_INVOKED   free( (void *)(tarname) );
+DEBUG_INVOKED }
+
 void
 pkgXmlDocument::ResolveDependencies( pkgXmlNode* package, pkgActionItem* rank )
 # define promote( request, action )  (((request) & (~ACTION_MASK)) | action )
@@ -175,6 +184,9 @@ pkgXmlDocument::ResolveDependencies( pkgXmlNode* package, pkgActionItem* rank )
    * of such prerequisites, and finally, extend the search to capture
    * additional dependencies common to the containing package group.
    */
+  DEBUG_INVOKE_IF( DEBUG_REQUEST( DEBUG_TRACE_DEPENDENCIES ),
+      dmh_printf( "ResolveDependencies: begin function\n" )
+    );
   pkgSpecs *refdata = NULL;
   pkgXmlNode *refpkg = package;
 
@@ -202,13 +214,21 @@ pkgXmlDocument::ResolveDependencies( pkgXmlNode* package, pkgActionItem* rank )
 	 */
 	const char *refname;
 	if( (refname = refpkg->GetPropVal( tarname_key, NULL )) != NULL )
+	{
+	  DEBUG_INVOKE_IF( DEBUG_REQUEST( DEBUG_TRACE_DEPENDENCIES ),
+	      dmh_printf( "%s: resolve dependencies\n", refname )
+	    );
 	  refdata = new pkgSpecs( refname );
+	}
       }
 
       /* Identify the prerequisite package, from its canonical name...
        */
       pkgActionItem wanted; pkgXmlNode *selected;
       pkgSpecs req( wanted.SetRequirements( dep, refdata ) );
+      DEBUG_INVOKE_IF( DEBUG_REQUEST( DEBUG_TRACE_DEPENDENCIES ),
+	  show_required( &req )
+	);
       /*
        * (Both the package name, and subsystem if specified, must match)...
        */
@@ -247,7 +267,10 @@ pkgXmlDocument::ResolveDependencies( pkgXmlNode* package, pkgActionItem* rank )
 	    /* ...noting if we find one already marked as "installed"...
 	    */
 	    const char *tstclass;
-	    pkgSpecs tst( required->GetPropVal( tarname_key, NULL ) );
+	    pkgSpecs tst( tstclass = required->GetPropVal( tarname_key, NULL ) );
+	    DEBUG_INVOKE_IF( DEBUG_REQUEST( DEBUG_TRACE_DEPENDENCIES ),
+		dmh_printf( " considering: %s\n", tstclass )
+	      );
 	    if( (tstclass = tst.GetComponentClass()) == NULL )
 	      tstclass = value_unknown;
 
@@ -349,6 +372,9 @@ pkgXmlDocument::ResolveDependencies( pkgXmlNode* package, pkgActionItem* rank )
      */
     package = (package == GetRoot()) ? NULL : package->GetParent();
   }
+  DEBUG_INVOKE_IF( DEBUG_REQUEST( DEBUG_TRACE_DEPENDENCIES ),
+      dmh_printf( "ResolveDependencies: end function\n" )
+    );
   delete refdata;
 }
 
