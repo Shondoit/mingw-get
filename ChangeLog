@@ -1,5 +1,13 @@
 2011-07-29  Keith Marshall  <keithmarshall@users.sourceforge.net>
 
+	mingw-get-0.3-mingw32-alpha-2.1 released.
+
+	* configure.ac (AC_INIT): Adjust version number.
+	* srcdist-doc/NEWS.in: Updated; document bugs fixed.
+	* All files (r0-3-alpha-2-1): Tag assigned.
+
+2011-07-29  Keith Marshall  <keithmarshall@users.sourceforge.net>
+
 	Adopt tar.xz as default package archive format.
 
 	* Makefile.in (TARZIP, TAREXT): New macros; define them.

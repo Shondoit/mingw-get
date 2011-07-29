@@ -1,10 +1,31 @@
 Release Notes
 =============
 
-$Id: NEWS.in,v 1.7 2011/06/17 07:02:18 keithmarshall Exp $
+$Id: NEWS.in,v 1.8 2011/07/29 20:21:57 keithmarshall Exp $
 
 The information presented below describes the user visible changes
 introduced with each release of mingw-get.
+
+
+mingw-get-0.3-mingw32-alpha-2.1
+-------------------------------
+
+Release date: 2011-07-29
+
+This interim release corrects a critical defect in the version matching
+code within mingw-get's dependency resolver, which resulted in failure
+of wild card tokens in a requirements specification to match an actual
+package version, where that version was qualified by a release status
+descriptor, (such as "alpha", "beta", "pre", etc.)
+
+Users may also note that the default package archive format has been
+changed from tar.gz to tar.xz; (the alternative zip format archive for
+the binary package is retained, for the convenience of first time users
+who lack any tar archive extraction capability).
+
+This release is a mandatory prerequisite upgrade for all users who may
+wish to install and deploy the upcoming MinGW GCC-4.6 pre-release
+packages using mingw-get.
 
 
 mingw-get-0.3-mingw32-alpha-2
