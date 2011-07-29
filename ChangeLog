@@ -1,3 +1,11 @@
+2011-07-29  Keith Marshall  <keithmarshall@users.sourceforge.net>
+
+	Adopt tar.xz as default package archive format.
+
+	* Makefile.in (TARZIP, TAREXT): New macros; define them.
+	(bindist, licdist, srcdist): Use them in place of hardcoded tar.gz
+	(maintainer-clean): Expunge tar files of any compression format.
+
 2011-07-27  Keith Marshall  <keithmarshall@users.sourceforge.net>
 
 	Correct handling of release status in requirements specifications.

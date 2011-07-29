@@ -1,6 +1,6 @@
 # @configure_input@
 #
-# $Id: Makefile.in,v 1.29 2011/06/18 12:32:23 keithmarshall Exp $
+# $Id: Makefile.in,v 1.30 2011/07/29 19:52:32 keithmarshall Exp $
 
 PACKAGE_TARNAME = @PACKAGE_TARNAME@
 PACKAGE_VERSION = @PACKAGE_VERSION@
@@ -176,13 +176,20 @@ PACKAGE_DISTNAME = $(PACKAGE_TARNAME)-$(PACKAGE_DISTVERSION)
 
 dist: srcdist bindist readme.txt
 
+# Specify default compression command, and associated file name extension,
+# for creation and identification of packaged tar archives.
+#
+TARZIP = xz
+TAREXT = tar.$(TARZIP)
+
 bindist: all licdist
 	rm -rf staged
 	$(MAKE) --no-print-directory prefix=`pwd`/staged install-strip
-	cd staged; tar chf - bin/pkginfo$(EXEEXT) | gzip -c > \
-	  ../pkginfo-$(PACKAGE_DISTVERSION)-bin.tar.gz
+	cd staged; tar chf - bin/pkginfo$(EXEEXT) | $(TARZIP) -c > \
+	  ../pkginfo-$(PACKAGE_DISTVERSION)-bin.$(TAREXT)
 	rm staged/bin/pkginfo$(EXEEXT)
-	cd staged; tar chf - * | gzip -c > ../$(PACKAGE_DISTNAME)-bin.tar.gz
+	cd staged; tar chf - * | $(TARZIP) -c > \
+	  ../$(PACKAGE_DISTNAME)-bin.$(TAREXT)
 	cd staged; zip -r ../$(PACKAGE_DISTNAME)-bin.zip *
 	rm -rf staged
 
@@ -194,7 +201,7 @@ licdist:
 	    && $(LN_S) ${abs_top_srcdir}/$$file . \
 	    || $(LN_S) ../$$file .; \
 	  done
-	tar chf - share | gzip -c > $(PACKAGE_DISTNAME)-lic.tar.gz
+	tar chf - share | $(TARZIP) -c > $(PACKAGE_DISTNAME)-lic.$(TAREXT)
 	rm -rf share
 
 srcdist: pkginfo.c srcdist-doc
@@ -213,7 +220,8 @@ srcdist: pkginfo.c srcdist-doc
 	  done; \
 	cd ${CURDIR}; done
 	cd ${PACKAGE_DISTROOT}/src/pkginfo; $(LN_S) ${CURDIR}/$^ .
-	tar chf - ${PACKAGE_DISTROOT} | gzip -c > ${PACKAGE_DISTNAME}-src.tar.gz
+	tar chf - ${PACKAGE_DISTROOT} | $(TARZIP) -c > \
+	  ${PACKAGE_DISTNAME}-src.$(TAREXT)
 	rm -rf ${PACKAGE_DISTROOT}
 
 # README, INSTALL and NEWS files to be included in the source distribution
@@ -285,7 +293,7 @@ distclean: clean
 
 maintainer-clean: distclean
 	rm -f README NEWS INSTALL readme.txt Makefile pkginfo.c
-	rm -f *-$(PACKAGE_DISTVERSION)-*.tar.gz *-$(PACKAGE_DISTVERSION)-*.zip
+	rm -f *-$(PACKAGE_DISTVERSION)-*.tar.* *-$(PACKAGE_DISTVERSION)-*.zip
 	rm -rf ${PACKAGE_DISTROOT} staged ${srcdir}/autom4te.cache
 
 # $RCSfile: Makefile.in,v $: end of file
