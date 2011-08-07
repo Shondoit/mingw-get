@@ -2,7 +2,7 @@
 /*
  * pkgbase.h
  *
- * $Id: pkgbase.h,v 1.13 2011/05/12 20:33:51 keithmarshall Exp $
+ * $Id: pkgbase.h,v 1.14 2011/08/07 05:37:48 keithmarshall Exp $
  *
  * Written by Keith Marshall <keithmarshall@users.sourceforge.net>
  * Copyright (C) 2009, 2010, 2011, MinGW Project
@@ -222,6 +222,10 @@ class pkgActionItem
      * for processing by this action.
      */
     pkgXmlNode* selection[ selection_types ];
+
+    /* Method to display the URI whence a package may be downloaded.
+     */
+    void PrintURI( const char* );
 
     /* Method for retrieving packages from a distribution server.
      */

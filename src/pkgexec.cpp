@@ -1,7 +1,7 @@
 /*
  * pkgexec.cpp
  *
- * $Id: pkgexec.cpp,v 1.16 2011/07/27 20:36:00 keithmarshall Exp $
+ * $Id: pkgexec.cpp,v 1.17 2011/08/07 05:37:48 keithmarshall Exp $
  *
  * Written by Keith Marshall <keithmarshall@users.sourceforge.net>
  * Copyright (C) 2009, 2010, 2011, MinGW Project
@@ -383,79 +383,110 @@ void pkgActionItem::Execute()
     pkgActionItem *current = this;
     bool init_rites_pending = true;
     while( current->prev != NULL ) current = current->prev;
-    do {
-	 DownloadArchiveFiles( current );
-       } while( SetAuthorities( current ) > 0 );
-    while( current != NULL )
+
+    /* Unless normal operations have been suppressed by the
+     * --print-uris option, (in order to obtain a list of all
+     * package URIs which the operation would access)...
+     */
+    if( pkgOptions()->Test( OPTION_PRINT_URIS ) < OPTION_PRINT_URIS )
+      do {
+	   /* ...we initiate any download requests which may
+	    * be necessary to fetch all required archives into
+	    * the local package cache.
+	    */
+	   DownloadArchiveFiles( current );
+	 } while( SetAuthorities( current ) > 0 );
+
+    else while( current != NULL )
     {
-      /* Processing only those packages with assigned actions...
+      /* The --print-uris option is in effect: we simply loop
+       * over all packages with an assigned action, printing
+       * the associated download URI for each; (note that this
+       * will print the URI regardless of prior existence of
+       * the associated package in the local cache).
        */
-      if( (current->flags & ACTION_MASK) != 0 )
+      current->PrintURI( current->Selection()->ArchiveName() );
+      current = current->next;
+    }
+
+    /* If the --download-only option is in effect, then we have
+     * nothing more to do...
+     */
+    if( pkgOptions()->Test( OPTION_DOWNLOAD_ONLY ) == 0 )
+    {
+      /* ...otherwise...
+       */
+      while( current != NULL )
       {
-	/* Print a notification of the installation process to be
-	 * performed, identifying the package to be processed.
+	/* ...processing only those packages with assigned actions...
 	 */
-	const char *tarname;
-	if( (tarname = current->Selection()->GetPropVal( tarname_key, NULL )) == NULL )
-	  tarname = current->Selection( to_remove )->GetPropVal( tarname_key, value_unknown );
-	dmh_printf( "%s: %s\n", action_name(current->flags & ACTION_MASK), tarname );
-
-	/* Check for any outstanding requirement to invoke the
-	 * "self upgrade rites" process, so that we may install an
-	 * upgrade for mingw-get itself...
-	 */
-	if( init_rites_pending )
-	  /*
-	   * ...discontinuing the check once this has been completed,
-	   * since it need not be performed more than once.
+	if( (current->flags & ACTION_MASK) != 0 )
+	{
+	  /* ...print a notification of the installation process to
+	   * be performed, identifying the package to be processed.
 	   */
-	  init_rites_pending = self_upgrade_rites( tarname );
+	  const char *tarname;
+	  if( (tarname = current->Selection()->GetPropVal( tarname_key, NULL )) == NULL )
+	    tarname = current->Selection( to_remove )->GetPropVal( tarname_key, value_unknown );
+	  dmh_printf( "%s: %s\n", action_name(current->flags & ACTION_MASK), tarname );
 
-	/* If we are performing an upgrade...
-	 */
-	if( ((current->flags & ACTION_MASK) == ACTION_UPGRADE)
-	/*
-	 * ...and the latest version of the package is already installed...
-	 */
-	&&  (current->Selection() == current->Selection( to_remove ))
-	/*
-	 * ...and the `--reinstall' option hasn't been specified...
-	 */
-	&&  (pkgOptions()->Test( OPTION_REINSTALL ) == 0)  )
-	  /*
-	   * ...then simply report the up-to-date status...
+	  /* Check for any outstanding requirement to invoke the
+	   * "self upgrade rites" process, so that we may install an
+	   * upgrade for mingw-get itself...
 	   */
-	  dmh_notify( DMH_INFO, "package %s is up to date\n", tarname );
-
-	else
-	{ /* ...otherwise, proceed to perform remove and install
-	   * operations, as appropriate.
-	   */
-	  if( (current->flags & ACTION_REMOVE) == ACTION_REMOVE )
-	  {
-	    /* The selected package has been marked for removal,
-	     * either explicitly, or as an implicit prerequisite for upgrade.
+	  if( init_rites_pending )
+	    /*
+	     * ...discontinuing the check once this has been completed,
+	     * since it need not be performed more than once.
 	     */
-	    pkgRemove( current );
-	  }
+	    init_rites_pending = self_upgrade_rites( tarname );
 
-	  if( (current->flags & ACTION_INSTALL) == ACTION_INSTALL )
-	  {
-	    /* The selected package has been marked for installation,
-	     * either explicitly, or implicitly to complete a package upgrade.
+	  /* If we are performing an upgrade...
+	   */
+	  if( ((current->flags & ACTION_MASK) == ACTION_UPGRADE)
+	  /*
+	   * ...and the latest version of the package is already installed...
+	   */
+	  &&  (current->Selection() == current->Selection( to_remove ))
+	  /*
+	   * ...and the `--reinstall' option hasn't been specified...
+	   */
+	  &&  (pkgOptions()->Test( OPTION_REINSTALL ) == 0)  )
+	    /*
+	     * ...then simply report the up-to-date status...
 	     */
-	    pkgXmlNode *tmp = current->Selection( to_remove );
-	    if(   pkgOptions()->Test( OPTION_REINSTALL )
-	    ||  ((current->flags & ACTION_MASK) == ACTION_UPGRADE)  )
-	      current->selection[ to_remove ] = NULL;
-	    pkgInstall( current );
-	    current->selection[ to_remove ] = tmp;
+	    dmh_notify( DMH_INFO, "package %s is up to date\n", tarname );
+
+	  else
+	  { /* ...otherwise, proceed to perform remove and install
+	     * operations, as appropriate.
+	     */
+	    if( (current->flags & ACTION_REMOVE) == ACTION_REMOVE )
+	    {
+	      /* The selected package has been marked for removal,
+	       * either explicitly, or as an implicit prerequisite for upgrade.
+	       */
+	      pkgRemove( current );
+	    }
+
+	    if( (current->flags & ACTION_INSTALL) == ACTION_INSTALL )
+	    {
+	      /* The selected package has been marked for installation,
+	       * either explicitly, or implicitly to complete a package upgrade.
+	       */
+	      pkgXmlNode *tmp = current->Selection( to_remove );
+	      if(   pkgOptions()->Test( OPTION_REINSTALL )
+	      ||  ((current->flags & ACTION_MASK) == ACTION_UPGRADE)  )
+		current->selection[ to_remove ] = NULL;
+	      pkgInstall( current );
+	      current->selection[ to_remove ] = tmp;
+	    }
 	  }
 	}
+	/* Proceed to the next package, if any, with scheduled actions.
+	 */
+	current = current->next;
       }
-      /* Proceed to the next package, if any, with scheduled actions.
-       */
-      current = current->next;
     }
   }
 }

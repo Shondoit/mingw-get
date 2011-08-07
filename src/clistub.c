@@ -1,7 +1,7 @@
 /*
  * clistub.c
  *
- * $Id: clistub.c,v 1.14 2011/06/15 18:48:10 keithmarshall Exp $
+ * $Id: clistub.c,v 1.15 2011/08/07 05:37:48 keithmarshall Exp $
  *
  * Written by Keith Marshall <keithmarshall@users.sourceforge.net>
  * Copyright (C) 2009, 2010, 2011, MinGW Project
@@ -169,38 +169,55 @@ static const char *help_text =
 "  mingw-get [OPTIONS] {show | list} [package-spec ...]\n\n"
 
 "Options:\n"
-"  --help, -h      Show this help text\n"
-"  --version, -V   Show version and licence information\n"
-"  --verbose, -v   Increase verbosity of diagnostic or\n"
-"                  progress reporting output; repeat up\n"
-"                  to three times for maximum verbosity\n"
-"  --verbose=N     Set verbosity level to N; (0 <= N <= 3)\n"
+"  --help, -h        Show this help text\n"
+"\n"
+"  --version, -V     Show version and licence information\n"
+"\n"
+"  --verbose, -v     Increase verbosity of diagnostic or\n"
+"                    progress reporting output; repeat up\n"
+"                    to three times for maximum verbosity\n"
+"  --verbose=N       Set verbosity level to N; (0 <= N <= 3)\n"
+"\n"
 
 /* The "--trace" option is available only when dynamic tracing
  * debugging support is compiled in; don't advertise it otherwise.
  */
 #if DEBUG_ENABLED( DEBUG_TRACE_DYNAMIC )
-"  --trace=N       Enable tracing feature N; (debugging aid)\n"
+"  --trace=N         Enable tracing feature N; (debugging aid)\n"
+"\n"
 #endif
 
 /* The following are always available...
  */
-"  --reinstall     When performing an install or upgrade\n"
-"                  operation, reinstall any named package\n"
-"                  for which the most recent release is\n"
-"                  already installed\n"
+"  --reinstall       When performing an install or upgrade\n"
+"                    operation, reinstall any named package\n"
+"                    for which the most recent release is\n"
+"                    already installed\n"
+"\n"
+"  --download-only   Download the package archive files which\n"
+"                    would be required to complete the specified\n"
+"                    install, upgrade, or source operation, but\n"
+"                    do not unpack them, or otherwise proceed\n"
+"                    to complete the operation\n"
+"\n"
+"  --print-uris      Display the repository URIs from which\n"
+"                    package archive files would be retrieved\n"
+"                    prior to performing the specified install,\n"
+"                    upgrade, or source operation, but do not\n"
+"                    download any package file, or otherwise\n"
+"                    proceed with the operation\n"
 "\n"
 "Actions:\n"
-"  update          Update local copy of repository catalogues\n"
-"  list, show      List and show details of available packages\n"
-"  install         Install new packages\n"
-"  upgrade         Upgrade previously installed packages\n"
-"  remove          Remove previously installed packages\n\n"
+"  update            Update local copy of repository catalogues\n"
+"  list, show        List and show details of available packages\n"
+"  install           Install new packages\n"
+"  upgrade           Upgrade previously installed packages\n"
+"  remove            Remove previously installed packages\n\n"
 
 "Package Specifications:\n"
 "  [subsystem-]name[-component]:\n"
-"  msys-bash-doc   The 'doc' component of the bash package for MSYS\n"
-"  mingw32-gdb     All components of the gdb package for MinGW\n\n"
+"  msys-bash-doc     The 'doc' component of the bash package for MSYS\n"
+"  mingw32-gdb       All components of the gdb package for MinGW\n\n"
 
 "Use 'mingw-get list' to identify possible package names\n"
 "and the components associated with each.\n\n";
@@ -363,19 +380,21 @@ int main( int argc, char **argv )
     struct option options[] =
     {
       /* Option Name      Argument Category    Store To   Return Value
-       * --------------   ------------------   --------   ----------------
+       * --------------   ------------------   --------   ------------------
        */
-      { "version",        no_argument,         NULL,      'V'              },
-      { "help",           no_argument,         NULL,      'h'              },
-      { "verbose",        optional_argument,   NULL,      OPTION_VERBOSE   },
+      { "version",        no_argument,         NULL,      'V'                },
+      { "help",           no_argument,         NULL,      'h'                },
+      { "verbose",        optional_argument,   NULL,      OPTION_VERBOSE     },
 
-      { "reinstall",      no_argument,         &optref,   OPTION_REINSTALL },
+      { "reinstall",      no_argument,         &optref,   OPTION_REINSTALL   },
+      { "download-only",  no_argument,         &optref,   OPTION_DNLOAD_ONLY },
+      { "print-uris",     no_argument,         &optref,   OPTION_PRINT_URIS  },
 
 #     if DEBUG_ENABLED( DEBUG_TRACE_DYNAMIC )
 	/* The "--trace" option is supported only when dynamic tracing
 	 * debugging support has been compiled in.
 	 */
-      { "trace",          required_argument,   &optref,   OPTION_TRACE     },
+      { "trace",          required_argument,   &optref,   OPTION_TRACE       },
 #     endif
 
       /* This list must be terminated by a null definition...

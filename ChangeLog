@@ -1,3 +1,18 @@
+2011-08-07  Keith Marshall  <keithmarshall@users.sourceforge.net>
+
+	Implement --download-only and --print-uris options.
+
+	* src/pkgopts.h (OPTION_DOWNLOAD_ONLY, OPTION_PRINT_URIS):
+	New manifest constants, identifying flag bits; define them.
+	(OPTION_DNLOAD_ONLY): Likewise; an alias for OPTION_DOWNLOAD_ONLY.
+
+	* src/pkgbase.h (pkgActionItem::PrintURI): New private method.
+	* src/pkginet.cpp: Implement it.
+
+	* src/clistub.c (options): Add "download-only" and "print-uris".
+	(help_text): Document them.
+	* src/pkgexec.cpp (pkgActionItem::Execute): Process them.
+
 2011-07-29  Keith Marshall  <keithmarshall@users.sourceforge.net>
 
 	mingw-get-0.3-mingw32-alpha-2.1 released.

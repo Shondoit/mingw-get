@@ -2,7 +2,7 @@
 /*
  * pkgopts.h
  *
- * $Id: pkgopts.h,v 1.3 2011/06/13 19:00:14 keithmarshall Exp $
+ * $Id: pkgopts.h,v 1.4 2011/08/07 05:37:48 keithmarshall Exp $
  *
  * Written by Keith Marshall <keithmarshall@users.sourceforge.net>
  * Copyright (C) 2011, MinGW Project
@@ -85,6 +85,9 @@ struct pkgopts
 #define OPTION_VERBOSE_MAX	(0x00000003)
 
 #define OPTION_REINSTALL	(0x00000010)
+#define OPTION_DNLOAD_ONLY	(0x00000020)
+#define OPTION_DOWNLOAD_ONLY	(0x00000020)
+#define OPTION_PRINT_URIS	(0x00000060)
 
 #if __cplusplus
 /*

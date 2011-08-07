@@ -1,7 +1,7 @@
 /*
  * pkginet.cpp
  *
- * $Id: pkginet.cpp,v 1.12 2011/05/29 20:53:37 keithmarshall Exp $
+ * $Id: pkginet.cpp,v 1.13 2011/08/07 05:37:48 keithmarshall Exp $
  *
  * Written by Keith Marshall <keithmarshall@users.sourceforge.net>
  * Copyright (C) 2009, 2010, 2011, MinGW Project
@@ -633,6 +633,37 @@ int pkgInternetStreamingAgent::Get( const char *from_url )
   /* Report success or failure to the caller...
    */
   return dl_status;
+}
+
+void pkgActionItem::PrintURI( const char *package_name )
+{
+  /* Private method to display the URI from which a package archive
+   * may be downloaded; called with "package_name" assigned by either
+   * ArchiveName() or SourceArchiveName() as appropriate, and...
+   */
+  if( ! match_if_explicit( package_name, value_none ) )
+  {
+    /* ...applicable only to real (i.e. not meta) packages.
+     *
+     * We begin by retrieving the URI template associated with
+     * the specified package...
+     */
+    const char *url_template = get_host_info( Selection(), uri_key );
+    if( url_template != NULL )
+    {
+      /* ...then filling in the package name and preferred mirror
+       * assignment, as if preparing to initiate a download...
+       */
+      const char *mirror = get_host_info( Selection(), mirror_key );
+      char package_url[mkpath( NULL, url_template, package_name, mirror )];
+      mkpath( package_url, url_template, package_name, mirror );
+
+      /* ...then, rather than actually initiate the download,
+       * we simply write out the generated URI to stdout.
+       */
+      printf( "%s\n", package_url );
+    }
+  }
 }
 
 void pkgActionItem::DownloadArchiveFiles( pkgActionItem *current )
