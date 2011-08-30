@@ -2,7 +2,7 @@
 /*
  * pkgproc.h
  *
- * $Id: pkgproc.h,v 1.5 2011/02/27 16:21:36 keithmarshall Exp $
+ * $Id: pkgproc.h,v 1.6 2011/08/30 18:04:06 keithmarshall Exp $
  *
  * Written by Keith Marshall <keithmarshall@users.sourceforge.net>
  * Copyright (C) 2009, 2010, 2011, MinGW Project
@@ -84,6 +84,9 @@ class pkgArchiveProcessor
     pkgManifest *installed;
     const char  *tarname;
     const char  *pkgfile;
+
+    virtual int CreateExtractionDirectory( const char* );
+    virtual int ExtractFile( int, const char*, int );
 };
 
 /* Our standard package format specifies the use of tar archives;
@@ -144,8 +147,9 @@ class pkgTarArchiveProcessor : public pkgArchiveProcessor
    * which are shared by all such tools.
    */
   public:
-    /* Constructor and destructor...
+    /* Constructors and destructor...
      */
+    pkgTarArchiveProcessor(){}
     pkgTarArchiveProcessor( pkgXmlNode* );
     virtual ~pkgTarArchiveProcessor();
 
@@ -178,8 +182,27 @@ class pkgTarArchiveProcessor : public pkgArchiveProcessor
     virtual int ProcessLinkedEntity( const char* );
 };
 
+class pkgTarArchiveExtractor : public pkgTarArchiveProcessor
+{
+  /* Worker class supporting extraction of tar archives to an
+   * arbitrary directory, without performing an installation.
+   */
+  public:
+    pkgTarArchiveExtractor( const char*, const char* );
+
+  private:
+    /* Specialised implementations of the archive processing methods...
+     */
+    virtual int ProcessDirectory( const char* );
+    virtual int ProcessDataStream( const char* );
+};
+
 class pkgTarArchiveInstaller : public pkgTarArchiveProcessor
 {
+  /* Worker class for extraction of package tar archive content
+   * to the sysroot directory nominated in the package manifest,
+   * for the purpose of performing an installation or upgrade.
+   */
   public:
     /* Constructor and destructor...
      */
@@ -197,6 +220,9 @@ class pkgTarArchiveInstaller : public pkgTarArchiveProcessor
 
 class pkgTarArchiveUninstaller : public pkgTarArchiveProcessor
 {
+  /* Worker class for removing package content which has been
+   * previously installed by the pkgTarArchiveInstaller.
+   */
   public:
     /* Constructor and destructor...
      */

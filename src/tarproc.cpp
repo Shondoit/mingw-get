@@ -1,7 +1,7 @@
 /*
  * tarproc.cpp
  *
- * $Id: tarproc.cpp,v 1.11 2011/06/07 21:03:37 keithmarshall Exp $
+ * $Id: tarproc.cpp,v 1.12 2011/08/30 18:04:06 keithmarshall Exp $
  *
  * Written by Keith Marshall <keithmarshall@users.sourceforge.net>
  * Copyright (C) 2009, 2010, 2011, MinGW Project
@@ -46,10 +46,53 @@
 
 /*******************
  *
+ * Class Implementation: pkgArchiveProcessor
+ *
+ */
+int pkgArchiveProcessor::CreateExtractionDirectory( const char *pathname )
+{
+  /* Helper method for creation of the directory infrastructure
+   * into which archived file entities are to be extracted.
+   */
+  int status;
+  if( (status = mkdir_recursive( pathname, 0755 )) != 0 )
+    dmh_notify( DMH_ERROR, "cannot create directory `%s'\n", pathname );
+  return status;
+}
+
+int pkgArchiveProcessor::ExtractFile( int fd, const char *pathname, int status )
+{
+  /* Helper method to finalise extraction of archived file entities;
+   * called by the ProcessDataStream() method of the extractor class,
+   * where "fd" is the file descriptor for the extraction data stream,
+   * "pathname" is the corresponding path wher the data is extracted,
+   * and "status" is the result of calling the ProcessEntityData()
+   * method of the extractor class on "fd".
+   */
+  if( fd >= 0 )
+  {
+    /* File stream was written; close it...
+     */
+    close( fd );
+    if( status != 0 )
+    {
+      /* The target file was not successfully and completely
+       * written; discard it, and diagnose failure.
+       */
+      unlink( pathname );
+      dmh_notify( DMH_ERROR, "%s: extraction failed\n", pathname );
+    }
+  }
+  /* Finally, we pass the original status value back to the caller.
+   */
+  return status;
+}
+
+/*******************
+ *
  * Class Implementation: pkgTarArchiveProcessor
  *
  */
-
 pkgTarArchiveProcessor::pkgTarArchiveProcessor( pkgXmlNode *pkg )
 {
   /* Constructor to associate a package tar archive with its
@@ -460,7 +503,7 @@ char *pkgTarArchiveProcessor::EntityDataAsString()
 
 /*******************
  *
- * Class Implementation: pkgTarArchiveInstaller
+ * Class Implementation: pkgTarArchiveExtractor
  *
  */
 #include <utime.h>
@@ -477,6 +520,80 @@ static int commit_saved_entity( const char *pathname, time_t mtime )
   return utime( pathname, &timestamp );
 }
 
+pkgTarArchiveExtractor::pkgTarArchiveExtractor( const char *fn, const char *dir )
+{
+  /* A simplified variation on the installer theme; this extracts
+   * the tar archive named by "fn" into any arbitrarily chosen path,
+   * specified by "dir", without creating an installation record.
+   *
+   * The extractor uses a specialised constructor; however, we
+   * begin by initialising as for the general case.
+   */
+  sysroot_len = 0;
+
+  sysroot = NULL;
+  sysroot_path = NULL;
+  installed = NULL;
+  stream = NULL;
+
+  /* When an explicit extraction path name is specified...
+   */
+  if( dir != NULL )
+  {
+    /* ...then set up the template which the extractor will use
+     * to generate path names for each extracted file entity...
+     */
+    const char *template_format = "%F%%/M/%%F";
+    char template_text[mkpath( NULL, template_format, dir, NULL )];
+    mkpath( template_text, template_format, dir, NULL );
+
+    /* ...suborning the sysroot_len and sysroot_path properties
+     * to pass it to the extraction methods.
+     */
+    sysroot_len = mkpath( NULL, template_text, "", NULL ) - 1;
+    sysroot_path = strdup( template_text );
+  }
+
+  /* Finally, open the specified archive using the appropriate
+   * stream type, and invoke the extraction Process() method.
+   */
+  stream = pkgOpenArchiveStream( fn );
+  Process();
+}
+
+int pkgTarArchiveExtractor::ProcessDirectory( const char *pathname )
+{
+  /* We are obliged to provide an implementation for this method,
+   * since the base class declares it as abstract; in this instance,
+   * delegation to a real base class method suffices.
+   */
+  return CreateExtractionDirectory( pathname );
+}
+
+int pkgTarArchiveExtractor::ProcessDataStream( const char *pathname )
+{
+  /* Also declared as abstract in the base class, in this case
+   * we must set up the output stream, and initiate entity data
+   * processing on behalf of the base class ExtractFile() method..
+   */
+  int status;
+  int fd = set_output_stream( pathname, octval( header.field.mode ) );
+  if( (status = ExtractFile( fd, pathname, ProcessEntityData( fd ))) == 0 )
+    /*
+     * ...and commit the file after successful extraction...
+     */
+    commit_saved_entity( pathname, octval( header.field.mtime ) );
+
+  /* ...ultimately returning the extraction status code.
+   */
+  return status;
+}
+
+/*******************
+ *
+ * Class Implementation: pkgTarArchiveInstaller
+ *
+ */
 pkgTarArchiveInstaller::
 pkgTarArchiveInstaller( pkgXmlNode *pkg ):pkgTarArchiveProcessor( pkg )
 {
@@ -531,19 +648,13 @@ int pkgTarArchiveInstaller::ProcessDirectory( const char *pathname )
   }
   else
   {
-    if( (status = mkdir_recursive( pathname, 0755 )) == 0 )
+    if( (status = CreateExtractionDirectory( pathname )) == 0 )
       /*
        * Either the specified directory already exists,
        * or we just successfully created it; attach a reference
        * in the installation manifest for the current package.
        */
       installed->AddEntry( dirname_key, pathname + sysroot_len );
-
-    else
-      /* A required subdirectory could not be created;
-       * diagnose this failure.
-       */
-      dmh_notify( DMH_ERROR, "cannot create directory `%s'\n", pathname );
   }
   return status;
 }
@@ -573,29 +684,19 @@ int pkgTarArchiveInstaller::ProcessDataStream( const char *pathname )
   }
   else
   {
+    int status;
+
+    /* Establish an output file stream, extract the entity data,
+     * writing it to this stream...
+     */
     int fd = set_output_stream( pathname, octval( header.field.mode ) );
-    int status = ProcessEntityData( fd );
-    if( fd >= 0 )
+    if( (status = ExtractFile( fd, pathname, ProcessEntityData( fd ))) == 0 )
     {
-      /* File stream was written; close it...
-       */
-      close( fd );
-      if( status == 0 )
-      {
-	/* ...and on successful completion, commit it and
-	 * record it in the installation database.
+	/* ...and on successful completion, commit the file
+	 * and record it in the installation database.
 	 */
 	commit_saved_entity( pathname, octval( header.field.mtime ) );
 	installed->AddEntry( filename_key, pathname + sysroot_len );
-      }
-
-      else
-      { /* The target file was not successfully and completely
-	 * written; discard it, and diagnose failure.
-	 */
-	unlink( pathname );
-	dmh_notify( DMH_ERROR, "%s: extraction failed\n", pathname );
-      }
     }
     return status;
   }

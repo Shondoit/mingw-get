@@ -1,5 +1,27 @@
 2011-08-30  Keith Marshall  <keithmarshall@users.sourceforge.net>
 
+	Support archive extraction to arbitrary destination without install.
+
+	* src/pkgproc.h (pkgArchiveProcessor::ExtractFile): New virtual
+	helper method for use, as core helper, by derived classes; declare it.
+	(pkgArchiveProcessor::CreateExtractionDirectory): Likewise.
+	(pkgTarArchiveProcessor): Declare overloaded default constructor.
+	(pkgTarArchiveExtractor): New class definition; it is derived from
+	pkgTarArchiveProcessor.
+
+	* src/tarproc.cpp (pkgArchiveProcessor::ExtractFile): Implement it.
+	(pkgArchiveProcessor::CreateExtractionDirectory): Likewise.
+	(pkgTarArchiveExtractor): Implement constructor, together with...
+	(pkgTarArchiveExtractor::ProcessDirectory): ...this method, and also...
+	(pkgTarArchiveExtractor::ProcessDataStream): ...this one; these are
+	declared as abstract, in the pkgTarArchiveProcessor base class.
+	(pkgTarArchiveInstaller::ProcessDirectory): Simplify; it now delegates
+	directory creation to pkgArchiveProcessor::CreateExtractionDirectory.
+	(pkgTarArchiveInstaller::ProcessDataStream): Simplify; delegate file
+	handling to pkgArchiveProcessor::ExtractFile, as appropriate.
+
+2011-08-30  Keith Marshall  <keithmarshall@users.sourceforge.net>
+
 	Make --download-only and --print-uris imply --reinstall.
 
 	* src/pkgopts.h (OPTION_PRINT_URIS): Adjust definition.
