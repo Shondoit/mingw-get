@@ -1,3 +1,10 @@
+2011-08-30  Keith Marshall  <keithmarshall@users.sourceforge.net>
+
+	Make --download-only and --print-uris imply --reinstall.
+
+	* src/pkgopts.h (OPTION_PRINT_URIS): Adjust definition.
+	(OPTION_DNLOAD_ONLY, OPTION_DOWNLOAD_ONLY): Likewise.
+
 2011-08-07  Keith Marshall  <keithmarshall@users.sourceforge.net>
 
 	Implement --download-only and --print-uris options.
