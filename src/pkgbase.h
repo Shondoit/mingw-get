@@ -2,7 +2,7 @@
 /*
  * pkgbase.h
  *
- * $Id: pkgbase.h,v 1.14 2011/08/07 05:37:48 keithmarshall Exp $
+ * $Id: pkgbase.h,v 1.15 2011/10/02 20:38:44 keithmarshall Exp $
  *
  * Written by Keith Marshall <keithmarshall@users.sourceforge.net>
  * Copyright (C) 2009, 2010, 2011, MinGW Project
@@ -227,9 +227,10 @@ class pkgActionItem
      */
     void PrintURI( const char* );
 
-    /* Method for retrieving packages from a distribution server.
+    /* Methods for retrieving packages from a distribution server.
      */
     void DownloadArchiveFiles( pkgActionItem* );
+    void DownloadSingleArchive( const char*, const char* );
 
   public:
     /* Constructor...

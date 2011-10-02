@@ -1,5 +1,17 @@
 2011-10-02  Keith Marshall  <keithmarshall@users.sourceforge.net>
 
+	Facilitate downloads using diverse cache directories.
+
+	* src/pkgbase.h (pkgActionItem::DownloadSingleArchive): New private
+	method; declare it; it handles the download for a single named archive
+	file, and stores it in a specifed cache directory.
+
+	* src/pkginet.cpp (pkgActionItem::DownloadSingleArchive): Implement
+	it; factor its code from the original implementation within...
+	(pkgActionItem::DownloadArchiveFiles): ...this; adapt to use it.
+
+2011-10-02  Keith Marshall  <keithmarshall@users.sourceforge.net>
+
 	Establish cache directory for source archive downloads.
 
 	* src/mkpath.h (pkgSourceArchivePath): New function; declare it.

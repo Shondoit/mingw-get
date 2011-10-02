@@ -1,7 +1,7 @@
 /*
  * pkginet.cpp
  *
- * $Id: pkginet.cpp,v 1.13 2011/08/07 05:37:48 keithmarshall Exp $
+ * $Id: pkginet.cpp,v 1.14 2011/10/02 20:38:44 keithmarshall Exp $
  *
  * Written by Keith Marshall <keithmarshall@users.sourceforge.net>
  * Copyright (C) 2009, 2010, 2011, MinGW Project
@@ -666,6 +666,49 @@ void pkgActionItem::PrintURI( const char *package_name )
   }
 }
 
+void pkgActionItem::DownloadSingleArchive
+( const char *package_name, const char *archive_cache_path )
+{
+  pkgInternetStreamingAgent download( package_name, archive_cache_path );
+
+  /* Check if the required archive is already available locally...
+   */
+  if( (access( download.DestFile(), R_OK ) != 0) && (errno == ENOENT) )
+  {
+    /* ...if not, ask the download agent to fetch it...
+     */
+    flags |= ACTION_DOWNLOAD;
+    const char *url_template = get_host_info( Selection(), uri_key );
+    if( url_template != NULL )
+    {
+      /* ...from the URL constructed from the template specified in
+       * the package repository catalogue (configuration database)...
+       */
+      const char *mirror = get_host_info( Selection(), mirror_key );
+      char package_url[mkpath( NULL, url_template, package_name, mirror )];
+      mkpath( package_url, url_template, package_name, mirror );
+      if( download.Get( package_url ) > 0 )
+	/*
+	 * Download was successful; clear the pending flag.
+	 */
+	flags &= ~ACTION_DOWNLOAD;
+      else
+	/* Diagnose failure; leave pending flag set.
+	 */
+	dmh_notify( DMH_ERROR,
+	    "Get package: %s: download failed\n", package_url
+	  );
+    }
+    else
+      /* Cannot download; the repository catalogue didn't specify a
+       * template, from which to construct a download URL...
+       */
+      dmh_notify( DMH_ERROR,
+	  "Get package: %s: no URL specified for download\n", package_name
+	);
+  }
+}
+
 void pkgActionItem::DownloadArchiveFiles( pkgActionItem *current )
 {
   /* Update the local package cache, to ensure that all packages needed
@@ -691,49 +734,11 @@ void pkgActionItem::DownloadArchiveFiles( pkgActionItem *current )
        * a "virtual" meta-package; it requires nothing to be downloaded...
        */
       if( ! match_if_explicit( package_name, value_none ) )
-      {
-	/* ...but we expect any other package to provide real content,
+	/*
+	 * ...but we expect any other package to provide real content,
 	 * for which we may need to download the package archive...
 	 */
-	pkgInternetStreamingAgent download( package_name, pkgArchivePath() );
-
-	/* Check if the required archive is already available locally...
-	 */
-	if( (access( download.DestFile(), R_OK ) != 0) && (errno == ENOENT) )
-	{
-	  /* ...if not, ask the download agent to fetch it...
-	   */
-	  current->flags |= ACTION_DOWNLOAD;
-	  const char *url_template = get_host_info( current->Selection(), uri_key );
-	  if( url_template != NULL )
-	  {
-	    /* ...from the URL constructed from the template specified in
-	     * the package repository catalogue (configuration database)...
-	     */
-	    const char *mirror = get_host_info( current->Selection(), mirror_key );
-	    char package_url[mkpath( NULL, url_template, package_name, mirror )];
-	    mkpath( package_url, url_template, package_name, mirror );
-	    if( download.Get( package_url ) > 0 )
-	      /*
-	       * Download was successful; clear the pending flag.
-	       */
-	      current->flags &= ~ACTION_DOWNLOAD;
-	    else
-	      /* Diagnose failure; leave pending flag set.
-	       */
-	      dmh_notify( DMH_ERROR,
-		  "Get package: %s: download failed\n", package_url
-		);
-	  }
-	  else
-	    /* Cannot download; the repository catalogue didn't specify a
-	     * template, from which to construct a download URL...
-	     */
-	    dmh_notify( DMH_ERROR,
-		"Get package: %s: no URL specified for download\n", package_name
-	      );
-	}
-      }
+	current->DownloadSingleArchive( package_name, pkgArchivePath() );
     }
     /* Repeat download action, for any additional packages specified
      * in the current "actions" list.
