@@ -2,10 +2,10 @@
 /*
  * mkpath.h
  *
- * $Id: mkpath.h,v 1.2 2010/02/02 20:19:28 keithmarshall Exp $
+ * $Id: mkpath.h,v 1.3 2011/10/02 06:35:48 keithmarshall Exp $
  *
  * Written by Keith Marshall <keithmarshall@users.sourceforge.net>
- * Copyright (C) 2009, MinGW Project
+ * Copyright (C) 2009, 2011, MinGW Project
  *
  *
  * Prototype declarations for the path name constructor functions,
@@ -42,5 +42,6 @@ EXTERN_C int set_output_stream( const char *, int );
 EXTERN_C int mkpath( char *, const char *, const char *, const char * );
 
 EXTERN_C const char *pkgArchivePath();
+EXTERN_C const char *pkgSourceArchivePath();
 
 #endif /* MKPATH_H: $RCSfile: mkpath.h,v $: end of file */

@@ -1,10 +1,10 @@
 /*
  * mkpath.c
  *
- * $Id: mkpath.c,v 1.2 2010/02/02 20:19:28 keithmarshall Exp $
+ * $Id: mkpath.c,v 1.3 2011/10/02 06:35:48 keithmarshall Exp $
  *
  * Written by Keith Marshall <keithmarshall@users.sourceforge.net>
- * Copyright (C) 2009, MinGW Project
+ * Copyright (C) 2009, 2011, MinGW Project
  *
  *
  * Helper functions for constructing path names, creating directory
@@ -72,6 +72,14 @@ const char *pkgArchivePath()
    * within the local file system.
    */
   return "%R" "var/cache/mingw-get/packages" "%/M/%F";
+}
+
+const char *pkgSourceArchivePath()
+{
+  /* Specify where downloaded source packages are cached,
+   * within the local file system.
+   */
+  return "%R" "var/cache/mingw-get/source" "%/M/%F";
 }
 
 int mkpath( char *buf, const char *fmt, const char *file, const char *modifier )
