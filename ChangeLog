@@ -1,3 +1,16 @@
+2011-10-04  Keith Marshall  <keithmarshall@users.sourceforge.net>
+
+	Establish mapping from release tarname to source tarname.
+
+	* src/pkgreqs.cpp (inherited_requirement): New inline function.
+	(requirement): Use it; adapt to propagate release archive format and
+	compression type fields, in addition to version fields, when resolving
+	"%" wildcard matches within the template for the resultant tarname.
+	(pkgAssociateName): New public function; implement it for use by...
+	* src/pkgname.cpp (pkgResolvedName): ...this new inline function.
+	(pkgXmlNode::SourceArchiveName): Use it; adapt to accept a category
+	selector, so it may resolve source or licence tarnames on demand.
+
 2011-10-02  Keith Marshall  <keithmarshall@users.sourceforge.net>
 
 	Facilitate downloads using diverse cache directories.

@@ -1,7 +1,7 @@
 /*
  * pkgreqs.cpp
  *
- * $Id: pkgreqs.cpp,v 1.4 2011/07/27 20:36:00 keithmarshall Exp $
+ * $Id: pkgreqs.cpp,v 1.5 2011/10/04 21:07:32 keithmarshall Exp $
  *
  * Written by Keith Marshall <keithmarshall@users.sourceforge.net>
  * Copyright (C) 2009, 2010, 2011, MinGW Project
@@ -327,6 +327,16 @@ enum inherit_mode
   INHERIT_ALL		/* "%" matches the entire version string      */
 };
 
+static inline
+bool inherited_requirement( const char *field )
+{
+  /* Local helper function to identify a template field which is
+   * specified exactly as "%", and therefore must inherit its value
+   * from the referring package specification.
+   */
+  return ((field != NULL) && (field[0] == '%') && (field[1] == '\0'));
+}
+
 static
 enum inherit_mode inherited( const char *ver, const char *bld )
 {
@@ -341,7 +351,7 @@ enum inherit_mode inherited( const char *ver, const char *bld )
   /* Noting that the "%" wildcard must represent the respective part
    * of the version specification in its entirety...
    */
-  if( (ver != NULL) && (ver[0] == '%') && (ver[1] == '\0') )
+  if( inherited_requirement( ver ) )
     /*
      * ...flag a match on the "major.minor.patch" specification.
      */
@@ -434,6 +444,18 @@ const char *requirement( const char *wanted, pkgSpecs *dep )
      */
     id.SetSubSystemBuild( dep->GetSubSystemBuild() );
 
+  /* To establish association between source and binary package names,
+   * we may also need to propagate archive and compression type fields...
+   */
+  if( inherited_requirement( id.GetPackageFormat()) )
+  {
+    id.SetPackageFormat( dep->GetPackageFormat() );
+    if( id.GetCompressionType() == NULL )
+      id.SetCompressionType( dep->GetCompressionType() );
+  }
+  else if( inherited_requirement( id.GetCompressionType()) )
+    id.SetCompressionType( dep->GetCompressionType() );
+
   /* Finally, reconstitute the canonical tarname representation of the
    * specification, from its decomposed representation; (as a side effect,
    * this automatically places the return string on the heap).
@@ -505,6 +527,16 @@ const char * pkgActionItem::SetRequirements( pkgXmlNode *req, pkgSpecs *dep )
   /* Return a canonical representation of the requirements spec.
    */
   return (min_wanted == NULL) ? max_wanted : min_wanted;
+}
+
+EXTERN_C const char *pkgAssociateName( const char *map, const char *from )
+{
+  /* Public function for derivation of the name of an associate package,
+   * such as a source package, from the name of the primary package, based
+   * on the relationship specified by the template passed via "map".
+   */
+  pkgSpecs ref( from );
+  return requirement( map, &ref );
 }
 
 /* $RCSfile: pkgreqs.cpp,v $: end of file */

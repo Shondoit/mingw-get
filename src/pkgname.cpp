@@ -1,10 +1,10 @@
 /*
  * pkgname.cpp
  *
- * $Id: pkgname.cpp,v 1.5 2010/08/13 16:20:07 keithmarshall Exp $
+ * $Id: pkgname.cpp,v 1.6 2011/10/04 21:07:32 keithmarshall Exp $
  *
  * Written by Keith Marshall <keithmarshall@users.sourceforge.net>
- * Copyright (C) 2009, 2010, MinGW Project
+ * Copyright (C) 2009, 2010, 2011, MinGW Project
  *
  *
  * Implementation for the non-inherited components of the pkgXmlNode
@@ -33,6 +33,8 @@
 #include "dmh.h"
 #include "pkgbase.h"
 #include "pkgkeys.h"
+#include "pkginfo.h"
+#include "pkgtask.h"
 
 static
 const char *pkgArchiveName( pkgXmlNode *rel, const char *tag, unsigned opt )
@@ -133,7 +135,147 @@ const char *pkgArchiveName( pkgXmlNode *rel, const char *tag, unsigned opt )
   return (opt || matched) ? rel->GetPropVal( tarname_key, NULL ) : NULL;
 }
 
-const char *pkgXmlNode::SourceArchiveName()
+EXTERN_C const char *pkgAssociateName( const char *, const char * );
+
+static inline
+const char *pkgResolvedName( pkgXmlNode *rel, const char *tag, const char *ext )
+{
+  /* Local helper function to resolve the mapping from a released
+   * package name, as identified from the XML release element "rel",
+   * to its corresponding source or licence package name, according
+   * to the selection of "source" or "licence" specified by "tag",
+   * with "ext" passed a "src" or "lic" respectively.
+   */
+  const char *refname;
+  const char *retname = NULL;
+
+  /* First, we retrieve the released package name...
+   */
+  if( (refname = pkgArchiveName( rel, release_key, 1 )) != NULL )
+  {
+    /* ...and if successful, look for an explicit reference to
+     * the source or licence package, embedded within the release
+     * specification itself.
+     */
+    if( (retname = pkgArchiveName( rel, tag, 0 )) == NULL )
+    {
+      /* When this fails to identify the required mapping,
+       * then we look for a generic reference, defined for
+       * the containing package.
+       */
+      pkgXmlNode *enc = rel->GetParent();
+
+      /* A generic reference may be placed at any nesting
+       * level, between the enclosing package element and
+       * the release to which it relates; thus, starting
+       * at the first enclosing level...
+       */
+      rel = NULL;
+      while( enc != NULL )
+      {
+	/* ...enumerate reference specifications of the
+	 * appropriate type, examining all children of
+	 * the enclosing element.
+	 */
+	unsigned matched = 0;
+	pkgXmlNode *child = enc->GetChildren();
+	while( child != NULL )
+	{
+	  /* We have a child, which we have not examined...
+	   */
+	  if( child->IsElementOfType( tag ) )
+	  {
+	    /* ...and it is of the required "tag" type.
+	     */
+	    if( matched++ )
+	      /*
+	       * We already had a candidate match, so we
+	       * diagnose but otherwise this duplicate...
+	       */
+	      dmh_notify( DMH_WARNING,
+		  "redundant %s specification ignored\n", tag
+		);
+
+	    else
+	      /* This is the first candidate match found,
+	       * so we accept it.
+	       */
+	      rel = child;
+	  }
+	  /* Continue examining child elements, until no more
+	   * are present at the current nesting level.
+	   */
+	  child = child->GetNext();
+	}
+
+	/* When we've completed the examination of all children
+	 * at a given nesting level, without finding a matching
+	 * specification, and that level is still within the
+	 * enclosing package element...
+	 */
+	if( (rel == NULL) && ! enc->IsElementOfType( package_key ) )
+	  /*
+	   * ...then we extend the search to the next enclosing
+	   * level of nesting...
+	   */
+	  enc = enc->GetParent();
+
+	else
+	  /* ...otherwise, we abandon the search.
+	   */
+	  enc = NULL;
+      }
+
+      /* If we've searched all available nesting levels,
+       * and failed to locate the requisite specification...
+       */
+      if( rel == NULL )
+      {
+	/* ...then we assume that the requisite tarname
+	 * is identical to the release tarname, with the
+	 * appropriate "ext" substitution for the package
+	 * class identification...
+	 */
+	pkgSpecs resolved( refname );
+	resolved.SetComponentClass( ext );
+	/*
+	 * ...so, having made the substitution,
+	 * we return the resultant tarname, noting
+	 * that this automatically allocates space
+	 * on the heap, for the returned string.
+	 */
+	return resolved.GetTarName();
+      }
+      else
+	/* We did find a mappingspecification, so we
+	 * extract a tarname template from it.
+	 */
+	retname = rel->GetPropVal( tarname_key, NULL );
+    }
+    else if( strcmp( retname, value_none ) == 0 )
+      /*
+       * The package is virtual, or an explicit mapping
+       * specification indicates that there is no related
+       * source or licence package; return NULL to advise
+       * the caller of this.
+       */
+      return NULL;
+
+    /* If we get to here, we found a mapping specification;
+     * it may be a template, so resolve any substitutions which
+     * it must inherit from the released package tarname, again
+     * noting that this allocates heap memory for the result.
+     */
+    retname = pkgAssociateName( retname, refname );
+  }
+
+  /* Finally, how ever we resolved the mapping, we return
+   * the result.
+   */
+  return retname;
+}
+
+const char *pkgXmlNode::SourceArchiveName( unsigned long category )
 {
   /* Applicable only for XML nodes designated as "release".
    *
@@ -146,7 +288,22 @@ const char *pkgXmlNode::SourceArchiveName()
    * not represent a "release", or if it does not have a contained
    * "source" element specifying a "tarname" property.
    */
-  return pkgArchiveName( this, source_key, 0 );
+  const char *tag = "lic";
+  if( category != ACTION_LICENCE )
+  {
+    /* We may have been asked to explicitly override the "source"
+     * mapping, returning the "licence" reference instead; where
+     * this special exception is NOT requested, then we enforce
+     * the default case.
+     */
+    category = ACTION_SOURCE;
+    tag = "src";
+  }
+
+  /* In either case, pkgResolvedName() determines the appropriate
+   * archive name, which it automatically returns on the heap.
+   */
+  return pkgResolvedName( this, action_name( category ), tag );
 }
 
 const char *pkgXmlNode::ArchiveName()
