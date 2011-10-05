@@ -11,6 +11,9 @@
 	(pkgXmlNode::SourceArchiveName): Use it; adapt to accept a category
 	selector, so it may resolve source or licence tarnames on demand.
 
+	* src/pkgbase.h (pkgXmlNode::SourceArchiveName): Modify declaration;
+	add category selector argument to support source/licence choice.
+
 2011-10-02  Keith Marshall  <keithmarshall@users.sourceforge.net>
 
 	Facilitate downloads using diverse cache directories.

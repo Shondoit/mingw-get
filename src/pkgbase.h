@@ -2,7 +2,7 @@
 /*
  * pkgbase.h
  *
- * $Id: pkgbase.h,v 1.15 2011/10/02 20:38:44 keithmarshall Exp $
+ * $Id: pkgbase.h,v 1.16 2011/10/05 04:56:49 keithmarshall Exp $
  *
  * Written by Keith Marshall <keithmarshall@users.sourceforge.net>
  * Copyright (C) 2009, 2010, 2011, MinGW Project
@@ -182,7 +182,7 @@ class pkgXmlNode : public TiXmlElement
      * as they are named on the project download servers.
      */
     const char* ArchiveName();
-    const char* SourceArchiveName();
+    const char* SourceArchiveName( unsigned long );
 
     /* The following retrieves an attribute which may have been
      * specified on an ancestor (container) node; typically used to
