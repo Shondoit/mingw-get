@@ -1,3 +1,30 @@
+2011-10-06  Keith Marshall  <keithmarshall@users.sourceforge.net>
+
+	Implement "source" and "licence" operations.
+
+	* src/pkgopts.h (OPTION_ALL_DEPS): New option code; define it.
+	* src/clistub.c (main): Associate it with...
+	(all-related, recursive): ...these synonymous option names...
+	(options): ...defined within this local structured array.
+	(help_text): Document them; also document "source" and "licence" as
+	new operations which may be specified on the command line.
+
+	* src/pkgtask.h (action_source, action_licence): Enumerate them.
+	(ACTION_SOURCE, ACTION_LICENCE): Define their manifest values, and...
+	* src/pkgexec.cpp (action_name): ...associate with operation names.
+
+	* src/pkgbase.h (pkgActionItem::GetScheduledSourceArchives):
+	(pkgActionItem::GetSourceArchive, pkgXmlDocument::GetSourceArchive):
+	New public methods; declare them for external implementation.
+	(pkgXmlDocument::GetScheduledSourceArchives): New public method;
+	implement it as inline.
+
+	* src/climain.cpp (pkgProcessedArchives): New pointer to stack of...
+	(pkgArchiveNameList): ...this new locally defined class; implement it.
+	(pkgActionItem::GetSourceArchive, pkgXmlDocument::GetSourceArchive):
+	(pkgActionItem::GetScheduledSourceArchives): Implement them.
+	(climain): Add invocation hooks.
+
 2011-10-04  Keith Marshall  <keithmarshall@users.sourceforge.net>
 
 	Establish mapping from release tarname to source tarname.

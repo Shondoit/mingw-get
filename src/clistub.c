@@ -1,7 +1,7 @@
 /*
  * clistub.c
  *
- * $Id: clistub.c,v 1.15 2011/08/07 05:37:48 keithmarshall Exp $
+ * $Id: clistub.c,v 1.16 2011/10/06 18:53:26 keithmarshall Exp $
  *
  * Written by Keith Marshall <keithmarshall@users.sourceforge.net>
  * Copyright (C) 2009, 2010, 2011, MinGW Project
@@ -207,9 +207,19 @@ static const char *help_text =
 "                    download any package file, or otherwise\n"
 "                    proceed with the operation\n"
 "\n"
+"  --recursive\n"
+"  --all-related     When performing source or licence operations,\n"
+"                    causes mingw-get to retrieve, and optionally to\n"
+"                    unpack the source or licence archives for all\n"
+"                    runtime prerequisites of, and in addition to,\n"
+"                    the nominated package\n"
+"\n"
 "Actions:\n"
 "  update            Update local copy of repository catalogues\n"
 "  list, show        List and show details of available packages\n"
+"  source            Download and optionally unpack package sources\n"
+"  licence           Download and optionally unpack licence packages,\n"
+"                    handling them as if they are source packages\n"
 "  install           Install new packages\n"
 "  upgrade           Upgrade previously installed packages\n"
 "  remove            Remove previously installed packages\n\n"
@@ -386,9 +396,12 @@ int main( int argc, char **argv )
       { "help",           no_argument,         NULL,      'h'                },
       { "verbose",        optional_argument,   NULL,      OPTION_VERBOSE     },
 
+      { "recursive",      no_argument,         &optref,   OPTION_ALL_DEPS    },
       { "reinstall",      no_argument,         &optref,   OPTION_REINSTALL   },
       { "download-only",  no_argument,         &optref,   OPTION_DNLOAD_ONLY },
       { "print-uris",     no_argument,         &optref,   OPTION_PRINT_URIS  },
+
+      { "all-related",    no_argument,         &optref,   OPTION_ALL_DEPS    },
 
 #     if DEBUG_ENABLED( DEBUG_TRACE_DYNAMIC )
 	/* The "--trace" option is supported only when dynamic tracing

@@ -1,7 +1,7 @@
 /*
  * climain.cpp
  *
- * $Id: climain.cpp,v 1.12 2011/05/21 18:38:11 keithmarshall Exp $
+ * $Id: climain.cpp,v 1.13 2011/10/06 18:53:26 keithmarshall Exp $
  *
  * Written by Keith Marshall <keithmarshall@users.sourceforge.net>
  * Copyright (C) 2009, 2010, 2011, MinGW Project
@@ -32,6 +32,7 @@
 #include <fcntl.h>
 
 #include "dmh.h"
+#include "mkpath.h"
 
 #include "pkgbase.h"
 #include "pkgkeys.h"
@@ -64,6 +65,78 @@ EXTERN_C pkgOpts *pkgOptions( int action, struct pkgopts *ref )
    */
   return table;
 }
+
+class pkgArchiveNameList
+{
+  /* A locally implemented class, managing a LIFO stack of
+   * package names; this is used when processing the source
+   * and licence requests, to track the packages processed,
+   * so that we may avoid inadvertent duplicate processing.
+   */
+  private:
+    const char		*name;	// name of package tracked
+    pkgArchiveNameList	*next;	// pointer to next stack entry
+
+  public:
+    inline bool NotRecorded( const char *candidate )
+    {
+      /* Walk the stack of tracked package names, to determine
+       * if an entry matching "candidate" is already present;
+       * returns false if such an entry exists, otherwise true
+       * to indicate that it may be added as a unique entry.
+       */
+      pkgArchiveNameList *check = this;
+      while( check != NULL )
+      {
+	/* We haven't walked off the bottom of the stack yet...
+	 */
+	if( strcmp( check->name, candidate ) == 0 )
+	{
+	  /* ...and the current entry matches the candidate;
+	   * thus the candidate will not be stacked, so we
+	   * may discard it from the heap.
+	   */
+	  free( (void *)(candidate) );
+
+	  /* We've found a match, so there is no point in
+	   * continuing the search; simply return false to
+	   * signal rejection of the candidate.
+	   */
+	  return false;
+	}
+	/* No matching entry found yet; walk down to the next
+	 * stack entry, if any, to continue the search.
+	 */
+	check = check->next;
+      }
+      /* We walked off the bottom of the stack, without finding
+       * any match; return true to accept the candidate.
+       */
+      return true;
+    }
+    inline pkgArchiveNameList *Record( const char *candidate )
+    {
+      /* Add a new entry at the top of the stack, to record
+       * the processing of an archive named by "candidate";
+       * on entry "this" is the current stack pointer, and
+       * we return the new stack pointer, referring to the
+       * added entry which becomes the new top of stack.
+       */
+      pkgArchiveNameList *retptr = new pkgArchiveNameList();
+      retptr->name = candidate; retptr->next = this;
+      return retptr;
+    }
+    inline ~pkgArchiveNameList()
+    {
+      /* Completely clear the stack, releasing the heap memory
+       * allocated to record the stacked package names.
+       */
+      free( (void *)(name) );
+      delete next;
+    }
+};
+
+static pkgArchiveNameList *pkgProcessedArchives; // stack pointer
 
 EXTERN_C int climain( int argc, char **argv )
 {
@@ -142,7 +215,50 @@ EXTERN_C int climain( int argc, char **argv )
 	{
 	  case ACTION_LIST:
 	  case ACTION_SHOW:
+	    /*
+	     * "list" and "show" actions are synonymous;
+	     * invoke the info-display handler.
+	     */
 	    dbase.DisplayPackageInfo( argc, argv );
+	    break;
+
+	  case ACTION_SOURCE:
+	  case ACTION_LICENCE:
+	    /*
+	     * Process the "source" or "licence" request for one
+	     * or more packages; begin with an empty stack of names,
+	     * for tracking packages as processed.
+	     */
+	    pkgProcessedArchives = NULL;
+	    if( pkgOptions()->Test( OPTION_ALL_DEPS ) == OPTION_ALL_DEPS )
+	    {
+	      /* The "--all-related" option is in effect; for each
+	       * package identified on the command line...
+	       */
+	      while( --argc )
+		/*
+		 * ...schedule a request to install the package,
+		 * together with all of its runtime dependencies...
+		 */
+		dbase.Schedule( ACTION_INSTALL, *++argv );
+
+	      /* ...but DON'T proceed with installation; rather
+	       * process the "source" or "licence" request for
+	       * each scheduled package.
+	       */
+	      dbase.GetScheduledSourceArchives( (unsigned long)(action) );
+	    }
+	    else while( --argc )
+	      /*
+	       * The "--all-related" option is NOT in effect; simply
+	       * process the "source" or "licence" request exclusively
+	       * in respect of each package named on the command line.
+	       */
+	      dbase.GetSourceArchive( *++argv, (unsigned long)(action) );
+
+	    /* Finally, clear the stack of processed package names.
+	     */
+	    delete pkgProcessedArchives;
 	    break;
 
 	  default:
@@ -179,7 +295,151 @@ EXTERN_C int climain( int argc, char **argv )
 
   catch( dmh_exception &e )
   {
+    /* An error occurred; it should already have been diagnosed,
+     * so simply bail out.
+     */
     return EXIT_FAILURE;
+  }
+}
+
+#include "pkgproc.h"
+
+void pkgActionItem::GetSourceArchive( pkgXmlNode *package, unsigned long category )
+{
+  /* Handle a 'mingw-get source ...' or a 'mingw-get licence ...' request
+   * in respect of the source code or licence archive for a single package.
+   */
+  const char *src = package->SourceArchiveName( category );
+  if( (src != NULL) && pkgProcessedArchives->NotRecorded( src ) )
+  {
+    if( pkgOptions()->Test( OPTION_PRINT_URIS ) == OPTION_PRINT_URIS )
+    {
+      /* The --print-uris option is in effect; this is all
+       * that we are expected to do.
+       */
+      PrintURI( src );
+    }
+
+    else
+    { /* The --print-uris option is not in effect; we must at
+       * least check that the source package is available in the
+       * source archive cache, and if not, download it...
+       */
+      const char *path_template;
+      DownloadSingleArchive( src, path_template = (category == ACTION_SOURCE)
+	  ? pkgSourceArchivePath() : pkgArchivePath()
+	);
+
+      /* ...then, unless the --download-only option is in effect...
+       */
+      if( pkgOptions()->Test( OPTION_DOWNLOAD_ONLY ) != OPTION_DOWNLOAD_ONLY )
+      {
+	/* ...we establish the current working directory as the
+	 * destination where it should be unpacked...
+	 */
+	char source_archive[mkpath( NULL, path_template, src, NULL )];
+	mkpath( source_archive, path_template, src, NULL );
+
+	/* ...and extract the content from the source archive.
+	 */
+	pkgTarArchiveExtractor unpack( source_archive, "." );
+      }
+      /* The path_template was allocated on the heap; we are
+       * done with it, so release the memory allocation...
+       */
+      free( (void *)(path_template) );
+    }
+
+    /* Record the current archive name as "processed", so we may
+     * avoid any inadvertent duplicate processing.
+     */
+    pkgProcessedArchives = pkgProcessedArchives->Record( src );
+  }
+}
+
+void pkgActionItem::GetScheduledSourceArchives( unsigned long category )
+{
+  /* Process "source" or "licence" requests in respect of a list of
+   * packages, (scheduled as if for installation); this is the handler
+   * for the case when the "--all-related" option is in effect for a
+   * "source" or "licence" request.
+   */
+  if( this != NULL )
+  {
+    /* The package list is NOT empty; ensure that we begin with
+     * a reference to its first entry.
+     */
+    pkgActionItem *scheduled = this;
+    while( scheduled->prev != NULL ) scheduled = scheduled->prev;
+
+    /* For each scheduled list entry...
+     */
+    while( scheduled != NULL )
+    {
+      /* ...process the "source" or "licence" request, as appropriate,
+       * in respect of the associated package...
+       */
+      scheduled->GetSourceArchive( scheduled->Selection(), category );
+      /*
+       * ...then move on to the next entry, if any.
+       */
+      scheduled = scheduled->next;
+    }
+  }
+}
+
+void pkgXmlDocument::GetSourceArchive( const char *name, unsigned long category )
+{
+  /* Look up a named package reference in the XML catalogue,
+   * then forward it as a pkgActionItem, for processing of an
+   * associated "source" or "licence" request.
+   */ 
+  pkgXmlNode *pkg = FindPackageByName( name );
+  if( pkg->IsElementOfType( package_key ) )
+  {
+    /* We found a top-level specification for the required package...
+     */
+    pkgXmlNode *component = pkg->FindFirstAssociate( component_key );
+    if( component != NULL )
+      /*
+       * When this package is subdivided into components,
+       * then we derive the source reference from the first
+       * component defined.
+       */
+      pkg = component;
+  }
+
+  /* Now inspect the "release" specifications within the
+   * selected package/component definition...
+   */
+  if( (pkg = pkg->FindFirstAssociate( release_key )) != NULL )
+  {
+    /* ...creating a pkgActionItem...
+     */
+    pkgActionItem latest;
+    pkgXmlNode *selected = pkg;
+
+    /* ...and examining each release in turn...
+     */
+    while( pkg != NULL )
+    {
+      /* ...select the most recent release, and assign it
+       * to the pkgActionItem reference...
+       */
+      if( latest.SelectIfMostRecentFit( pkg ) == pkg )
+	latest.SelectPackage( selected = pkg );
+
+      /* ...continuing until we have examined all available
+       * release specifications.
+       */
+      pkg = pkg->FindNextAssociate( release_key );
+    }
+
+    /* Finally, hand off the "source" or "licence" processing
+     * request, based on the most recent release selection, to
+     * the pkgActionItem we've just instantiated.
+     */
+    latest.GetSourceArchive( selected, category );
   }
 }
 

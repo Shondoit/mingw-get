@@ -2,7 +2,7 @@
 /*
  * pkgtask.h
  *
- * $Id: pkgtask.h,v 1.6 2011/05/12 20:33:51 keithmarshall Exp $
+ * $Id: pkgtask.h,v 1.7 2011/10/06 18:53:26 keithmarshall Exp $
  *
  * Written by Keith Marshall <keithmarshall@users.sourceforge.net>
  * Copyright (C) 2009, 2010, 2011, MinGW Project
@@ -40,6 +40,8 @@ enum
   action_show,
 
   action_update,
+  action_licence,
+  action_source,
 
   end_of_actions
 };
@@ -53,6 +55,8 @@ enum
 #define ACTION_LIST     	(unsigned long)(action_list)
 #define ACTION_SHOW     	(unsigned long)(action_show)
 #define ACTION_UPDATE   	(unsigned long)(action_update)
+#define ACTION_LICENCE  	(unsigned long)(action_licence)
+#define ACTION_SOURCE   	(unsigned long)(action_source)
 
 #define STRICTLY_GT		(ACTION_MASK + 1)
 #define STRICTLY_LT		(STRICTLY_GT << 1)
