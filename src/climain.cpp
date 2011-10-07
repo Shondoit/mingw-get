@@ -1,7 +1,7 @@
 /*
  * climain.cpp
  *
- * $Id: climain.cpp,v 1.13 2011/10/06 18:53:26 keithmarshall Exp $
+ * $Id: climain.cpp,v 1.14 2011/10/07 20:58:57 keithmarshall Exp $
  *
  * Written by Keith Marshall <keithmarshall@users.sourceforge.net>
  * Copyright (C) 2009, 2010, 2011, MinGW Project
@@ -261,11 +261,29 @@ EXTERN_C int climain( int argc, char **argv )
 	    delete pkgProcessedArchives;
 	    break;
 
+	  case ACTION_UPGRADE:
+	    if( argc < 2 )
+	      /*
+	       * This is a special case of the upgrade request, for which
+	       * no explicit package names have been specified; in this case
+	       * we retrieve the list of all installed packages, scheduling
+	       * each of them for upgrade...
+	       */
+	      dbase.RescheduleInstalledPackages( ACTION_UPGRADE );
+
+	    /* ...subsequently falling through to complete the action,
+	     * using the default processing mechanism; (note that in this
+	     * case no further scheduling will be performed, because there
+	     * are no additional package names specified in the argv list).
+	     */
 	  default:
 	    /* ...schedule the specified action for each additional command line
 	     * argument, (each of which is assumed to represent a package name)...
 	     */
 	    while( --argc )
+	      /*
+	       * (Skipped if argv < 2 on entry).
+	       */
 	      dbase.Schedule( (unsigned long)(action), *++argv );
 
 	    /* ...finally, execute all scheduled actions, and update the
@@ -275,7 +293,6 @@ EXTERN_C int climain( int argc, char **argv )
 	    dbase.UpdateSystemMap();
 	}
       }
-
       /* If we get this far, then all actions completed successfully;
        * we are done.
        */

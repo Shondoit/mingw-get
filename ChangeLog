@@ -1,3 +1,17 @@
+2011-10-07  Keith Marshall  <keithmarshall@users.sourceforge.net>
+
+	Add support for non-specific upgrade of all installed packages.
+
+	* src/pkgbase.h (pkgXmlDocument::RescheduleInstalledPackages):
+	New public method; declare it.
+
+	* src/pkgdeps.cpp (pkgXmlDocument::RescheduleInstalledPackages):
+	Implement it.
+
+	* src/climain.cpp (climain) [ACTION_UPGRADE && argc < 2]: Invoke
+	pkgXmlDocument::RescheduleInstalledPackages() to schedule the upgrade
+	request for all packages currently registered as installed.
+
 2011-10-06  Keith Marshall  <keithmarshall@users.sourceforge.net>
 
 	Implement "source" and "licence" operations.

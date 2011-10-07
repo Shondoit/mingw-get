@@ -1,7 +1,7 @@
 /*
  * pkgdeps.cpp
  *
- * $Id: pkgdeps.cpp,v 1.8 2011/07/27 20:36:00 keithmarshall Exp $
+ * $Id: pkgdeps.cpp,v 1.9 2011/10/07 20:58:57 keithmarshall Exp $
  *
  * Written by Keith Marshall <keithmarshall@users.sourceforge.net>
  * Copyright (C) 2009, 2010, 2011, MinGW Project
@@ -641,6 +641,84 @@ void pkgXmlDocument::Schedule( unsigned long action, const char* name )
      * diagnose as a non-fatal error.
      */
     dmh_notify( DMH_ERROR, pkgMsgUnknownPackage(), name );
+}
+
+void pkgXmlDocument::RescheduleInstalledPackages( unsigned long action )
+{
+  /* Wrapper function to retrieve the list of all installed packages,
+   * passing each entry in turn to the standard task scheduler.  We
+   * begin by locating the first sysroot entry in the XML database...
+   */
+  pkgXmlNode *sysroot = GetRoot()->FindFirstAssociate( sysroot_key );
+
+  /* ...then, while we have sysroots to examine...
+   */
+  while( sysroot != NULL )
+  {
+    /* ...we retrieve the first package installation record within
+     * the current sysroot data set.
+     */
+    pkgXmlNode *package = sysroot->FindFirstAssociate( installed_key );
+
+    /* Within each sysroot, until we've retrieved all embedded
+     * installation records...
+     */
+    while( package != NULL )
+    {
+      /* ...we read the canonical tarname for the package,
+       * and when it is appropriately specified...
+       */
+      const char *tarname = package->GetPropVal( tarname_key, NULL );
+      if( tarname != NULL )
+      {
+	/* ...we decode it, to determine the package name,
+	 * subsystem name and component class.
+	 */
+	pkgSpecs decode( tarname );
+	const char *pkgname = decode.GetPackageName();
+	const char *sysname = decode.GetSubSystemName();
+	const char *cptname = decode.GetComponentClass();
+
+	/* From these three, we need to reconstruct an effective
+	 * package name for the scheduler look-up; this reconstruction
+	 * is performed using the following formatted buffer.
+	 */
+	const char *fmt = "%s-%s";
+	char refname[3 + strlen( sysname ) + strlen( pkgname ) + strlen( cptname )];
+	if( FindPackageByName( pkgname, sysname ) == NULL )
+	{
+	  /* The package name alone is insufficient for a successful
+	   * look-up; assume that the effective package name has been
+	   * defined by prefixing the sysroot name.
+	   */
+	  sprintf( refname, fmt, sysname, pkgname );
+	  pkgname = refname;
+	}
+	if( cptname != NULL )
+	{
+	  /* A fully qualified logical package name should include
+	   * the component class name, abstracted from the canonical
+	   * tarname, and appended to the package name.
+	   */
+	  sprintf( refname, fmt, pkgname, cptname );
+	  pkgname = refname;
+	}
+
+	/* Having constructed the effective logical package name,
+	 * we schedule the requested action on the package...
+	 */
+	Schedule( action, pkgname );
+      }
+      /* ...then move on to the next installed package, if any,
+       * within the current sysroot data set...
+       */
+      package = package->FindNextAssociate( installed_key );
+    }
+    /* ...and ultimately, to the next sysroot, if any, in the
+     * XML database.
+     */
+    sysroot = sysroot->FindNextAssociate( sysroot_key );
+  }
 }
 
 /* $RCSfile: pkgdeps.cpp,v $: end of file */

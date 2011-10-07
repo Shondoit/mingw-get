@@ -2,7 +2,7 @@
 /*
  * pkgbase.h
  *
- * $Id: pkgbase.h,v 1.17 2011/10/06 18:53:26 keithmarshall Exp $
+ * $Id: pkgbase.h,v 1.18 2011/10/07 20:58:57 keithmarshall Exp $
  *
  * Written by Keith Marshall <keithmarshall@users.sourceforge.net>
  * Copyright (C) 2009, 2010, 2011, MinGW Project
@@ -395,6 +395,7 @@ class pkgXmlDocument : public TiXmlDocument
      */
     void Schedule( unsigned long, const char* );
     pkgActionItem* Schedule( unsigned long, pkgActionItem&, pkgActionItem* = NULL );
+    void RescheduleInstalledPackages( unsigned long );
 
     /* Method to execute a sequence of scheduled actions.
      */
