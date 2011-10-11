@@ -1,7 +1,7 @@
 /*
  * pkgexec.cpp
  *
- * $Id: pkgexec.cpp,v 1.18 2011/10/06 18:53:26 keithmarshall Exp $
+ * $Id: pkgexec.cpp,v 1.19 2011/10/11 20:56:58 keithmarshall Exp $
  *
  * Written by Keith Marshall <keithmarshall@users.sourceforge.net>
  * Copyright (C) 2009, 2010, 2011, MinGW Project
@@ -414,7 +414,7 @@ void pkgActionItem::Execute()
     /* If the --download-only option is in effect, then we have
      * nothing more to do...
      */
-    if( pkgOptions()->Test( OPTION_DOWNLOAD_ONLY ) == 0 )
+    if( pkgOptions()->Test( OPTION_DOWNLOAD_ONLY ) != OPTION_DOWNLOAD_ONLY )
     {
       /* ...otherwise...
        */

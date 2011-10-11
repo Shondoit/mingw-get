@@ -1,3 +1,13 @@
+2011-10-11  Keith Marshall  <keithmarshall@users.sourceforge.net>
+
+	Fix --download-only vs. --reinstall conflict.
+
+	* src/pkgexec.cpp (pkgActionItem::Execute) [OPTION_DOWNLOAD_ONLY]:
+	Test for explicit inequality, rather than equality to zero; since the
+	2011-08-30 update, which made --download-only also imply --reinstall,
+	it will test as non-zero when --reinstall is specified, even though
+	--download-only is not.
+
 2011-10-07  Keith Marshall  <keithmarshall@users.sourceforge.net>
 
 	Add support for non-specific upgrade of all installed packages.
