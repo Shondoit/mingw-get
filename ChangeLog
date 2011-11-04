@@ -1,3 +1,20 @@
+2011-11-04  Keith Marshall  <keithmarshall@users.sourceforge.net>
+
+	Don't upgrade installed DLL components to incompatible version.
+	Provide clearer diagnostics for failed requests on implied packages.
+
+	* src/pkgdeps.cpp (is_abi_compatible): New static inline function.
+	(pkgXmlDocument::ResolveDependencies) [is_installed]: Use it.
+	(pkgXmlDocument::ResolveDependencies) [DEBUG_TRACE_DEPENDENCIES]:
+	Clean up and improve diagnostic message content and formatting.
+	(pkgXmlDocument::Schedule) [(upgrade || remove) && ! installed]:
+	Downgrade diagnostic to WARNING, for implicitly specified component
+	packages; provide additional explanatory diagnostics.
+
+	* src/pkgspec.cpp (pkgSpecs::VersionComparator):
+	* src/pkgexec.cpp (pkgActionItem::SelectIfMostRecentFit):
+	[DEBUG_TRACE_DEPENDENCIES]: Eliminate diagnostic noise.
+
 2011-10-11  Keith Marshall  <keithmarshall@users.sourceforge.net>
 
 	Fix --download-only vs. --reinstall conflict.

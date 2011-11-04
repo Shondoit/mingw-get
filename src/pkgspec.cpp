@@ -1,7 +1,7 @@
 /*
  * pkgspec.cpp
  *
- * $Id: pkgspec.cpp,v 1.4 2011/07/27 20:36:00 keithmarshall Exp $
+ * $Id: pkgspec.cpp,v 1.5 2011/11/04 22:25:10 keithmarshall Exp $
  *
  * Written by Keith Marshall <keithmarshall@users.sourceforge.net>
  * Copyright (C) 2009, 2010, 2011, MinGW Project
@@ -176,12 +176,6 @@ int pkgSpecs::VersionComparator( pkgSpecs& rhs )
   const char *rhs_version_spec = rhs.GetPackageVersion();
   const char *rhs_build_spec = rhs.GetPackageBuild();
 
-  DEBUG_INVOKE_IF( DEBUG_REQUEST( DEBUG_TRACE_DEPENDENCIES ),
-      dmh_printf( "  LHS: %s-%s-%s-%s\n  RHS: %s-%s-%s-%s\n",
-	lhs_version_spec, lhs_build_spec, GetReleaseStatus(), GetReleaseIndex(),
-	rhs_version_spec, rhs_build_spec, rhs.GetReleaseStatus(), rhs.GetReleaseIndex())
-      );
-
   /* Initially, we compare just the package version itself...
    */
   pkgVersionInfo lhs_version( lhs_version_spec, lhs_build_spec );
@@ -192,10 +186,6 @@ int pkgSpecs::VersionComparator( pkgSpecs& rhs )
    */
   if( lhs_version < rhs_version ) return -1;
   if( lhs_version > rhs_version ) return +1;
-
-  DEBUG_INVOKE_IF( DEBUG_REQUEST( DEBUG_TRACE_DEPENDENCIES ),
-      dmh_printf( "   base versions match\n" )
-    );
 
   /* If we get to here, then the package versions of LHS and RHS
    * are effectively matched; however, unless there is a wildcard
@@ -224,9 +214,6 @@ int pkgSpecs::VersionComparator( pkgSpecs& rhs )
 	 * same package version point, so we may immediately
 	 * confirm the LHS as the "lesser" release.
 	 */
-	DEBUG_INVOKE_IF( DEBUG_REQUEST( DEBUG_TRACE_DEPENDENCIES ),
-	    dmh_printf( "  mismatched: LHS is qualified; RHS is not, and is not a wildcard\n" )
-	  );
 	return -1;
       }
 
@@ -266,16 +253,9 @@ int pkgSpecs::VersionComparator( pkgSpecs& rhs )
        * to a more recent release, so return the appropriate
        * value to indicate LHS > RHS.
        */
-      DEBUG_INVOKE_IF( DEBUG_REQUEST( DEBUG_TRACE_DEPENDENCIES ),
-	  dmh_printf( "  mismatched: RHS qualified; LHS is not, and is not a wildcard\n" )
-	);
       return +1;
     }
   }
-  DEBUG_INVOKE_IF( DEBUG_REQUEST( DEBUG_TRACE_DEPENDENCIES ),
-      dmh_printf( "   package versions match; checking subsystem\n" )
-    );
-
   /* If we get to here, then LHS and RHS represent the same
    * version of the package, at the same phase of development;
    * the only remaining determinant, which may differentiate
@@ -296,9 +276,6 @@ int pkgSpecs::VersionComparator( pkgSpecs& rhs )
    * of any package version comparison, so we may return zero
    * to assert their equality.
    */
-  DEBUG_INVOKE_IF( DEBUG_REQUEST( DEBUG_TRACE_DEPENDENCIES ),
-      dmh_printf( "   match found\n" )
-    );
   return 0;
 }
 

@@ -1,7 +1,7 @@
 /*
  * pkgdeps.cpp
  *
- * $Id: pkgdeps.cpp,v 1.9 2011/10/07 20:58:57 keithmarshall Exp $
+ * $Id: pkgdeps.cpp,v 1.10 2011/11/04 22:25:10 keithmarshall Exp $
  *
  * Written by Keith Marshall <keithmarshall@users.sourceforge.net>
  * Copyright (C) 2009, 2010, 2011, MinGW Project
@@ -166,13 +166,35 @@ const char *pkgXmlNode::GetContainerAttribute( const char *key, const char *sub 
   return sub;
 }
 
+DEBUG_INVOKED static int indent = -1;
+
 DEBUG_INVOKED static void
 DEBUG_INVOKED show_required( pkgSpecs *req )
 DEBUG_INVOKED {
 DEBUG_INVOKED   const char *tarname = NULL;
-DEBUG_INVOKED   dmh_printf( " require: %s\n", req->GetTarName( tarname ) );
+DEBUG_INVOKED   dmh_printf( "%*s require: %s\n", indent, "", req->GetTarName( tarname ) );
 DEBUG_INVOKED   free( (void *)(tarname) );
 DEBUG_INVOKED }
+
+static inline
+bool is_abi_compatible( pkgSpecs *refdata, const char *version )
+{
+  /* Local helper, used by pkgXmlDocument::ResolveDependencies(),
+   * to confirm that the ABI identification number of a selected
+   * component package is an exact match to a requirement spec.
+   */
+  const char *ref_version;
+  if( (ref_version = refdata->GetComponentVersion()) == NULL )
+    /*
+     * Here, confirm that both are unversioned...
+     */
+    return (version == NULL);
+
+  /* ...otherwise, fall through to check that both bear IDENTICALLY
+   * the same ABI version number.
+   */
+  return ((version != NULL) && (strcmp( version, ref_version ) == 0));
+}
 
 void
 pkgXmlDocument::ResolveDependencies( pkgXmlNode* package, pkgActionItem* rank )
@@ -184,11 +206,10 @@ pkgXmlDocument::ResolveDependencies( pkgXmlNode* package, pkgActionItem* rank )
    * of such prerequisites, and finally, extend the search to capture
    * additional dependencies common to the containing package group.
    */
-  DEBUG_INVOKE_IF( DEBUG_REQUEST( DEBUG_TRACE_DEPENDENCIES ),
-      dmh_printf( "ResolveDependencies: begin function\n" )
-    );
   pkgSpecs *refdata = NULL;
   pkgXmlNode *refpkg = package;
+
+  DEBUG_INVOKED ++indent;
 
   while( package != NULL )
   {
@@ -216,7 +237,7 @@ pkgXmlDocument::ResolveDependencies( pkgXmlNode* package, pkgActionItem* rank )
 	if( (refname = refpkg->GetPropVal( tarname_key, NULL )) != NULL )
 	{
 	  DEBUG_INVOKE_IF( DEBUG_REQUEST( DEBUG_TRACE_DEPENDENCIES ),
-	      dmh_printf( "%s: resolve dependencies\n", refname )
+	      dmh_printf( "%*s%s: resolve dependencies\n", indent, "", refname )
 	    );
 	  refdata = new pkgSpecs( refname );
 	}
@@ -267,26 +288,43 @@ pkgXmlDocument::ResolveDependencies( pkgXmlNode* package, pkgActionItem* rank )
 	    /* ...noting if we find one already marked as "installed"...
 	    */
 	    const char *tstclass;
+	    DEBUG_INVOKED const char *already, *viable;
 	    pkgSpecs tst( tstclass = required->GetPropVal( tarname_key, NULL ) );
 	    DEBUG_INVOKE_IF( DEBUG_REQUEST( DEBUG_TRACE_DEPENDENCIES ),
-		dmh_printf( " considering: %s\n", tstclass )
+		dmh_printf( "%*s  considering: %s", indent, "", tstclass )
 	      );
 	    if( (tstclass = tst.GetComponentClass()) == NULL )
 	      tstclass = value_unknown;
 
-	    if( is_installed( required ) && (strcmp( tstclass, reqclass ) == 0) )
+	    DEBUG_INVOKED already = viable = "";
+	    if( is_installed( required ) && (strcmp( tstclass, reqclass ) == 0)
+	    /*
+	     * We found an installed version of the requisite component,
+	     * but we ignore it unless it is ABI version compatible with
+	     * the version we need; (the intent of ABI versioning is to
+	     * accommodate multiple concurrent installations of shared
+	     * objects supporting the differing ABI specifications).
+	     */
+	    &&  is_abi_compatible( &tst, req.GetComponentVersion() )  )
+	    {
 	      installed = required;
-
+	      DEBUG_INVOKED already = " (already installed)";
+	    }
     	    /* ...and identify the most suitable candidate "release"
 	     * to satisfy the current dependency...
 	     */
 	    if( wanted.SelectIfMostRecentFit( required ) == required )
+	    {
 	      selected = component = required;
-
+	      DEBUG_INVOKED viable = ": viable candidate";
+	    }
 	    /* ...continuing, until all available "releases"
 	     * have been evaluated accordingly.
 	     */
 	    required = required->FindNextAssociate( release_key );
+	    DEBUG_INVOKE_IF( DEBUG_REQUEST( DEBUG_TRACE_DEPENDENCIES ),
+		dmh_printf( "%s%s\n", viable, already )
+	      );
 	  }
 
 	  /* Where multiple component packages do exist,
@@ -310,6 +348,11 @@ pkgXmlDocument::ResolveDependencies( pkgXmlNode* package, pkgActionItem* rank )
 	     * version, we prefer to schedule an upgrade.
 	     */
 	    fallback |= ACTION_UPGRADE;
+	    DEBUG_INVOKE_IF( DEBUG_REQUEST( DEBUG_TRACE_DEPENDENCIES ),
+		dmh_printf( "%*s%s: schedule replacement\n", indent, "",
+		    installed->GetPropVal( tarname_key, value_unknown )
+		  )
+	      );
 	    wanted.SelectPackage( installed, to_remove );
 	  }
 	  rank = Schedule( fallback, wanted, rank );
@@ -372,9 +415,7 @@ pkgXmlDocument::ResolveDependencies( pkgXmlNode* package, pkgActionItem* rank )
      */
     package = (package == GetRoot()) ? NULL : package->GetParent();
   }
-  DEBUG_INVOKE_IF( DEBUG_REQUEST( DEBUG_TRACE_DEPENDENCIES ),
-      dmh_printf( "ResolveDependencies: end function\n" )
-    );
+  DEBUG_INVOKED --indent;
   delete refdata;
 }
 
@@ -593,12 +634,44 @@ void pkgXmlDocument::Schedule( unsigned long action, const char* name )
 	    ResolveDependencies( upgrade, Schedule( action, latest ));
 
 	  else
-	    /* attempting ACTION_UPGRADE or ACTION_REMOVE
+	  { /* attempting ACTION_UPGRADE or ACTION_REMOVE
 	     * is an error; diagnose it.
 	     */
-	    dmh_notify( DMH_ERROR, "%s %s: package is not installed\n",
-		action_name( action & ACTION_MASK ), name
-	      );
+	    if( component == NULL )
+	      /*
+	       * In this case, the user explicitly specified a single
+	       * package component, so it's a simple error...
+	       */
+	      dmh_notify( DMH_ERROR, "%s %s: package is not installed\n",
+		  action_name( action & ACTION_MASK ), name
+		);
+	    else
+	    {
+	      /* ...but here, the user specified only the package name,
+	       * which implicitly applies to all associated components;
+	       * since some may be installed, prefer to issue a warning
+	       * in respect of any which aren't.
+	       */
+	      const char *extname = component->GetPropVal( class_key, "" );
+	      char full_package_name[2 + strlen( name ) + strlen( extname )];
+	      sprintf( full_package_name, *extname ? "%s-%s" : "%s", name, extname );
+
+	      dmh_control( DMH_BEGIN_DIGEST );
+	      dmh_notify( DMH_WARNING, "%s %s: request ignored...\n",
+		  extname = action_name( action & ACTION_MASK ), full_package_name
+		);
+	      dmh_notify( DMH_WARNING, "%s: package was not previously installed\n",
+		  full_package_name
+		);
+	      dmh_notify( DMH_WARNING, "%s: it will remain this way until you...\n",
+		  full_package_name
+		);
+	      dmh_notify( DMH_WARNING, "use 'mingw-get install %s' to install it\n",
+		  full_package_name
+		);
+	      dmh_control( DMH_END_DIGEST );
+	    }
+	  }
 	}
 
 	else if( upgrade && (upgrade != installed) )
