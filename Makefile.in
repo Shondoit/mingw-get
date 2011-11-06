@@ -1,6 +1,6 @@
 # @configure_input@
 #
-# $Id: Makefile.in,v 1.30 2011/07/29 19:52:32 keithmarshall Exp $
+# $Id: Makefile.in,v 1.31 2011/11/06 21:30:14 keithmarshall Exp $
 
 PACKAGE_TARNAME = @PACKAGE_TARNAME@
 PACKAGE_VERSION = @PACKAGE_VERSION@
@@ -199,12 +199,12 @@ licdist:
 	cd ./share/doc/${PACKAGE_TARNAME}; for file in $(LICENCE_FILES); \
 	  do test -f ${abs_top_srcdir}/$$file \
 	    && $(LN_S) ${abs_top_srcdir}/$$file . \
-	    || $(LN_S) ../$$file .; \
+	    || $(LN_S) ${CURDIR}/$$file .; \
 	  done
 	tar chf - share | $(TARZIP) -c > $(PACKAGE_DISTNAME)-lic.$(TAREXT)
 	rm -rf share
 
-srcdist: pkginfo.c srcdist-doc
+srcdist: srcdist-doc
 	rm -rf ${PACKAGE_DISTROOT} && mkdir ${PACKAGE_DISTROOT}
 	cd ${PACKAGE_DISTROOT}; for file in $(SRCDIST_FILES); do \
 	  test -f ${abs_top_srcdir}/$$file \
@@ -219,7 +219,7 @@ srcdist: pkginfo.c srcdist-doc
 	    fi; \
 	  done; \
 	cd ${CURDIR}; done
-	cd ${PACKAGE_DISTROOT}/src/pkginfo; $(LN_S) ${CURDIR}/$^ .
+	cd ${PACKAGE_DISTROOT}/src/pkginfo; $(LN_S) ${CURDIR}/pkginfo.c .
 	tar chf - ${PACKAGE_DISTROOT} | $(TARZIP) -c > \
 	  ${PACKAGE_DISTNAME}-src.$(TAREXT)
 	rm -rf ${PACKAGE_DISTROOT}

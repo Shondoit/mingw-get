@@ -1,5 +1,14 @@
 2011-11-06  Keith Marshall  <keithmarshall@users.sourceforge.net>
 
+	Fix packaging anomalies for source and licence distributions.
+
+	* Makefile.in (licdist): Link README from ${CURDIR}, not from '..'.
+	(srcdist): Explicitly link pkginfo.c from ${CURDIR} to src/pkginfo,
+	rather than as implied prerequisite; this avoids a bogus attempt to
+	link srcdist-doc into src/pkginfo.
+
+2011-11-06  Keith Marshall  <keithmarshall@users.sourceforge.net>
+
 	Bump version number for subsequent CVS snapshots.
 
 	* configure.ac (AC_INIT): Set version to 0.4-alpha-1.1cvs
