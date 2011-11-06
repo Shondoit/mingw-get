@@ -1,6 +1,6 @@
 # configure.ac -*- autoconf -*- vim: filetype=config
 #
-# $Id: configure.ac,v 1.20 2011/07/29 20:21:57 keithmarshall Exp $
+# $Id: configure.ac,v 1.21 2011/11/06 10:53:25 keithmarshall Exp $
 #
 # Written by Keith Marshall <keithmarshall@users.sourceforge.net>
 # Copyright (C) 2009, 2010, 2011, MinGW Project
@@ -22,7 +22,7 @@
 # MinGW Project, accept liability for any damages, however caused,
 # arising from the use of this software.
 #
-  AC_INIT([mingw-get],[0.3-alpha-2.1],[http://mingw.org/Reporting_Bugs])
+  AC_INIT([mingw-get],[0.4-alpha-1],[http://mingw.org/Reporting_Bugs])
 
   AC_SUBST([COPYRIGHT_HOLDER],["MinGW Project"])
   AC_SUBST([YEARS_OF_ISSUE],["2009, 2010, 2011"])

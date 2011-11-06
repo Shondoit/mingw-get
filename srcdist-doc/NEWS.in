@@ -1,10 +1,97 @@
 Release Notes
 =============
 
-$Id: NEWS.in,v 1.8 2011/07/29 20:21:57 keithmarshall Exp $
+$Id: NEWS.in,v 1.9 2011/11/06 10:53:26 keithmarshall Exp $
 
 The information presented below describes the user visible changes
-introduced with each release of mingw-get.
+introduced with each release of mingw-get.  The online version of this
+historical record is restricted to recent releases; the full history is
+recorded in the NEWS file, which is included in the source code package.
+
+
+mingw-get-0.4-mingw32-alpha-1
+-----------------------------
+
+Release date: 2011-11-06
+
+This release fixes a critical bug in the upgrade code, whereby an
+existing DLL could be replaced by an alternative with an incompatible
+ABI version, where the correct action is to install both concurrently.
+As a critical bug-fix release, this is a strongly recommended upgrade
+for all users.
+
+In addition to this critical bug-fix, the following new features have
+been implemented:--
+
+- Modified action: "upgrade"
+
+  The "upgrade" request now supports anonymous upgrade of all currently
+  installed packages; in other words, the command:
+
+      $ mingw-get upgrade
+
+  issued without any additional package-name arguments, will cause
+  mingw-get to invoke the upgrade action in respect of each and every
+  package which is currently recorded as "installed", and for which an
+  upgrade is available.
+
+- New action: "source"
+
+  Invoked by a command of the form:
+
+      $ mingw-get source package-name ...
+
+  requests mingw-get to download the source code archive for each named
+  package, and unpack it in the current working directory.
+
+- New action: "licence"
+
+  Similar to "source", and invoked by a command of the form:
+
+      $ mingw-get licence package-name ...
+
+  requests mingw-get to download the licence packs for each named
+  package, once again unpacking them in the current working directory.
+
+- New option: "--print-uris"
+
+  Used in conjunction with an "install", "source", or "licence" request,
+  causes mingw-get to print, on stdout, the URIs from whence the
+  packages needed to satisfy the request may be downloaded, without
+  otherwise completing the request; (nothing is actually downloaded,
+  unpacked, or installed).  This option causes the URIs to be printed
+  irrespective of the installation status of the named packages.
+
+- New option: "--download-only"
+
+  Used with an "install", "upgrade", or "licence" request, causes
+  mingw-get to download any package archives which are necessary to
+  complete the specified action, provided they are not already present
+  within the package cache, but without unpacking or installing the
+  package content.  After completing the request, the requisite package
+  archives may be found in the mingw-get package cache
+
+      var/cache/mingw-get/packages
+
+  relative to mingw-get's own sysroot path.
+
+  Similarly, when used with the "source" request, the "--download-only"
+  option causes mingw-get to download any source package archives needed
+  to complete the request, (once again, provided they are not already
+  present in the download cache), but without unpacking them.  In this
+  case, after completing the request, the requisite source archives may
+  be found in the directory
+
+      var/cache/mingw-get/source
+
+  relative to the sysroot path.
+
+- New option: "--all-related"
+
+  Used with the "source" or "licence" requests, this option extends the
+  scope of the request, causing mingw-get to also process the source or
+  licence packages associated with all runtime dependencies identified
+  for the packages named in the command.
 
 
 mingw-get-0.3-mingw32-alpha-2.1
@@ -95,6 +182,15 @@ Release date: 2011-05-30
   all future "alpha" and "beta" releases, but not for any officially
   distributed "pre", "rc" or "stable" release.
 
+;--------8<-------------------- cut-line -------------------->8--------
+;
+; Any text added below the cut-line will be included in the README
+; file, which is to be included in the source distribution, but it
+; will be excluded from the readme.txt file, which is to be used to
+; add descriptive content on the SourceForge download page.
+;
+; Any lines, such as these, which begin with a semicolon in their
+; first column (not indented), will be excluded from both files.
 
 mingw-get-0.2-mingw32-alpha-4
 -----------------------------
@@ -350,14 +446,4 @@ mingw-get; it provides a more readily extensible, and more configurable
 alternative to the existing MinGW-5.1.x series of NSIS installers, for
 installing MinGW packages.
 
-;--------8<-------------------- cut-line -------------------->8--------
-;
-; Any text added below the cut-line will be included in the README
-; file, which is to be included in the source distribution, but it
-; will be excluded from the readme.txt file, which is to be used to
-; add descriptive content on the SourceForge download page.
-;
-; Any lines, such as these, which begin with a semicolon in their
-; first column (not indented), will be excluded from both files.
-;
 $RCSfile: NEWS.in,v $: end of file

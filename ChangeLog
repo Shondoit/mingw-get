@@ -1,3 +1,11 @@
+2011-11-06  Keith Marshall  <keithmarshall@users.sourceforge.net>
+
+	mingw-get-0.4-mingw32-alpha-1 released.
+
+	* configure.ac (AC_INIT): Adjust version number.
+	* srcdist-doc/NEWS.in: Updated; document new features and bugs fixed.
+	* All files (r0-4-alpha-1): Tag assigned.
+
 2011-11-04  Keith Marshall  <keithmarshall@users.sourceforge.net>
 
 	Don't upgrade installed DLL components to incompatible version.
