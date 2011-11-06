@@ -1,5 +1,11 @@
 2011-11-06  Keith Marshall  <keithmarshall@users.sourceforge.net>
 
+	Bump version number for subsequent CVS snapshots.
+
+	* configure.ac (AC_INIT): Set version to 0.4-alpha-1.1cvs
+
+2011-11-06  Keith Marshall  <keithmarshall@users.sourceforge.net>
+
 	mingw-get-0.4-mingw32-alpha-1 released.
 
 	* configure.ac (AC_INIT): Adjust version number.
