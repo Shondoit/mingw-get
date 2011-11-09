@@ -1,7 +1,7 @@
 /*
  * climain.cpp
  *
- * $Id: climain.cpp,v 1.14 2011/10/07 20:58:57 keithmarshall Exp $
+ * $Id: climain.cpp,v 1.15 2011/11/09 05:54:57 keithmarshall Exp $
  *
  * Written by Keith Marshall <keithmarshall@users.sourceforge.net>
  * Copyright (C) 2009, 2010, 2011, MinGW Project
@@ -342,7 +342,7 @@ void pkgActionItem::GetSourceArchive( pkgXmlNode *package, unsigned long categor
        * least check that the source package is available in the
        * source archive cache, and if not, download it...
        */
-      const char *path_template;
+      const char *path_template; flags |= ACTION_DOWNLOAD;
       DownloadSingleArchive( src, path_template = (category == ACTION_SOURCE)
 	  ? pkgSourceArchivePath() : pkgArchivePath()
 	);

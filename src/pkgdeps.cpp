@@ -1,7 +1,7 @@
 /*
  * pkgdeps.cpp
  *
- * $Id: pkgdeps.cpp,v 1.10 2011/11/04 22:25:10 keithmarshall Exp $
+ * $Id: pkgdeps.cpp,v 1.11 2011/11/09 05:54:57 keithmarshall Exp $
  *
  * Written by Keith Marshall <keithmarshall@users.sourceforge.net>
  * Copyright (C) 2009, 2010, 2011, MinGW Project
@@ -196,9 +196,12 @@ bool is_abi_compatible( pkgSpecs *refdata, const char *version )
   return ((version != NULL) && (strcmp( version, ref_version ) == 0));
 }
 
+#define with_flags( request )       ((request) & ~(ACTION_MASK))
+#define promote( request, action )  (with_flags( request ) | with_download( action ))
+#define with_download( action )     ((action) | (ACTION_DOWNLOAD))
+
 void
 pkgXmlDocument::ResolveDependencies( pkgXmlNode* package, pkgActionItem* rank )
-# define promote( request, action )  (((request) & (~ACTION_MASK)) | action )
 {
   /* For the specified "package", (nominally a "release"), identify its
    * prerequisites, (as specified by "requires" tags), and schedule actions
@@ -341,13 +344,13 @@ pkgXmlDocument::ResolveDependencies( pkgXmlNode* package, pkgActionItem* rank )
 	  /* ...this package is already installed, so we may schedule
 	   * a resolved dependency match, with no pending action...
 	   */
-	  unsigned long fallback = request & ~ACTION_MASK;
+	  unsigned long fallback = with_flags( request );
 	  if( (selected != NULL) && (selected != installed) )
 	  {
 	    /* ...but, if there is a better candidate than the installed
 	     * version, we prefer to schedule an upgrade.
 	     */
-	    fallback |= ACTION_UPGRADE;
+	    fallback |= with_download( ACTION_UPGRADE );
 	    DEBUG_INVOKE_IF( DEBUG_REQUEST( DEBUG_TRACE_DEPENDENCIES ),
 		dmh_printf( "%*s%s: schedule replacement\n", indent, "",
 		    installed->GetPropVal( tarname_key, value_unknown )
@@ -631,7 +634,9 @@ void pkgXmlDocument::Schedule( unsigned long action, const char* name )
 	     * ...in which case, we must recursively resolve
 	     * any dependencies for the scheduled "upgrade".
 	     */
-	    ResolveDependencies( upgrade, Schedule( action, latest ));
+	    ResolveDependencies(
+		upgrade, Schedule( with_download( action ), latest )
+	      );
 
 	  else
 	  { /* attempting ACTION_UPGRADE or ACTION_REMOVE
@@ -682,7 +687,7 @@ void pkgXmlDocument::Schedule( unsigned long action, const char* name )
 	   */
 	  unsigned long fallback = action;
 	  if( (action & ACTION_MASK) == ACTION_INSTALL )
-	    fallback = ACTION_UPGRADE + (action & ~ACTION_MASK);
+	    fallback = with_download( ACTION_UPGRADE ) | with_flags( action );
 
 	  /* Again, we recursively resolve any dependencies
 	   * for the scheduled upgrade.

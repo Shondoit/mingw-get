@@ -1,7 +1,7 @@
 /*
  * pkgexec.cpp
  *
- * $Id: pkgexec.cpp,v 1.20 2011/11/04 22:25:10 keithmarshall Exp $
+ * $Id: pkgexec.cpp,v 1.21 2011/11/09 05:54:57 keithmarshall Exp $
  *
  * Written by Keith Marshall <keithmarshall@users.sourceforge.net>
  * Copyright (C) 2009, 2010, 2011, MinGW Project
@@ -242,6 +242,14 @@ pkgActionItem::Schedule( unsigned long action, pkgActionItem& item )
    * and return it for inclusion in the task schedule.
    */
   pkgActionItem *rtn = new pkgActionItem(); *rtn = item;
+  if( pkgOptions()->Test( OPTION_REINSTALL ) == OPTION_REINSTALL )
+    /*
+     * When the user specified the "--reinstall" option, either
+     * explicitly, or implied by "--download-only", (or even as a
+     * side effect of "--print-uris"), we MUST enable a download
+     * action, in case it is required to complete the request.
+     */
+    action |= ACTION_DOWNLOAD;
   rtn->flags = action | (rtn->flags & ~ACTION_MASK);
   return rtn;
 }

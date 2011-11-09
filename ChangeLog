@@ -1,3 +1,23 @@
+2011-11-09  Keith Marshall  <keithmarshall@users.sourceforge.net>
+
+	Avoid unnecessary downloads for already installed packages.
+
+	* src/pkginet.cpp (pkgActionItem::DownloadSingleArchive): Require
+	external scheduling of ACTION_DOWNLOAD; cancel the scheduled request
+	on completion, or when not required due to pre-existing local copy.
+
+	* src/climain.cpp (pkgActionItem::GetSourceArchive): Must always be
+	prepared to download the associated archive; enable ACTION_DOWNLOAD.
+
+	* src/pkgexec.cpp (pkgActionItem::Schedule) [OPTION_REINSTALL]:
+	May need to download the archive, even when the requested package was
+	previously installed; schedule ACTION_DOWNLOAD to enable this.
+
+	* src/pkgdeps.cpp (promote): Macro redefined in terms of...
+	(with_flags, with_download): ...these new macros; implement and...
+	(pkgXmlDocument::ResolveDependencies): ...use them to enable/schedule
+	ACTION_DOWNLOAD only when expected that it may be necessary.
+
 2011-11-06  Keith Marshall  <keithmarshall@users.sourceforge.net>
 
 	Fix packaging anomalies for source and licence distributions.
