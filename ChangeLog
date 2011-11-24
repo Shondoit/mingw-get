@@ -1,3 +1,10 @@
+2011-11-24  Keith Marshall  <keithmarshall@users.sourceforge.net>
+
+	Avoid implicit cast warnings; reported by Robert Hartmann.
+
+	* src/dmh.h (DMH_BEGIN_DIGEST): Explicitly cast to uint16_t.
+	(DMH_END_DIGEST): Likewise.
+
 2011-11-09  Keith Marshall  <keithmarshall@users.sourceforge.net>
 
 	Avoid unnecessary downloads for already installed packages.
