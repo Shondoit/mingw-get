@@ -1,7 +1,7 @@
 /*
  * pkginst.cpp
  *
- * $Id: pkginst.cpp,v 1.3 2011/05/12 20:33:51 keithmarshall Exp $
+ * $Id: pkginst.cpp,v 1.4 2012/02/17 23:18:51 keithmarshall Exp $
  *
  * Written by Keith Marshall <keithmarshall@users.sourceforge.net>
  * Copyright (C) 2010, 2011, MinGW Project
@@ -403,6 +403,14 @@ EXTERN_C void pkgInstall( pkgActionItem *current )
 	 * for re-installation or upgrade.
 	 */
 	const char *pkgfile, *tarname;
+
+	/* Before proceeding with the installation, we should invoke
+	 * any associated pre-install script.
+	 */
+	pkg->InvokeScript( "pre-install" );
+
+	/* Now, we may proceed with package installation...
+	 */
 	if(  match_if_explicit( pkgfile = pkg->ArchiveName(), value_none )
 	&& ((tarname = pkg->GetPropVal( tarname_key, NULL )) != NULL)       )
 	{
@@ -430,6 +438,10 @@ EXTERN_C void pkgInstall( pkgActionItem *current )
 	  if( install.IsOk() )
 	    install.Process();
 	}
+	/* Whether we just installed a virtual package or a real package,
+	 * we may now run its post-install script, (if any).
+	 */
+	pkg->InvokeScript( "post-install" );
       }
       else
 	/* There is a prior installation of the selected package, which

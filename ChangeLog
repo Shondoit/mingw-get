@@ -1,3 +1,20 @@
+2012-02-17  Keith Marshall  <keithmarshall@users.sourceforge.net>
+
+	Implement hooks to support lua scripting interface.
+
+	* Makefile.in (LIBS): Add -llua.
+
+	* src/pkgbase.h (pkgXmlNode::InvokeScript): New method; declare it
+	as private, and provide overloaded public inline API implementation.
+	(pkgXmlNode::DispatchScript): New private method; declare it.
+
+	* src/pkgexec.cpp (pkgXmlNode::InvokeScript): Implement it.
+	(pkgXmlNode::DispatchScript): Likewise; it directs InvokeScript to...
+	(pkgInvokeScript): ...this new static function; implement it.
+
+	* src/pkginst.cpp (pkgInstall): Call InvokeScript as appropriate.
+	* src/pkgunst.cpp (pkgRemove): Likewise.
+
 2011-11-24  Keith Marshall  <keithmarshall@users.sourceforge.net>
 
 	Avoid implicit cast warnings; reported by Robert Hartmann.
