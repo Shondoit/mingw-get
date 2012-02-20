@@ -1,5 +1,16 @@
 2012-02-20  Keith Marshall  <keithmarshall@users.sourceforge.net>
 
+	Fix ill-advised optimisation in $APPROOT environment lookup.
+
+	* src/rites.c (approot_path): Don't save result of getenv() lookup
+	across calls; the environment may have been moved in the interim,
+	making the original result invalid on any subsequent call.  Also,
+	prefer MS-Windows style (with backslashes) for default.
+	(pkgLastRites): Report full path name for lastrites.exe, on execl()
+	failure, rather than only the path relative to $APPROOT.
+
+2012-02-20  Keith Marshall  <keithmarshall@users.sourceforge.net>
+
 	Propagate sysroot path settings to scripts via the environment.
 
 	* src/pkgbase.h (PKG_PUTENV_FLAGS_MASK): New constant; it maps...

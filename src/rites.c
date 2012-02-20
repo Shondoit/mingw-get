@@ -2,7 +2,7 @@
 /*
  * rites.c
  *
- * $Id: rites.c,v 1.2 2010/10/22 22:08:52 keithmarshall Exp $
+ * $Id: rites.c,v 1.3 2012/02/20 21:17:45 keithmarshall Exp $
  *
  * Written by Keith Marshall <keithmarshall@users.sourceforge.net>
  * Copyright (C) 2009, 2010, MinGW Project
@@ -136,11 +136,16 @@ RITES_INLINE const char *approot_path( void )
   /* Inline helper to identify the root directory path for the running
    * application, (which "mingw-get" passes through the APPROOT variable
    * in the process environment)...
+   *
+   * Caution: although this is called more than once, DO NOT attempt to
+   * optimise getenv() lookup by saving the returned pointer across calls;
+   * the environment block may have been moved between calls, which makes
+   * the pointer returned from a previous call potentially invalid!
    */
-  static const char *approot = NULL;
-  return ((approot == NULL) && ((approot = getenv( "APPROOT" )) == NULL))
+  char *approot;
+  return ((approot = getenv( "APPROOT" )) == NULL)
 
-    ? "c:/mingw/"	/* default, for failed environment look-up */
+    ? "c:\\mingw\\"	/* default, for failed environment look-up */
     : approot;		/* normal return value */
 }
 
@@ -354,7 +359,7 @@ RITES_INLINE int pkgLastRites( int lock, const char *progname )
   /* We should never get to here; if we do...
    * Diagnose a problem, and bail out.
    */
-  fprintf( stderr, "%s: execl: ", progname ); perror( lastrites );
+  fprintf( stderr, "%s: execl: ", progname ); perror( rites );
   return EXIT_FATAL;
 }
 
