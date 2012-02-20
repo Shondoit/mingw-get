@@ -1,3 +1,23 @@
+2012-02-20  Keith Marshall  <keithmarshall@users.sourceforge.net>
+
+	Propagate sysroot path settings to scripts via the environment.
+
+	* src/pkgbase.h (PKG_PUTENV_FLAGS_MASK): New constant; it maps...
+	(PKG_PUTENV_DIRSEP_MSW, PKG_PUTENV_DIRSEP_POSIX): ...these flags...
+	(PKG_PUTENV_SCAN_VARNAME, PKG_PUTENV_NAME_TOUPPER): ...and these;
+	they are used to specify optional behavioural choices for...
+	(pkgPutEnv): ...this new function; declare it.
+
+	* src/sysroot.cpp (pkgPutEnv): Implement it.
+	(pkgXmlDocument::LoadSystemMap): Use it to add $SUBSYSTEM_SYSROOT path
+	specifications to the environment, for each named subsystem associated
+	with the active system map.
+
+	* src/pkgexec.cpp (pkgActionItem::Execute): Invoke pkgPutEnv() prior
+	to processing of each package install, upgrade, or remove action, so
+	as to update environment variable $SYSROOT to represent the sysroot
+	path for each package processed, during execution of script hooks.
+
 2012-02-17  Keith Marshall  <keithmarshall@users.sourceforge.net>
 
 	Implement hooks to support lua scripting interface.

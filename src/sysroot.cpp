@@ -1,7 +1,7 @@
 /*
  * sysroot.cpp
  *
- * $Id: sysroot.cpp,v 1.6 2011/05/29 20:53:37 keithmarshall Exp $
+ * $Id: sysroot.cpp,v 1.7 2012/02/20 21:08:05 keithmarshall Exp $
  *
  * Written by Keith Marshall <keithmarshall@users.sourceforge.net>
  * Copyright (C) 2010, 2011, MinGW Project
@@ -113,7 +113,74 @@ static bool samepath( const char *tstpath, const char *refpath )
   return (*tstpath == *refpath);
 }
 
+EXTERN_C int pkgPutEnv( int flags, char *varspec )
+{
+  /* A helper routine for registration of sysroot path to
+   * subsystem name mappings in the process environment, so
+   * that they propagate to pre/post-processing hooks.
+   */
+  if( flags )
+  {
+    /* The flags allow us to specify certain transformations
+     * to be applied to the varspec.
+     */
+    char *ref = varspec;
+    flags |= PKG_PUTENV_SCAN_VARNAME;
+    do { if( (flags & PKG_PUTENV_NAME_TOUPPER) == PKG_PUTENV_NAME_TOUPPER )
+	 {
+	   /* The PKG_PUTENV_NAME_TOUPPER flag specifies that the varname
+	    * part of varspec may contain lower case characters, which are
+	    * to be converted to their upper case equivalents, before they
+	    * are stored in the environment...
+	    */
+	   if( *ref == '=' )
+	     /*
+	      * ...but such transformation does not apply to the value
+	      * part, so stop it when we find the first '=' character,
+	      * (which separates the name and value parts of varspec).
+	      */
+	     flags &= ~(PKG_PUTENV_SCAN_VARNAME | PKG_PUTENV_NAME_TOUPPER);
+
+	   else
+	     /* ...we haven't yet encountered the '=', so apply the
+	      * transformation.
+	      */
+	     *ref = toupper( *ref ); }
+
+	 else if( *ref == '=' )
+	   /*
+	    * We may be doing case transformation on the varname, so
+	    * note when we've passed the '=' which separates it from
+	    * any assigned value.
+	    */
+	   flags &= ~PKG_PUTENV_SCAN_VARNAME;
+
+	 /* Once we've reached the value part of varspec, flags which
+	  * include the PKG_PUTENV_DIRSEP_MSW bit, but do not include
+	  * the PKG_PUTENV_DIRSEP_POSIX bit, request that POSIX style
+	  * directory separators are to be replaced by the MS-Windows
+	  * '\' counterpart...
+	  */
+	 if( ((flags & PKG_PUTENV_FLAGS_MASK) == PKG_PUTENV_DIRSEP_MSW) &&
+	     (*ref == '/')   ) *ref = '\\';
+
+	 /* ...while conversely, the PKG_PUTENV_DIRSEP_POSIX bit,
+	  * (without PKG_PUTENV_DIRSEP_MSW), requests MS-Windows to
+	  * POSIX style transformation.
+	  */
+	 else if( ((flags & PKG_PUTENV_FLAGS_MASK) == PKG_PUTENV_DIRSEP_POSIX)
+	     &&   (*ref == '\\')   ) *ref = '/';
+
+       } while( *++ref ); }
+
+  /* Finally, we insert the variable specification, (which may have
+   * been transformed above), into the process environment.
+   */
+  return putenv( varspec );
+}
+
 void pkgXmlDocument::LoadSystemMap()
+#define PKG_SYSROOT_OPTIONS (PKG_PUTENV_NAME_TOUPPER | PKG_PUTENV_DIRSEP_MSW)
 {
   /* Load an initial, or a replacement, system map into the
    * internal XML database image space.
@@ -188,10 +255,30 @@ void pkgXmlDocument::LoadSystemMap()
 	    && ! samepath( path, sysroot->GetPropVal( pathname_key, NULL )) )
 	      sysroot = sysroot->FindNextAssociate( sysroot_key );
 
- 	    DEBUG_INVOKE_IF( DEBUG_REQUEST( DEBUG_TRACE_INIT ),
+	    /* Identify the subsystem name, logging a trace notification
+	     * when running with appropriate debugging traces enabled.
+	     */
+	    const char *sysname = subsystem->GetPropVal( subsystem_key, NULL );
+	    DEBUG_INVOKE_IF( DEBUG_REQUEST( DEBUG_TRACE_INIT ),
 		dmh_printf( "Bind subsystem %s: sysroot = %s\n",
-		  subsystem->GetPropVal( subsystem_key, "<unknown>" ), path
+		  (sysname == NULL) ? value_unknown : sysname,
+		  path
 	      ));
+
+	    if( sysname != NULL )
+	    {
+	      /* Register the associated sysroot in the process environment,
+	       * so that it may become available to pre/post-processing hooks;
+	       * note that the recorded path name is likely to include macros
+	       * such as "%R", so we filter it through mkpath() to ensure
+	       * that they are expanded.
+	       */
+	      char varname_template[11 + strlen( path )];
+	      sprintf( varname_template, "%%F_SYSROOT=%s", path );
+	      char varname[mkpath( NULL, varname_template, sysname, NULL )];
+	      mkpath( varname, varname_template, sysname, NULL );
+	      pkgPutEnv( PKG_SYSROOT_OPTIONS, varname );
+	    }
 
 	    if( sysroot == NULL )
 	    {
@@ -309,10 +396,23 @@ void pkgXmlDocument::LoadSystemMap()
     /* Finally, if the current system map was not loaded...
      */
     if( to_clear != NULL )
-      /*
-       * ...then we delete its declaration from the active data space.
+    {
+      /* ...clean up its declaration data...
+       */
+      const char *sysname = to_clear->GetPropVal( subsystem_key, NULL );
+      if( sysname != NULL )
+      {
+	/* ...deleting its sysroot registration entry, if any,
+	 * from the process environment...
+	 */
+  	char varname[9 + strlen( sysname )];
+  	sprintf( varname, "%s_SYSROOT", sysname );
+  	pkgPutEnv( PKG_PUTENV_NAME_TOUPPER, varname );
+      }
+      /* ...and removing its reference from the active XML data space.
        */
       dbase->DeleteChild( to_clear );
+    }
   }
 }
 

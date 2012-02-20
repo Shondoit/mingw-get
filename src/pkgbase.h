@@ -2,7 +2,7 @@
 /*
  * pkgbase.h
  *
- * $Id: pkgbase.h,v 1.19 2012/02/17 23:18:51 keithmarshall Exp $
+ * $Id: pkgbase.h,v 1.20 2012/02/20 21:08:05 keithmarshall Exp $
  *
  * Written by Keith Marshall <keithmarshall@users.sourceforge.net>
  * Copyright (C) 2009, 2010, 2011, MinGW Project
@@ -71,6 +71,19 @@
 # endif
 #endif
 
+/* Define an API for registering environment variables.
+ */
+EXTERN_C int pkgPutEnv( int, char* );
+
+#define PKG_PUTENV_DIRSEP_MSW 	 	(0x01)
+#define PKG_PUTENV_DIRSEP_POSIX 	(0x02)
+#define PKG_PUTENV_SCAN_VARNAME 	(0x04)
+#define PKG_PUTENV_NAME_TOUPPER  	(0x08)
+
+#define PKG_PUTENV_FLAGS_MASK		(0x0F)
+
+/* Begin class declarations.
+ */
 class pkgSpecs;
 
 class pkgXmlNode : public TiXmlElement

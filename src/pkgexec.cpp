@@ -1,10 +1,10 @@
 /*
  * pkgexec.cpp
  *
- * $Id: pkgexec.cpp,v 1.22 2012/02/17 23:18:51 keithmarshall Exp $
+ * $Id: pkgexec.cpp,v 1.23 2012/02/20 21:08:05 keithmarshall Exp $
  *
  * Written by Keith Marshall <keithmarshall@users.sourceforge.net>
- * Copyright (C) 2009, 2010, 2011, MinGW Project
+ * Copyright (C) 2009, 2010, 2011, 2012, MinGW Project
  *
  *
  * Implementation of package management task scheduler and executive.
@@ -430,9 +430,35 @@ void pkgActionItem::Execute()
 	   * be performed, identifying the package to be processed.
 	   */
 	  const char *tarname;
-	  if( (tarname = current->Selection()->GetPropVal( tarname_key, NULL )) == NULL )
-	    tarname = current->Selection( to_remove )->GetPropVal( tarname_key, value_unknown );
+	  pkgXmlNode *ref = current->Selection();
+	  if( (tarname = ref->GetPropVal( tarname_key, NULL )) == NULL )
+	  {
+	    ref = current->Selection( to_remove );
+	    tarname = ref->GetPropVal( tarname_key, value_unknown );
+	  }
 	  dmh_printf( "%s: %s\n", action_name(current->flags & ACTION_MASK), tarname );
+
+	  /* Package pre/post processing scripts may need to
+	   * refer to the sysroot path for the package; place
+	   * a copy in the environment, to facilitate this.
+	   */
+	  pkgSpecs lookup( tarname );
+	  ref = ref->GetSysRoot( lookup.GetSubSystemName() );
+	  const char *path = ref->GetPropVal( pathname_key, NULL );
+	  if( path != NULL )
+	  {
+	    /* Format the sysroot path into an environment variable
+	     * assignment specification; note that the recorded path
+	     * name is likely to include macros such as "%R", so we
+	     * filter it through mkpath(), to expand them.
+	     */
+	    const char *nothing = "";
+	    char varspec_template[9 + strlen( path )];
+	    sprintf( varspec_template, "SYSROOT=%s", path );
+	    char varspec[mkpath( NULL, varspec_template, nothing, NULL )];
+	    mkpath( varspec, varspec_template, nothing, NULL );
+	    pkgPutEnv( PKG_PUTENV_DIRSEP_MSW, varspec );
+	  }
 
 	  /* Check for any outstanding requirement to invoke the
 	   * "self upgrade rites" process, so that we may install an
