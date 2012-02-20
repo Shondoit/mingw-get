@@ -1,10 +1,10 @@
 /*
  * sysroot.cpp
  *
- * $Id: sysroot.cpp,v 1.7 2012/02/20 21:08:05 keithmarshall Exp $
+ * $Id: sysroot.cpp,v 1.8 2012/02/20 21:41:54 keithmarshall Exp $
  *
  * Written by Keith Marshall <keithmarshall@users.sourceforge.net>
- * Copyright (C) 2010, 2011, MinGW Project
+ * Copyright (C) 2010, 2011, 2012, MinGW Project
  *
  *
  * Implementation of the system map loader, sysroot management and

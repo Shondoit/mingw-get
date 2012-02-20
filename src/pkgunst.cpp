@@ -1,10 +1,10 @@
 /*
  * pkgunst.cpp
  *
- * $Id: pkgunst.cpp,v 1.7 2012/02/17 23:18:51 keithmarshall Exp $
+ * $Id: pkgunst.cpp,v 1.8 2012/02/20 21:41:54 keithmarshall Exp $
  *
  * Written by Keith Marshall <keithmarshall@users.sourceforge.net>
- * Copyright (C) 2011, MinGW Project
+ * Copyright (C) 2011, 2012, MinGW Project
  *
  *
  * Implementation of the primary package removal methods.

@@ -1,5 +1,13 @@
 2012-02-20  Keith Marshall  <keithmarshall@users.sourceforge.net>
 
+	Copyright notice updates.
+
+	* Makefile.in: Add 2012 as year of republication.
+	* src/pkgbase.h src/sysroot.cpp src/pkgexec.cpp: Likewise.
+	* src/rites.c src/pkginst.cpp src/pkgunst.cpp: Likewise.
+
+2012-02-20  Keith Marshall  <keithmarshall@users.sourceforge.net>
+
 	Fix ill-advised optimisation in $APPROOT environment lookup.
 
 	* src/rites.c (approot_path): Don't save result of getenv() lookup

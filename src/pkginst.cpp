@@ -1,10 +1,10 @@
 /*
  * pkginst.cpp
  *
- * $Id: pkginst.cpp,v 1.4 2012/02/17 23:18:51 keithmarshall Exp $
+ * $Id: pkginst.cpp,v 1.5 2012/02/20 21:41:54 keithmarshall Exp $
  *
  * Written by Keith Marshall <keithmarshall@users.sourceforge.net>
- * Copyright (C) 2010, 2011, MinGW Project
+ * Copyright (C) 2010, 2011, 2012, MinGW Project
  *
  *
  * Implementation of the primary package installation and package

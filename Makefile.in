@@ -1,12 +1,12 @@
 # @configure_input@
 #
-# $Id: Makefile.in,v 1.32 2012/02/17 23:18:50 keithmarshall Exp $
+# $Id: Makefile.in,v 1.33 2012/02/20 21:41:53 keithmarshall Exp $
 
 PACKAGE_TARNAME = @PACKAGE_TARNAME@
 PACKAGE_VERSION = @PACKAGE_VERSION@
 
 # Written by Keith Marshall <keithmarshall@users.sourceforge.net>
-# Copyright (C) 2009, 2010, 2011, MinGW Project
+# Copyright (C) 2009, 2010, 2011, 2012, MinGW Project
 #
 #
 # Makefile template for mingw-get
