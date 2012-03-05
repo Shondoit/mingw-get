@@ -1,10 +1,10 @@
 /*
  * pkgdeps.cpp
  *
- * $Id: pkgdeps.cpp,v 1.11 2011/11/09 05:54:57 keithmarshall Exp $
+ * $Id: pkgdeps.cpp,v 1.12 2012/03/05 16:23:44 keithmarshall Exp $
  *
  * Written by Keith Marshall <keithmarshall@users.sourceforge.net>
- * Copyright (C) 2009, 2010, 2011, MinGW Project
+ * Copyright (C) 2009, 2010, 2011, 2012, MinGW Project
  *
  *
  * Implementation of the package dependency resolver method, of the
@@ -196,7 +196,7 @@ bool is_abi_compatible( pkgSpecs *refdata, const char *version )
   return ((version != NULL) && (strcmp( version, ref_version ) == 0));
 }
 
-#define with_flags( request )       ((request) & ~(ACTION_MASK))
+#define with_flags( request )       ((request) & ~(ACTION_MASK | ACTION_DOWNLOAD))
 #define promote( request, action )  (with_flags( request ) | with_download( action ))
 #define with_download( action )     ((action) | (ACTION_DOWNLOAD))
 
@@ -596,6 +596,14 @@ void pkgXmlDocument::Schedule( unsigned long action, const char* name )
 	 * a request for a primary action; mark it as such.
 	 */
 	action |= ACTION_PRIMARY;
+
+	/* Furthermore, any primary action must be supported by
+	 * an implied download activity, unless the '--print-uris'
+	 * option is in effect.
+	 */
+	if(  ((action & ACTION_UPGRADE) == ACTION_UPGRADE)
+	&&  (pkgOptions()->Test( OPTION_PRINT_URIS ) != OPTION_PRINT_URIS)  )
+	  action |= ACTION_DOWNLOAD;
 
 	/* For each candidate release in turn...
 	 */

@@ -1,3 +1,14 @@
+2012-03-05  Keith Marshall  <keithmarshall@users.sourceforge.net>
+
+	Don't suppress implied downloads for top-level actions.
+
+	* src/pkgdeps.cpp: Update copyright notice for new year.
+	(pkgXmlDocument::Schedule) [!OPTION_PRINT_URIS]: Ensure that...
+	[ACTION_DOWNLOAD]: ...this is enabled, when scheduling an install or
+	an upgrade action for a package specified as a command line argument;
+	this corrects a regression introduced on 2011-11-09, which resulted in
+	ACTION_DOWNLOAD being enabled only for second tier dependent actions.
+
 2012-02-20  Keith Marshall  <keithmarshall@users.sourceforge.net>
 
 	Copyright notice updates.
