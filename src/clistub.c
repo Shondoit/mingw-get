@@ -1,10 +1,10 @@
 /*
  * clistub.c
  *
- * $Id: clistub.c,v 1.16 2011/10/06 18:53:26 keithmarshall Exp $
+ * $Id: clistub.c,v 1.17 2012/03/12 22:13:58 keithmarshall Exp $
  *
  * Written by Keith Marshall <keithmarshall@users.sourceforge.net>
- * Copyright (C) 2009, 2010, 2011, MinGW Project
+ * Copyright (C) 2009, 2010, 2011, 2012, MinGW Project
  *
  *
  * Initiation stub for command line invocation of mingw-get
@@ -194,6 +194,11 @@ static const char *help_text =
 "                    for which the most recent release is\n"
 "                    already installed\n"
 "\n"
+"  --recursive       Extend the scope of \"install --reinstall\"\n"
+"                    or of \"upgrade\", such that the operation\n"
+"                    is applied recursively to all prerequisites\n"
+"                    of all packages named on the command line\n"
+"\n"
 "  --download-only   Download the package archive files which\n"
 "                    would be required to complete the specified\n"
 "                    install, upgrade, or source operation, but\n"
@@ -207,7 +212,6 @@ static const char *help_text =
 "                    download any package file, or otherwise\n"
 "                    proceed with the operation\n"
 "\n"
-"  --recursive\n"
 "  --all-related     When performing source or licence operations,\n"
 "                    causes mingw-get to retrieve, and optionally to\n"
 "                    unpack the source or licence archives for all\n"
@@ -396,12 +400,12 @@ int main( int argc, char **argv )
       { "help",           no_argument,         NULL,      'h'                },
       { "verbose",        optional_argument,   NULL,      OPTION_VERBOSE     },
 
-      { "recursive",      no_argument,         &optref,   OPTION_ALL_DEPS    },
+      { "recursive",      no_argument,         &optref,   OPTION_RECURSIVE   },
       { "reinstall",      no_argument,         &optref,   OPTION_REINSTALL   },
       { "download-only",  no_argument,         &optref,   OPTION_DNLOAD_ONLY },
       { "print-uris",     no_argument,         &optref,   OPTION_PRINT_URIS  },
 
-      { "all-related",    no_argument,         &optref,   OPTION_ALL_DEPS    },
+      { "all-related",    no_argument,         &optref,   OPTION_ALL_RELATED },
 
 #     if DEBUG_ENABLED( DEBUG_TRACE_DYNAMIC )
 	/* The "--trace" option is supported only when dynamic tracing

@@ -2,10 +2,10 @@
 /*
  * pkgopts.h
  *
- * $Id: pkgopts.h,v 1.6 2011/10/06 18:53:26 keithmarshall Exp $
+ * $Id: pkgopts.h,v 1.7 2012/03/12 22:13:58 keithmarshall Exp $
  *
  * Written by Keith Marshall <keithmarshall@users.sourceforge.net>
- * Copyright (C) 2011, MinGW Project
+ * Copyright (C) 2011, 2012, MinGW Project
  *
  *
  * Public declarations of the data structures, values and functions
@@ -89,7 +89,9 @@ struct pkgopts
 #define OPTION_DOWNLOAD_ONLY	(0x00000030)
 #define OPTION_PRINT_URIS	(0x00000070)
 
+#define OPTION_RECURSIVE	(0x00000080)
 #define OPTION_ALL_DEPS 	(0x00000090)
+#define OPTION_ALL_RELATED	(0x00000100)
 
 #if __cplusplus
 /*
@@ -127,6 +129,22 @@ class pkgOpts : protected pkgopts
        * a bit-mapped numeric data (flags) entry.
        */
       return this ? (flags[index].numeric & mask) : 0;
+    }
+    inline void SetFlags( unsigned value )
+    {
+      /* This is a mask and store operation, to set a specified
+       * bit-field within the first pair of flags slots; it mimics
+       * the options setting operation performed in the CLI start-up
+       * code, where the input value represents a 12-bit flag code,
+       * packaged with a 12-bit combining mask, and an alignment
+       * shift count between 0 and 52, in 4-bit increments.
+       */
+      unsigned shift;
+      if( (shift = (value & OPTION_SHIFT_MASK) >> 22) < 53 )
+      {
+	*(uint64_t *)(flags) &= ~((uint64_t)((value & 0xfff000) >> 12) << shift);
+	*(uint64_t *)(flags) |= (uint64_t)(value) << shift;
+      }
     }
 };
 

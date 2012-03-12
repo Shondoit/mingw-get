@@ -1,5 +1,23 @@
 2012-03-12  Keith Marshall  <keithmarshall@users.sourceforge.net>
 
+	Rationalise implementation and usage of --all-related option.
+
+	* src/pkgopts.h: Update copyright notice; add year 2012.
+	(OPTION_RECURSIVE, OPTION_ALL_RELATED): New constants; define them.
+	(pkgOpts::SetFlags): New method; declare and implement it inline.
+
+	* src/clistub.c: Update copyright notice; add year 2012.
+	(options) [recursive, all-related]: Redefine in terms of...
+	(OPTION_RECURSIVE, OPTION_ALL_RELATED): ...these.
+	(help_text): Update appropriately.
+
+	* src/climain.cpp: Update copyright notice; add year 2012.
+	(climain) [all-related]: Associate its use exclusively with...
+	(source, licence): ...these package processing operations; use...
+	(pkgOptions::SetFlags): ...this, to propagate its effect.
+
+2012-03-12  Keith Marshall  <keithmarshall@users.sourceforge.net>
+
 	Don't report failed downloads in respect of virtual packages.
 
 	* src/pkginet.cpp (pkgActionItem::DownloadArchiveFiles): Clear...
