@@ -1,3 +1,14 @@
+2012-03-12  Keith Marshall  <keithmarshall@users.sourceforge.net>
+
+	Don't report failed downloads in respect of virtual packages.
+
+	* src/pkginet.cpp (pkgActionItem::DownloadArchiveFiles): Clear...
+	[ACTION_DOWNLOAD]: ...this status flag for any package identified as
+	a meta-package; this corrects a further regression introduced with the
+	2011-11-09 update, whereby pending download requests for such virtual
+	packages were not cancelled, resulting in failure to install due to
+	failed downloads, when no download is actually required.
+
 2012-03-05  Keith Marshall  <keithmarshall@users.sourceforge.net>
 
 	Don't suppress implied downloads for top-level actions.

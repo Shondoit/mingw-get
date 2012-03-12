@@ -1,10 +1,10 @@
 /*
  * pkginet.cpp
  *
- * $Id: pkginet.cpp,v 1.15 2011/11/09 05:54:57 keithmarshall Exp $
+ * $Id: pkginet.cpp,v 1.16 2012/03/12 21:07:30 keithmarshall Exp $
  *
  * Written by Keith Marshall <keithmarshall@users.sourceforge.net>
- * Copyright (C) 2009, 2010, 2011, MinGW Project
+ * Copyright (C) 2009, 2010, 2011, 2012, MinGW Project
  *
  *
  * Implementation of the package download machinery for mingw-get.
@@ -734,12 +734,17 @@ void pkgActionItem::DownloadArchiveFiles( pkgActionItem *current )
        */
       const char *package_name = current->Selection()->ArchiveName();
 
-      /* An explicit package name of "none" is a special case, indicating
-       * a "virtual" meta-package; it requires nothing to be downloaded...
+      /* An explicit package name of "none" is a special case;
+       * it identifies a "virtual" meta-package...
        */
-      if( ! match_if_explicit( package_name, value_none ) )
+      if( match_if_explicit( package_name, value_none ) )
 	/*
-	 * ...but we expect any other package to provide real content,
+	 * ...which requires nothing to be downloaded...
+	 */
+	current->flags &= ~(ACTION_DOWNLOAD);
+
+      else
+	/* ...but we expect any other package to provide real content,
 	 * for which we may need to download the package archive...
 	 */
 	current->DownloadSingleArchive( package_name, pkgArchivePath() );
