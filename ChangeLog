@@ -1,3 +1,28 @@
+2012-03-13  Keith Marshall  <keithmarshall@users.sourceforge.net>
+
+	Address reinstallation issues per MinGW-Bugs #3416013 and #3424406
+
+	* src/pkgexec.cpp (reinstall_action_scheduled): New inline function.
+	(pkgActionItem::Execute): Use it to identify cases where...
+	[--reinstall]: ...implicit package removal is required, and also to
+	facilitate improved progress reporting in such cases.
+
+	* src/pkgdeps.cpp (is_recursive_action): New inline function.
+	(pkgXmlDocument::ResolveDependencies): Use it in tandem with...
+	(recursive_mode): ...this new automatic variable, so as to handle...
+	[meta-package dependency]: ...implicit recursion, to extend the scope
+	of the current action to the first level of non-meta dependency.
+	[install --reinstall]: ...reinstall original version of nominated
+	package, ignoring any available upgrade; extend scope of operation...
+	[install --reinstall --recursive]: ...to all prerequisite packages.
+	[upgrade --reinstall]: ...upgrade nominated package if possible; if no
+	upgrade available, reinstall current version; extend scope...
+	[upgrade --reinstall --recursive]: ...to all prerequisites.
+	(pkgXmlDocument::Schedule): Partially revert 2012-03-05 change;
+	reimplement selectively; never promote...
+	[install, install --reinstall]: ...these operations to become...
+	[upgrade]: ...this, even if available; issue diagnostic instead.
+
 2012-03-12  Keith Marshall  <keithmarshall@users.sourceforge.net>
 
 	Rationalise implementation and usage of --all-related option.

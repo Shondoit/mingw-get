@@ -1,7 +1,7 @@
 /*
  * pkgexec.cpp
  *
- * $Id: pkgexec.cpp,v 1.23 2012/02/20 21:08:05 keithmarshall Exp $
+ * $Id: pkgexec.cpp,v 1.24 2012/03/13 20:24:53 keithmarshall Exp $
  *
  * Written by Keith Marshall <keithmarshall@users.sourceforge.net>
  * Copyright (C) 2009, 2010, 2011, 2012, MinGW Project
@@ -380,6 +380,18 @@ pkgActionItem* pkgXmlDocument::Schedule
   return rank;
 }
 
+static __inline__ __attribute__((__always_inline__))
+int reinstall_action_scheduled( pkgActionItem *package )
+{
+  /* Helper function to identify scheduled actions which will
+   * result in reinstallation of the associated package.
+   */
+  return
+    ( pkgOptions()->Test( OPTION_REINSTALL )
+      && (package->Selection() == package->Selection( to_remove ))
+    );
+}
+
 void pkgActionItem::Execute()
 {
   if( this != NULL )
@@ -436,7 +448,10 @@ void pkgActionItem::Execute()
 	    ref = current->Selection( to_remove );
 	    tarname = ref->GetPropVal( tarname_key, value_unknown );
 	  }
-	  dmh_printf( "%s: %s\n", action_name(current->flags & ACTION_MASK), tarname );
+	  dmh_printf( "%s: %s\n", reinstall_action_scheduled( current )
+	      ? "reinstall" : action_name( current->flags & ACTION_MASK ),
+	      tarname
+	    );
 
 	  /* Package pre/post processing scripts may need to
 	   * refer to the sysroot path for the package; place
@@ -491,10 +506,12 @@ void pkgActionItem::Execute()
 	  { /* ...otherwise, proceed to perform remove and install
 	     * operations, as appropriate.
 	     */
-	    if( (current->flags & ACTION_REMOVE) == ACTION_REMOVE )
+	    if(   reinstall_action_scheduled( current )
+	    ||  ((current->flags & ACTION_REMOVE) == ACTION_REMOVE)  )
 	    {
-	      /* The selected package has been marked for removal,
-	       * either explicitly, or as an implicit prerequisite for upgrade.
+	      /* The selected package has been marked for removal, either
+	       * explicitly, or as an implicit prerequisite for upgrade, or
+	       * in preparation for reinstallation.
 	       */
 	      pkgRemove( current );
 	    }
@@ -505,7 +522,7 @@ void pkgActionItem::Execute()
 	       * either explicitly, or implicitly to complete a package upgrade.
 	       */
 	      pkgXmlNode *tmp = current->Selection( to_remove );
-	      if(   pkgOptions()->Test( OPTION_REINSTALL )
+	      if(   reinstall_action_scheduled( current )
 	      ||  ((current->flags & ACTION_MASK) == ACTION_UPGRADE)  )
 		current->selection[ to_remove ] = NULL;
 	      pkgInstall( current );

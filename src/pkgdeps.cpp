@@ -1,7 +1,7 @@
 /*
  * pkgdeps.cpp
  *
- * $Id: pkgdeps.cpp,v 1.12 2012/03/05 16:23:44 keithmarshall Exp $
+ * $Id: pkgdeps.cpp,v 1.13 2012/03/13 20:24:53 keithmarshall Exp $
  *
  * Written by Keith Marshall <keithmarshall@users.sourceforge.net>
  * Copyright (C) 2009, 2010, 2011, 2012, MinGW Project
@@ -200,6 +200,15 @@ bool is_abi_compatible( pkgSpecs *refdata, const char *version )
 #define promote( request, action )  (with_flags( request ) | with_download( action ))
 #define with_download( action )     ((action) | (ACTION_DOWNLOAD))
 
+static __inline__ __attribute__((__always_inline__))
+int is_recursive_action( int request, int action, int option )
+{
+  /* Helper function to facilitate identification of dependency resolver
+   * actions which exhibit modified effects when recursion is enabled.
+   */
+  return (((request & ACTION_MASK) == action) && (option & OPTION_RECURSIVE));
+}
+
 void
 pkgXmlDocument::ResolveDependencies( pkgXmlNode* package, pkgActionItem* rank )
 {
@@ -214,6 +223,19 @@ pkgXmlDocument::ResolveDependencies( pkgXmlNode* package, pkgActionItem* rank )
 
   DEBUG_INVOKED ++indent;
 
+  /* Capture the state of global option settings controlling the scope
+   * of recursive behaviour and reinstallation requests, so that we may
+   * implicitly extend the effect when processing virtual packages...
+   */
+  int recursive_mode = pkgOptions()->Test( OPTION_ALL_DEPS );
+  if( match_if_explicit( package->ArchiveName(), value_none ) )
+    /*
+     * ...such that the effect of an upgrade or a reinstall implicitly
+     * applies, through a single level of recursion, to the first level
+     * of requisite dependencies.
+     */
+    recursive_mode |= OPTION_RECURSIVE;
+
   while( package != NULL )
   {
     /* We have a valid XML entity, which may identify dependencies;
@@ -226,6 +248,7 @@ pkgXmlDocument::ResolveDependencies( pkgXmlNode* package, pkgActionItem* rank )
        * Initially, assume this package is not installed.
        */
       pkgXmlNode *installed = NULL;
+      unsigned installed_is_viable = 0;
 
       /* To facilitate resolution of "%" version matching wildcards
        * in the requirements specification, we need to parse the version
@@ -318,8 +341,24 @@ pkgXmlDocument::ResolveDependencies( pkgXmlNode* package, pkgActionItem* rank )
 	     */
 	    if( wanted.SelectIfMostRecentFit( required ) == required )
 	    {
-	      selected = component = required;
+	      /* The release currently under consideration is a viable
+	       * candidate, to satisfy the requirements specification...
+	       */
 	      DEBUG_INVOKED viable = ": viable candidate";
+	      if(   ((selected = component = required) == installed)
+		/*
+		 * It is also already installed, so unless we are performing
+		 * a recursive upgrade, (in which case we may wish to install
+		 * a more recent release), or a recursive reinstall, (which
+		 * requires reinstallation anyway)...
+		 */
+	      &&  ! is_recursive_action( request, ACTION_UPGRADE, recursive_mode )
+	      &&  ! (recursive_mode == OPTION_ALL_DEPS)  )
+		/*
+		 * ...we record that leaving the current installation in place
+		 * is a viable option for resolving this dependency.
+		 */
+		installed_is_viable = 1;
 	    }
 	    /* ...continuing, until all available "releases"
 	     * have been evaluated accordingly.
@@ -342,13 +381,19 @@ pkgXmlDocument::ResolveDependencies( pkgXmlNode* package, pkgActionItem* rank )
 	if( installed )
 	{
 	  /* ...this package is already installed, so we may schedule
-	   * a resolved dependency match, with no pending action...
+	   * a resolved dependency match, with no pending action.
 	   */
 	  unsigned long fallback = with_flags( request );
-	  if( (selected != NULL) && (selected != installed) )
+	  if( (! installed_is_viable)
+	    /*
+	     * However, when the installed version is not a viable
+	     * match for the dependency requirement...
+	     */
+	  &&  (selected != NULL)
+	  && ((selected != installed) || (recursive_mode & OPTION_REINSTALL ))  )
 	  {
-	    /* ...but, if there is a better candidate than the installed
-	     * version, we prefer to schedule an upgrade.
+	    /* ...and there is a viable alternative candidate, then
+	     * we must schedule an upgrade.
 	     */
 	    fallback |= with_download( ACTION_UPGRADE );
 	    DEBUG_INVOKE_IF( DEBUG_REQUEST( DEBUG_TRACE_DEPENDENCIES ),
@@ -357,18 +402,31 @@ pkgXmlDocument::ResolveDependencies( pkgXmlNode* package, pkgActionItem* rank )
 		  )
 	      );
 	    wanted.SelectPackage( installed, to_remove );
+
+	    /* When performing a reinstallation, with either explicit
+	     * or implied recursion...
+	     */
+	    if(  (recursive_mode == OPTION_ALL_DEPS)
+	    /*
+	     * ...and when the original request precludes an upgrade...
+	     */
+	    &&  ((request & ACTION_MASK) != ACTION_UPGRADE)  )
+	      /*
+	       * ...then we want to reinstall the original version.
+	       */
+	      wanted.SelectPackage( installed );
 	  }
 	  rank = Schedule( fallback, wanted, rank );
 	}
 
 	else if( ((request & ACTION_MASK) == ACTION_INSTALL)
 	  /*
-	   * The required package is not installed...
-	   * When performing an installation, ...
+	   * The required package is not installed, so when
+	   * we are performing an installation, ...
 	   */
 	|| ((request & (ACTION_PRIMARY | ACTION_INSTALL)) == ACTION_INSTALL) )
 	  /*
-	   * or when this is a new requirement of a package
+	   * ...or when this is a new requirement of a package
 	   * which is being upgraded, then we must schedule it
 	   * for installation now; (we may simply ignore it, if
 	   * we are performing a removal).
@@ -597,14 +655,6 @@ void pkgXmlDocument::Schedule( unsigned long action, const char* name )
 	 */
 	action |= ACTION_PRIMARY;
 
-	/* Furthermore, any primary action must be supported by
-	 * an implied download activity, unless the '--print-uris'
-	 * option is in effect.
-	 */
-	if(  ((action & ACTION_UPGRADE) == ACTION_UPGRADE)
-	&&  (pkgOptions()->Test( OPTION_PRINT_URIS ) != OPTION_PRINT_URIS)  )
-	  action |= ACTION_DOWNLOAD;
-
 	/* For each candidate release in turn...
 	 */
 	while( release != NULL )
@@ -686,23 +736,65 @@ void pkgXmlDocument::Schedule( unsigned long action, const char* name )
 	    }
 	  }
 	}
-
 	else if( upgrade && (upgrade != installed) )
 	{
-	  /* There is an installed version...
-	   * but an upgrade to a newer version is available;
-	   * ACTION_INSTALL implies ACTION_UPGRADE.
+	  /* There is an installed version, but an upgrade to a newer
+	   * version is available; when performing ACTION_UPGRADE...
 	   */
-	  unsigned long fallback = action;
-	  if( (action & ACTION_MASK) == ACTION_INSTALL )
-	    fallback = with_download( ACTION_UPGRADE ) | with_flags( action );
-
-	  /* Again, we recursively resolve any dependencies
-	   * for the scheduled upgrade.
-	   */
-	  ResolveDependencies( upgrade, Schedule( fallback, latest ));
+	  if( (action & ACTION_MASK) == ACTION_UPGRADE )
+	    /*
+	     * ...we must recursively resolve any dependencies...
+	     */
+	    ResolveDependencies(
+		upgrade, Schedule( with_download( action ), latest )
+	      );
+	  else
+	  {
+	    /* ...but, we decline to proceed with ACTION_INSTALL
+	     * unless the --reinstall option is enabled...
+	     */
+	    if( pkgOptions()->Test( OPTION_REINSTALL ) )
+	    {
+	      /* ...in which case, we resolve dependencies for,
+	       * and reschedule a reinstallation of the currently
+	       * installed version...
+	       */
+	      latest.SelectPackage( installed );
+	      ResolveDependencies(
+		  installed, Schedule( with_download( action ), latest )
+		);
+	    }
+	    else
+	    { /* ...otherwise, we reformulate the appropriate
+	       * fully qualified package name...
+	       */
+	      const char *extname = ( component != NULL )
+		? component->GetPropVal( class_key, "" )
+		: "";
+	      char full_package_name[2 + strlen( name ) + strlen( extname )];
+	      sprintf( full_package_name, *extname ? "%s-%s" : "%s", name, extname );
+	      /*
+	       * ...which we then incorporate into an advisory
+	       * diagnostic message, which serves both to inform
+	       * the user of this error condition, and also to
+	       * suggest appropriate corrective action.
+	       */
+	      dmh_control( DMH_BEGIN_DIGEST );
+	      dmh_notify( DMH_ERROR, "%s: package is already installed\n",
+		  full_package_name
+		);
+	      dmh_notify( DMH_ERROR, "use 'mingw-get upgrade %s' to upgrade it\n",
+		  full_package_name
+		);
+	      dmh_notify( DMH_ERROR, "or 'mingw-get install --reinstall %s'\n",
+		  full_package_name
+		);
+	      dmh_notify( DMH_ERROR, "to reinstall the currently installed version\n" 
+		);
+	      dmh_control( DMH_END_DIGEST );
+	    }
+	  }
 	}
-
 	else
 	  /* In this case, the package is already installed,
 	   * and no more recent release is available; we still
