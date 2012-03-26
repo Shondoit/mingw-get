@@ -1,7 +1,7 @@
 /*
  * pkgdeps.cpp
  *
- * $Id: pkgdeps.cpp,v 1.13 2012/03/13 20:24:53 keithmarshall Exp $
+ * $Id: pkgdeps.cpp,v 1.14 2012/03/26 21:20:18 keithmarshall Exp $
  *
  * Written by Keith Marshall <keithmarshall@users.sourceforge.net>
  * Copyright (C) 2009, 2010, 2011, 2012, MinGW Project
@@ -37,6 +37,16 @@
 #include "pkgkeys.h"
 #include "pkgtask.h"
 
+/* Define supplementary action codes, which may be used exclusively
+ * by pkgXmlDocument::ResolveDependencies(), to ensure that recursive
+ * actions are appropriately scheduled; these apply to user specified
+ * actions "upgrade --recursive", "install --recursive --reinstall",
+ * and "upgrade --recursive --reinstall" respectively.
+ */
+#define ACTION_RECURSIVE_UPGRADE	(ACTION_UPGRADE | OPTION_RECURSIVE)
+#define ACTION_RECURSIVE_REINSTALL	(ACTION_INSTALL | OPTION_ALL_DEPS)
+#define ACTION_RECURSIVE_REPLACE	(ACTION_UPGRADE | OPTION_ALL_DEPS)
+
 /* FIXME: the following declaration belongs in a future "pkgmsgs.h"
  * header file, with the function implementation in a separate C or C++
  * messages source file, with appropriate internationalisation...
@@ -49,6 +59,11 @@ const char *pkgMsgUnknownPackage( void )
    */
   return "%s: unknown package\n";
 }
+
+/* Provide a convenience macro for declaring static inline functions
+ * which we want to always expand inline.
+ */
+#define STATIC_INLINE	static inline __attribute__((__always_inline__))
 
 static bool is_installed( pkgXmlNode *release )
 {
@@ -196,17 +211,43 @@ bool is_abi_compatible( pkgSpecs *refdata, const char *version )
   return ((version != NULL) && (strcmp( version, ref_version ) == 0));
 }
 
-#define with_flags( request )       ((request) & ~(ACTION_MASK | ACTION_DOWNLOAD))
-#define promote( request, action )  (with_flags( request ) | with_download( action ))
-#define with_download( action )     ((action) | (ACTION_DOWNLOAD))
-
-static __inline__ __attribute__((__always_inline__))
-int is_recursive_action( int request, int action, int option )
+STATIC_INLINE unsigned long action_class
+( unsigned long requested, unsigned long viable )
 {
-  /* Helper function to facilitate identification of dependency resolver
-   * actions which exhibit modified effects when recursion is enabled.
+  /* Helper function for use by pkgXmlDocument::ResolveDependencies();
+   * it classifies each requested action with respect to any previously
+   * installed version of each package, to ensure that reinstallation
+   * and recursive requests are dispatched appropriately.
    */
-  return (((request & ACTION_MASK) == action) && (option & OPTION_RECURSIVE));
+  return viable ? requested : ACTION_RECURSIVE_UPGRADE;
+}
+
+STATIC_INLINE unsigned long with_request_flags( unsigned long request )
+{
+  /* Helper function for use by pkgXmlDocument::ResolveDependencies();
+   * it isolates the request flags from the action code, to accommodate
+   * promotion of an alternative action with matching flags.
+   */
+  return request & ~(ACTION_MASK | ACTION_DOWNLOAD);
+}
+
+STATIC_INLINE unsigned long with_download( unsigned long action_code )
+{
+  /* Helper function for use by pkgXmlDocument::ResolveDependencies();
+   * it adds the download request flag,when promoting any action which
+   * may require a package archive to be downloaded.
+   */
+  return  action_code | (ACTION_DOWNLOAD);
+}
+
+STATIC_INLINE unsigned long promote
+( unsigned long request, unsigned long action_code )
+{
+  /* Helper function for use by pkgXmlDocument::ResolveDependencies();
+   * it promotes an alternative action to that explicitly requested by
+   * the user, when this is necessary to satisfy a dependency.
+   */
+  return with_request_flags( request ) | with_download( action_code );
 }
 
 void
@@ -227,14 +268,15 @@ pkgXmlDocument::ResolveDependencies( pkgXmlNode* package, pkgActionItem* rank )
    * of recursive behaviour and reinstallation requests, so that we may
    * implicitly extend the effect when processing virtual packages...
    */
-  int recursive_mode = pkgOptions()->Test( OPTION_ALL_DEPS );
+  int request_mode = pkgOptions()->Test( OPTION_ALL_DEPS );
   if( match_if_explicit( package->ArchiveName(), value_none ) )
     /*
      * ...such that the effect of an upgrade or a reinstall implicitly
      * applies, through a single level of recursion, to the first level
      * of requisite dependencies.
      */
-    recursive_mode |= OPTION_RECURSIVE;
+    request_mode |= OPTION_RECURSIVE;
+  request_mode |= request & ACTION_MASK;
 
   while( package != NULL )
   {
@@ -314,7 +356,7 @@ pkgXmlDocument::ResolveDependencies( pkgXmlNode* package, pkgActionItem* rank )
 	    /* ...noting if we find one already marked as "installed"...
 	    */
 	    const char *tstclass;
-	    DEBUG_INVOKED const char *already, *viable;
+	    DEBUG_INVOKED const char *already_installed = "";
 	    pkgSpecs tst( tstclass = required->GetPropVal( tarname_key, NULL ) );
 	    DEBUG_INVOKE_IF( DEBUG_REQUEST( DEBUG_TRACE_DEPENDENCIES ),
 		dmh_printf( "%*s  considering: %s", indent, "", tstclass )
@@ -322,7 +364,6 @@ pkgXmlDocument::ResolveDependencies( pkgXmlNode* package, pkgActionItem* rank )
 	    if( (tstclass = tst.GetComponentClass()) == NULL )
 	      tstclass = value_unknown;
 
-	    DEBUG_INVOKED already = viable = "";
 	    if( is_installed( required ) && (strcmp( tstclass, reqclass ) == 0)
 	    /*
 	     * We found an installed version of the requisite component,
@@ -334,39 +375,29 @@ pkgXmlDocument::ResolveDependencies( pkgXmlNode* package, pkgActionItem* rank )
 	    &&  is_abi_compatible( &tst, req.GetComponentVersion() )  )
 	    {
 	      installed = required;
-	      DEBUG_INVOKED already = " (already installed)";
+	      DEBUG_INVOKED already_installed = " (already installed)";
 	    }
     	    /* ...and identify the most suitable candidate "release"
 	     * to satisfy the current dependency...
 	     */
 	    if( wanted.SelectIfMostRecentFit( required ) == required )
-	    {
-	      /* The release currently under consideration is a viable
-	       * candidate, to satisfy the requirements specification...
-	       */
-	      DEBUG_INVOKED viable = ": viable candidate";
-	      if(   ((selected = component = required) == installed)
-		/*
-		 * It is also already installed, so unless we are performing
-		 * a recursive upgrade, (in which case we may wish to install
-		 * a more recent release), or a recursive reinstall, (which
-		 * requires reinstallation anyway)...
-		 */
-	      &&  ! is_recursive_action( request, ACTION_UPGRADE, recursive_mode )
-	      &&  ! (recursive_mode == OPTION_ALL_DEPS)  )
-		/*
-		 * ...we record that leaving the current installation in place
-		 * is a viable option for resolving this dependency.
-		 */
-		installed_is_viable = 1;
-	    }
+	      selected = component = required;
+
+	    if( required == installed )
+	      installed_is_viable = wanted.HasAttribute( ACTION_MAY_SELECT );
+
+	    DEBUG_INVOKE_IF( DEBUG_REQUEST( DEBUG_TRACE_DEPENDENCIES ),
+		dmh_printf( "%s%s\n", wanted.HasAttribute( ACTION_MAY_SELECT )
+		  ? ": viable candidate"
+		  : "",
+		  already_installed
+	       	)
+	      );
+
 	    /* ...continuing, until all available "releases"
 	     * have been evaluated accordingly.
 	     */
 	    required = required->FindNextAssociate( release_key );
-	    DEBUG_INVOKE_IF( DEBUG_REQUEST( DEBUG_TRACE_DEPENDENCIES ),
-		dmh_printf( "%s%s\n", viable, already )
-	      );
 	  }
 
 	  /* Where multiple component packages do exist,
@@ -381,41 +412,53 @@ pkgXmlDocument::ResolveDependencies( pkgXmlNode* package, pkgActionItem* rank )
 	if( installed )
 	{
 	  /* ...this package is already installed, so we may schedule
-	   * a resolved dependency match, with no pending action.
+	   * a resolved dependency match, with no pending action...
 	   */
-	  unsigned long fallback = with_flags( request );
-	  if( (! installed_is_viable)
-	    /*
-	     * However, when the installed version is not a viable
-	     * match for the dependency requirement...
-	     */
-	  &&  (selected != NULL)
-	  && ((selected != installed) || (recursive_mode & OPTION_REINSTALL ))  )
+	  unsigned long fallback = with_request_flags( request );
+	  switch( action_class( request_mode, installed_is_viable ) )
 	  {
-	    /* ...and there is a viable alternative candidate, then
-	     * we must schedule an upgrade.
+	    /* ...except that...
 	     */
-	    fallback |= with_download( ACTION_UPGRADE );
-	    DEBUG_INVOKE_IF( DEBUG_REQUEST( DEBUG_TRACE_DEPENDENCIES ),
-		dmh_printf( "%*s%s: schedule replacement\n", indent, "",
-		    installed->GetPropVal( tarname_key, value_unknown )
-		  )
-	      );
-	    wanted.SelectPackage( installed, to_remove );
-
-	    /* When performing a reinstallation, with either explicit
-	     * or implied recursion...
-	     */
-	    if(  (recursive_mode == OPTION_ALL_DEPS)
-	    /*
-	     * ...and when the original request precludes an upgrade...
-	     */
-	    &&  ((request & ACTION_MASK) != ACTION_UPGRADE)  )
+	    case ACTION_RECURSIVE_REINSTALL:
 	      /*
-	       * ...then we want to reinstall the original version.
+	       * ...when the action is "install", with "--reinstall"
+	       * and "--recursive" options in effect, we update the
+	       * package selection to favour the already installed
+	       * version over any available upgrade...
 	       */
-	      wanted.SelectPackage( installed );
+	      wanted.SelectPackage( selected = installed );
+	      /*
+	       * ...falling through to...
+	       */
+
+	    case ACTION_RECURSIVE_REPLACE:
+	    case ACTION_RECURSIVE_UPGRADE:
+	      /*
+	       * ...schedule removal of the already installed version,
+	       * for replacement by a fresh copy of the same version,
+	       * or an upgraded version, as appropriate.
+	       */
+	      DEBUG_INVOKE_IF( DEBUG_REQUEST( DEBUG_TRACE_DEPENDENCIES ),
+		  dmh_printf( "%*s%s: schedule replacement\n", indent + 2, "",
+		      installed->GetPropVal( tarname_key, value_unknown )
+		    )
+		);
+	      wanted.SelectPackage( installed, to_remove );
+	      fallback |= with_download( ACTION_UPGRADE );
+	      break;
+
+	    default:
+	      /* In any other case, the currently installed version is
+	       * to be left in place; we must ensure that its dependencies,
+	       * (if any), will be resolved with respect to this already
+	       * installed version.
+	       */
+	      wanted.SelectPackage( selected = installed );
 	  }
+
+	  /* Schedule the appropriate fallback action, (which may be none),
+	   * for the already installed package.
+	   */
 	  rank = Schedule( fallback, wanted, rank );
 	}
 
@@ -425,13 +468,19 @@ pkgXmlDocument::ResolveDependencies( pkgXmlNode* package, pkgActionItem* rank )
 	   * we are performing an installation, ...
 	   */
 	|| ((request & (ACTION_PRIMARY | ACTION_INSTALL)) == ACTION_INSTALL) )
-	  /*
-	   * ...or when this is a new requirement of a package
+	{
+	  /* ...or when this is a new requirement of a package
 	   * which is being upgraded, then we must schedule it
 	   * for installation now; (we may simply ignore it, if
 	   * we are performing a removal).
 	   */
+	  DEBUG_INVOKE_IF( DEBUG_REQUEST( DEBUG_TRACE_DEPENDENCIES ),
+	      dmh_printf( "%*s%s: schedule installation\n", indent + 2, "",
+		  selected->GetPropVal( tarname_key, value_unknown )
+		)
+	    );
 	  rank = Schedule( promote( request, ACTION_INSTALL ), wanted, rank );
+	}
 
 	/* Regardless of the action scheduled, we must recursively
 	 * consider further dependencies of the resolved prerequisite;
@@ -480,13 +529,35 @@ pkgXmlDocument::ResolveDependencies( pkgXmlNode* package, pkgActionItem* rank )
   delete refdata;
 }
 
-static inline bool assert_unmatched
+STATIC_INLINE bool if_noref( const char *name )
+{
+  /* Helper function, used exclusively by the following assert_unmatched()
+   * function; it is used to confirm that "name" represents nothing.
+   */
+  return (name == NULL) || (*name == '\0');
+}
+
+STATIC_INLINE bool if_match( const char *ref, const char *name )
+{
+  /* Helper function, used exclusively by the following assert_unmatched()
+   * function; it is used to confirm that the package identified by "name"
+   * is an exact match for that represented by "ref".
+   */
+  return (name != NULL) && (strcmp( ref, name ) == 0);
+}
+
+STATIC_INLINE bool if_alias( const char *ref, const char *list )
+{
+  /* Helper function, used exclusively by the following assert_unmatched()
+   * function; it is used to confirm that the "list" of package name aliases
+   * includes one which is an exact match for "ref".
+   */
+  return (list != NULL) && has_keyword( ref, list );
+}
+
+STATIC_INLINE bool assert_unmatched
 ( const char *ref, const char *val, const char *name, const char *alias )
 {
-# define if_noref( name )	((name == NULL) || (*name == '\0'))
-# define if_match( ref, name )	((name != NULL) && (strcmp( ref, name ) == 0))
-# define if_alias( ref, list )	((list != NULL) && has_keyword( ref, list ))
-
   /* Helper for the following "assert_installed" function; it determines if
    * the reference name specified by "ref" matches either the corresponding
    * field value "val" from a tarname look-up, or in the case of a package
@@ -695,7 +766,6 @@ void pkgXmlDocument::Schedule( unsigned long action, const char* name )
 	    ResolveDependencies(
 		upgrade, Schedule( with_download( action ), latest )
 	      );
-
 	  else
 	  { /* attempting ACTION_UPGRADE or ACTION_REMOVE
 	     * is an error; diagnose it.
@@ -745,8 +815,8 @@ void pkgXmlDocument::Schedule( unsigned long action, const char* name )
 	    /*
 	     * ...we must recursively resolve any dependencies...
 	     */
-	    ResolveDependencies(
-		upgrade, Schedule( with_download( action ), latest )
+	    ResolveDependencies( upgrade,
+		Schedule( with_download( action ), latest )
 	      );
 	  else
 	  {
@@ -760,8 +830,8 @@ void pkgXmlDocument::Schedule( unsigned long action, const char* name )
 	       * installed version...
 	       */
 	      latest.SelectPackage( installed );
-	      ResolveDependencies(
-		  installed, Schedule( with_download( action ), latest )
+	      ResolveDependencies( installed,
+		  Schedule( with_download( action | ACTION_REMOVE ), latest )
 		);
 	    }
 	    else

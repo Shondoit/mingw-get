@@ -1,7 +1,7 @@
 /*
  * pkgexec.cpp
  *
- * $Id: pkgexec.cpp,v 1.24 2012/03/13 20:24:53 keithmarshall Exp $
+ * $Id: pkgexec.cpp,v 1.25 2012/03/26 21:20:18 keithmarshall Exp $
  *
  * Written by Keith Marshall <keithmarshall@users.sourceforge.net>
  * Copyright (C) 2009, 2010, 2011, 2012, MinGW Project
@@ -302,7 +302,11 @@ pkgXmlNode *pkgActionItem::SelectIfMostRecentFit( pkgXmlNode *package )
    */
   pkgSpecs& fit = min_wanted ? min_fit : max_fit;
 
-  /* Verify that "package" fulfills the selection criteria...
+  /* Initially assuming that it may not...
+   */
+  flags &= ~ACTION_MAY_SELECT;
+
+  /* ...verify that "package" fulfills the selection criteria...
    */
   if(  match_if_explicit( test.GetComponentClass(), fit.GetComponentClass() )
   &&   match_if_explicit( test.GetComponentVersion(), fit.GetComponentVersion() )
@@ -319,6 +323,11 @@ pkgXmlNode *pkgActionItem::SelectIfMostRecentFit( pkgXmlNode *package )
        * so we now replace that...
        */
       selection[to_install] = package;
+
+    /* Regardless of whether we selected it, or not,
+     * mark "package" as a viable selection.
+     */
+    flags |= ACTION_MAY_SELECT;
   }
 
   /* Whatever choice we make, we return the resultant selection...

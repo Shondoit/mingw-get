@@ -2,10 +2,10 @@
 /*
  * pkgtask.h
  *
- * $Id: pkgtask.h,v 1.7 2011/10/06 18:53:26 keithmarshall Exp $
+ * $Id: pkgtask.h,v 1.8 2012/03/26 21:20:18 keithmarshall Exp $
  *
  * Written by Keith Marshall <keithmarshall@users.sourceforge.net>
- * Copyright (C) 2009, 2010, 2011, MinGW Project
+ * Copyright (C) 2009, 2010, 2011, 2012, MinGW Project
  *
  *
  * This header provides manifest definitions for the action codes,
@@ -76,7 +76,17 @@ enum
 #define ACTION_DOWNLOAD 	(ACTION_PRIMARY << 3)
 #define ACTION_DOWNLOAD_OK	(ACTION_DOWNLOAD | ACTION_REMOVE_OK)
 
+/* Flag set by pkgActionItem::SelectIfMostRecentFit(),
+ * to indicate viability of the last package evaluated,
+ * irrespective of whether it is selected, or not.
+ */
+#define ACTION_MAY_SELECT	(ACTION_PRIMARY << 4)
+
 #ifndef EXTERN_C
+/* A convenience macro, to facilitate declaration of functions
+ * which must exhibit extern "C" bindings, in a manner which is
+ * compatible with inclusion in either C or C++ source.
+ */
 # ifdef __cplusplus
 #  define EXTERN_C extern "C"
 # else

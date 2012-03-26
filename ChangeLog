@@ -1,3 +1,30 @@
+2012-03-26  Keith Marshall  <keithmarshall@users.sourceforge.net>
+
+	Rework previously inadequate solution for MinGW-Bug #3424406
+
+	* src/pkgtask.h: Update copyright notice for current year.
+	(ACTION_MAY_SELECT): New manifest constant for use as flag; define it.
+	* src/pkgexec.cpp (pkgActionItem::SelectIfMostRecentFit): Assign it.
+
+	* src/pkgdeps.cpp (STATIC_INLINE): New macro; define it.
+	(ACTION_RECURSIVE_REINSTALL, ACTION_RECURSIVE_UPGRADE):
+	(ACTION_RECURSIVE_REPLACE): New action code constants; define them.
+	(with_flags): Original macro deleted; replace it with...
+	(with_request_flags): ...this new static inline function.
+	(if_noref, if_match, if_alias, with_download, promote): New static
+	inline functions; they replace original macros of the same names.
+	(is_recursive_action): Function no longer used; delete it.
+	(action_class): New static inline function; implement and use it...
+	(pkgXmlDocument::ResolveDependencies): ...here, to identify scheduling
+	requirements for packages which are already installed; depends on...
+	(request_mode): ...this new automatic variable; it augments and...
+	(recursive_mode): ...replaces this one; rename it accordingly.
+	(viable): Automatic variable no longer used; delete it.
+	[DEBUG_REQUEST & DEBUG_TRACE_DEPENDENCIES]: Emit notification for
+	scheduled installation.
+	(pkgXmlDocument::Schedule): Add an implied...
+	(ACTION_REMOVE): ...when scheduling a reinstallation.
+
 2012-03-13  Keith Marshall  <keithmarshall@users.sourceforge.net>
 
 	Address reinstallation issues per MinGW-Bugs #3416013 and #3424406
