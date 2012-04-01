@@ -2,7 +2,7 @@
 /*
  * pkgbase.h
  *
- * $Id: pkgbase.h,v 1.21 2012/02/20 21:41:54 keithmarshall Exp $
+ * $Id: pkgbase.h,v 1.22 2012/04/01 19:43:32 keithmarshall Exp $
  *
  * Written by Keith Marshall <keithmarshall@users.sourceforge.net>
  * Copyright (C) 2009, 2010, 2011, 2012, MinGW Project
@@ -286,6 +286,7 @@ class pkgActionItem
     /* Methods for defining the selection criteria for
      * packages to be processed.
      */
+    void ApplyBounds( pkgXmlNode *, const char * );
     pkgXmlNode* SelectIfMostRecentFit( pkgXmlNode* );
     const char* SetRequirements( pkgXmlNode*, pkgSpecs* );
     inline void SelectPackage( pkgXmlNode *pkg, int opt = to_install )

@@ -1,3 +1,18 @@
+2012-04-01  Keith Marshall  <keithmarshall@users.sourceforge.net>
+
+	Support installation of releases other than latest available.
+
+	* src/pkgbase.h (pkgActionItem::ApplyBounds): New method; declare it.
+
+	* src/pkgdeps.cpp (pkgActionItem::ApplyBounds): Implement it.
+	(pkgXmlDocument::Schedule): Use it to interpret user specified version
+	bounds, and apply them to scheduled action items.  Having used...
+	(get_version_bounds): ...this new static inline function...
+	...to acquire any user specified version bounds, check that they can
+	be honoured, before scheduling any action; delegate diagnostics to...
+	(dmh_notify_no_match): ...this new local helper function, to report
+	when they can't, and to indicate viable alternatives.
+
 2012-03-26  Keith Marshall  <keithmarshall@users.sourceforge.net>
 
 	Rework previously inadequate solution for MinGW-Bug #3424406

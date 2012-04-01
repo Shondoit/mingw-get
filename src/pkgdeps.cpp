@@ -1,7 +1,7 @@
 /*
  * pkgdeps.cpp
  *
- * $Id: pkgdeps.cpp,v 1.14 2012/03/26 21:20:18 keithmarshall Exp $
+ * $Id: pkgdeps.cpp,v 1.15 2012/04/01 19:43:32 keithmarshall Exp $
  *
  * Written by Keith Marshall <keithmarshall@users.sourceforge.net>
  * Copyright (C) 2009, 2010, 2011, 2012, MinGW Project
@@ -683,11 +683,190 @@ void pkgActionItem::ConfirmInstallationStatus()
     = assert_installed( selection[to_install], selection[to_remove] );
 }
 
+static inline
+const char *get_version_bounds( const char *name )
+{
+  /* Helper to locate any version bounds specification which may
+   * have been appended to a package name command line argument.
+   */
+  if( (name != NULL) && *name )
+    /*
+     * If the name is specified, and not zero-length, then
+     * the bounds specification begins at the first '<', '=',
+     * or '>' character, (if any)...
+     */
+    do { if( (*name == '<') || (*name == '=') || (*name == '>') )
+	   /*
+	    * ...in which case, we return that location.
+	    */
+	   return name;
+       } while( *++name );
+
+  /* Otherwise we fall through, returning NULL to indicate
+   * that no bounds specification is present.
+   */
+  return NULL;
+}
+
+void pkgActionItem::ApplyBounds( pkgXmlNode *release, const char *bounds )
+{
+  /* Method to interpret a user specified version requirement,
+   * and attach it to a primary action item, much as if it were
+   * an internally identified requirement, as identified by the
+   * dependency resolver.
+   */
+  const char *refname;
+  pkgSpecs refspec( release );
+
+  while( (bounds != NULL) && *bounds )
+  {
+    /* Parse the user specified requirement, formulating a specification
+     * which may be interpreted by "pkginfo"; (use an arbitrary package
+     * name of "x", since we care only about the version number)...
+     */
+    const char *condition = NULL;
+    char spec_string[7 + strlen( bounds )]; strcpy( spec_string, "x-" );
+    char *p = spec_string + strlen( spec_string ) - 1;
+    switch( *bounds )
+    {
+      /* ...identifying it as...
+       */
+      case '=':
+	/*
+	 * ...an equality requirement...
+	 */
+	condition = eq_key;
+	++bounds;
+	break;
+
+      case '<':
+	if( *++bounds == '=' )
+	{
+	  /* ...less than or equal
+	   * (<=; inclusive upper bound)...
+	   */
+	  condition = le_key;
+	  ++bounds;
+	}
+	else
+	  /* ...less than (exclusive upper bound)...
+	   */
+	  condition = lt_key;
+	break;
+
+      case '>':
+	if( *++bounds == '=' )
+	{
+	  /* ...greater than or equal
+	   * (>=; inclusive lower bound)...
+	   */
+	  condition = ge_key;
+	  ++bounds;
+	}
+	else
+	  /* ...or greater than (exclusive lower bound).
+	   */
+	  condition = gt_key;
+	break;
+    }
+    do { /* Accumulate characters into the local copy of the specification,
+	  * until we encounter the end of the user specified string, or the
+	  * start of a second specification, (e.g. the second limit for a
+	  * version number range specification).
+	  */
+	 *++p = ((*bounds == '<') || (*bounds == '=') || (*bounds == '>'))
+           ? '\0' : *bounds;
+	 if( *p ) ++bounds;
+       } while( *p );
+
+    /* Append an arbitrary component classification of "y", and an archive
+     * type of "z", because "pkginfo" requires them, then interpret as a
+     * "pkginfo" data structure...
+     */
+    strcpy( p, "-y.z" );
+    pkgSpecs usrspec( spec_string );
+
+    /* ...then extract the version fields of interest, and insert them
+     * into the actual working reference specification.
+     */
+    refspec.SetPackageVersion( usrspec.GetPackageVersion() );
+    refspec.SetPackageBuild( usrspec.GetPackageBuild() );
+    refspec.SetSubSystemVersion( usrspec.GetSubSystemVersion() );
+    refspec.SetSubSystemBuild( usrspec.GetSubSystemBuild() );
+
+    /* Convert the reference specification to "tarname" format...
+     */
+    if( (refname = refspec.GetTarName()) != NULL )
+    {
+      /* ...and construct a temporary "requires" specification from it.
+       */
+      pkgXmlNode requisite( requires_key );
+      requisite.SetAttribute( condition, refname );
+
+      /* Set the action item requirements to honour this...
+       */
+      SetRequirements( &requisite, &refspec );
+
+      /* ...then release the heap memory used to temporarily store the
+       * "tarname" attribute for this; (the remaining data associated
+       * with this wil be automatically discarded, when the temporary
+       * specification goes out of scope).
+       */
+      free( (void *)(refname) );
+    }
+  }
+}
+
+static void dmh_notify_no_match
+( const char *name, pkgXmlNode *package, const char *bounds )
+{
+  /* Diagnostic helper, called when the user has requested a specific
+   * package version for which there is no exactly matching release.
+   */
+  dmh_control( DMH_BEGIN_DIGEST );
+  dmh_notify( DMH_ERROR, "there is no release matching %s%s\n",
+      name, (bounds == NULL) ? "" : bounds
+    );
+  if( (package = package->FindFirstAssociate( release_key )) != NULL )
+  {
+    /* To assist the user in formalising a more appropriate
+     * version specification...
+     */
+    dmh_notify( DMH_ERROR, "available candidate releases are...\n" );
+    while( package )
+    {
+      /* ...display a list of available release tarballs...
+       */
+      const char *tarname = package->GetPropVal( tarname_key, NULL );
+      if( tarname != NULL )
+	dmh_notify( DMH_ERROR, " %s\n", tarname );
+
+      /* ...cycling, until all have been identified.
+       */
+      package = package->FindNextAssociate( release_key );
+    }
+  }
+  dmh_control( DMH_END_DIGEST );
+}
+
 void pkgXmlDocument::Schedule( unsigned long action, const char* name )
 {
-  /* Task scheduler interface; schedules actions to process dependencies
-   * for the package specified by "name".
+  /* Task scheduler interface; schedules actions to process all
+   * dependencies for the package specified by "name", honouring
+   * any appended version bounds specified for the parent.
    */
+  char scratch_pad[strlen( name )];
+  const char *bounds_specification = get_version_bounds( name );
+  if( bounds_specification != NULL )
+  {
+    /* Separate any version bounds specification from
+     * the original package name specification.
+     */
+    size_t scratch_pad_len = bounds_specification - name;
+    name = (const char *)(memcpy( scratch_pad, name, scratch_pad_len ));
+    scratch_pad[scratch_pad_len] = '\0';
+  }
+
   pkgXmlNode *release;
   if( (release = FindPackageByName( name )) != NULL )
   {
@@ -706,6 +885,7 @@ void pkgXmlDocument::Schedule( unsigned long action, const char* name )
     {
       /* Within each candidate package or component-package...
        */
+      pkgXmlNode *package = release;
       if( (release = release->FindFirstAssociate( release_key )) != NULL )
       {
 	/* ...initially assume it is not installed, and that
@@ -725,6 +905,12 @@ void pkgXmlDocument::Schedule( unsigned long action, const char* name )
 	 * a request for a primary action; mark it as such.
 	 */
 	action |= ACTION_PRIMARY;
+
+	/* When the user has given a version bounds specification,
+	 * then we must assign appropriate action item requirements.
+	 */
+	if( bounds_specification != NULL )
+	  latest.ApplyBounds( release, bounds_specification );
 
 	/* For each candidate release in turn...
 	 */
@@ -759,13 +945,18 @@ void pkgXmlDocument::Schedule( unsigned long action, const char* name )
 	   * other than ACTION_INSTALL...
 	   */
 	  if( (action & ACTION_MASK) == ACTION_INSTALL )
+	  {
 	    /*
 	     * ...in which case, we must recursively resolve
 	     * any dependencies for the scheduled "upgrade".
 	     */
-	    ResolveDependencies(
-		upgrade, Schedule( with_download( action ), latest )
-	      );
+	    if( latest.Selection() == NULL )
+	      dmh_notify_no_match( name, package, bounds_specification );
+	    else
+	      ResolveDependencies(
+		  upgrade, Schedule( with_download( action ), latest )
+		);
+	  }
 	  else
 	  { /* attempting ACTION_UPGRADE or ACTION_REMOVE
 	     * is an error; diagnose it.
@@ -866,12 +1057,16 @@ void pkgXmlDocument::Schedule( unsigned long action, const char* name )
 	  }
 	}
 	else
-	  /* In this case, the package is already installed,
+	{ /* In this case, the package is already installed,
 	   * and no more recent release is available; we still
 	   * recursively resolve its dependencies, to capture
 	   * any potential upgrades for them.
 	   */
-	  ResolveDependencies( upgrade, Schedule( action, latest ));
+	  if( latest.Selection() == NULL )
+	    dmh_notify_no_match( name, package, bounds_specification );
+	  else
+	    ResolveDependencies( upgrade, Schedule( action, latest ));
+	}
       }
 
       if( (component = component->FindNextAssociate( component_key )) != NULL )
