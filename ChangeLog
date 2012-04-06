@@ -1,3 +1,11 @@
+2012-04-06  Keith Marshall  <keithmarshall@users.sourceforge.net>
+
+	Initialise $LUA_PATH to locate mingw-get specific scripts.
+
+	* src/pkgexec.cpp (lua_path_init): New static inline function.
+	(pkgXmlNode::DispatchScript): Call it on first time invocation, per...
+	[lua_path_setup == false]: ...this static function local variable.
+
 2012-04-01  Keith Marshall  <keithmarshall@users.sourceforge.net>
 
 	Support installation of releases other than latest available.
