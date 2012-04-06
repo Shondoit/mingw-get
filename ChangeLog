@@ -1,5 +1,27 @@
 2012-04-06  Keith Marshall  <keithmarshall@users.sourceforge.net>
 
+	Add scripting hooks to support creation of MS-Windows shortcuts.
+
+	* src/clistub.c (progname): New static variable with file scope; it
+	replaces former automatic variable, of same name, in main() function.
+	(set_script_hook): New static function; implement it, and call it...
+	(main) [--desktop, --start-menu]: ...from here, to interpret these new
+	command line options; they are propagated to scripts via...
+	(MINGW_GET_DESKTOP_HOOK, MINGW_GET_START_MENU_HOOK): ...these new
+	internally assigned environment variables.
+	(help_text): Document --desktop and --start-menu.
+
+	* scripts/libexec/setup.lua scripts/libexec/wsh.lua: New lua module
+	files; they implement a lua scripting API; they delegate requests to
+	the Windows Scripting Host, via either of this pair of...
+	* scripts/libexec/shlink.js: ...new script to create shortcuts, or...
+	* scripts/libexec/unlink.js: ...its complement, to remove them.
+	* Makefile.in (SRCDIST_SUBDIRS): Integrate them; enumerate them in...
+	(scripts_srcdir, LIBEXEC_SCRIPTS): ...these new macros; use to...
+	(install): ...install them.
+
+2012-04-06  Keith Marshall  <keithmarshall@users.sourceforge.net>
+
 	Initialise $LUA_PATH to locate mingw-get specific scripts.
 
 	* src/pkgexec.cpp (lua_path_init): New static inline function.

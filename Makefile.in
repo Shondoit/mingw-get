@@ -1,6 +1,6 @@
 # @configure_input@
 #
-# $Id: Makefile.in,v 1.33 2012/02/20 21:41:53 keithmarshall Exp $
+# $Id: Makefile.in,v 1.34 2012/04/06 22:49:36 keithmarshall Exp $
 
 PACKAGE_TARNAME = @PACKAGE_TARNAME@
 PACKAGE_VERSION = @PACKAGE_VERSION@
@@ -63,8 +63,12 @@ CORE_DLL_OBJECTS  =  climain.$(OBJEXT) pkgshow.$(OBJEXT) dmh.$(OBJEXT) \
    tinyxml.$(OBJEXT) tinyxmlparser.$(OBJEXT) \
    tinystr.$(OBJEXT) tinyxmlerror.$(OBJEXT)
 
+script_srcdir = ${srcdir}/scripts/libexec
+
 BIN_PROGRAMS = pkginfo$(EXEEXT) mingw-get$(EXEEXT)
 LIBEXEC_PROGRAMS = gui$(EXEEXT) lastrites$(EXEEXT)
+LIBEXEC_SCRIPTS = ${script_srcdir}/setup.lua ${script_srcdir}/wsh.lua \
+   ${script_srcdir}/shlink.js ${script_srcdir}/unlink.js
 LIBEXEC_DATA = mingw-get-0.dll
 
 all: $(BIN_PROGRAMS) $(LIBEXEC_PROGRAMS) $(LIBEXEC_DATA)
@@ -133,7 +137,7 @@ install: installdirs install-profile
 	for image in $(LIBEXEC_PROGRAMS); do \
 	  $(INSTALL_PROGRAM) $$image ${libexecdir}/${PACKAGE_TARNAME}; \
 	  done
-	for image in $(LIBEXEC_DATA); do \
+	for image in $(LIBEXEC_DATA) $(LIBEXEC_SCRIPTS); do \
 	  $(INSTALL_DATA) $$image ${libexecdir}/${PACKAGE_TARNAME}; \
 	  done
 
@@ -155,7 +159,8 @@ LICENCE_FILES = README COPYING
 SRCDIST_FILES = $(LICENCE_FILES) ChangeLog NEWS INSTALL \
   aclocal.m4 configure.ac configure Makefile.in version.c.in
 
-SRCDIST_SUBDIRS = build-aux m4 src src/pkginfo srcdist-doc tinyxml xml
+SRCDIST_SUBDIRS = build-aux m4 src src/pkginfo srcdist-doc \
+  scripts/libexec tinyxml xml
 
 # The names of distributed pacakge archive files incorporate version
 # information, derived from PACKAGE_VERSION; this is decomposed, so that

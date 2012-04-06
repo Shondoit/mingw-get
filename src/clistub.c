@@ -1,7 +1,7 @@
 /*
  * clistub.c
  *
- * $Id: clistub.c,v 1.17 2012/03/12 22:13:58 keithmarshall Exp $
+ * $Id: clistub.c,v 1.18 2012/04/06 22:49:36 keithmarshall Exp $
  *
  * Written by Keith Marshall <keithmarshall@users.sourceforge.net>
  * Copyright (C) 2009, 2010, 2011, 2012, MinGW Project
@@ -39,6 +39,8 @@
 #include "pkgopts.h"
 
 #define EXIT_FATAL  EXIT_FAILURE + 1
+
+static const char *progname;
 
 wchar_t *AppPathNameW( const wchar_t *relpath )
 {
@@ -218,6 +220,32 @@ static const char *help_text =
 "                    runtime prerequisites of, and in addition to,\n"
 "                    the nominated package\n"
 "\n"
+"  --desktop[=all-users]\n"
+"                    Enable the creation of desktop shortcuts, for\n"
+"                    packages which provide the capability via pre-\n"
+"                    or post-install scripts; the optional 'all-users'\n"
+"                    qualifier requests that all such shortcuts are\n"
+"                    to be made available to all users; without it\n"
+"                    shortcuts will be created for current user only\n"
+"\n"
+"                    Note that specification of this option does not\n"
+"                    guarantee that shortcuts will be created; the\n"
+"                    onus lies with individual package maintainers\n"
+"                    to provide scripting to support this capability\n"
+"\n"
+"  --start-menu[=all-users]\n"
+"                    Enable the creation of start menu shortcuts, for\n"
+"                    packages which provide the capability via pre-\n"
+"                    or post-install scripts; the optional 'all-users'\n"
+"                    qualifier requests that all such shortcuts are\n"
+"                    to be made available to all users; without it\n"
+"                    shortcuts will be created for current user only\n"
+"\n"
+"                    Note that specification of this option does not\n"
+"                    guarantee that shortcuts will be created; the\n"
+"                    onus lies with individual package maintainers\n"
+"                    to provide scripting to support this capability\n"
+"\n"
 "Actions:\n"
 "  update            Update local copy of repository catalogues\n"
 "  list, show        List and show details of available packages\n"
@@ -368,21 +396,77 @@ static int xatoi( const char *input )
   return result;
 }
 
+static void set_script_hook( const char *hook, const char *optarg )
+{
+  /* Helper function to initialise the environment variables which
+   * are associated with Lua scripting hooks, when the user specifies
+   * the appropriate activation options on the command line.
+   */
+  if( optarg != NULL )
+  {
+    /* An optional argument was assigned for the hook...
+     */
+    int arglen = strlen( optarg );
+    const char *all_users = "all-users";
+    const char *value_none = "none";
+    if( strncmp( optarg, all_users, arglen ) == 0 )
+    {
+      /* When this is the "all-users" qualifier, we append it to
+       * the value to be assigned to the environment variable.
+       */
+      const char *fmt = "%s --%s";
+      char tmp[1 + snprintf( NULL, 0, fmt, hook, all_users )];
+      snprintf( tmp, sizeof( tmp ), fmt, hook, all_users );
+      putenv( tmp );
+    }
+    else if( strncmp( optarg, value_none, arglen ) == 0 )
+    {
+      /* When it is the "none" qualifier, we remove any prior
+       * assignment to the respective environment variable.
+       *
+       * FIXME: to support assignment from within profile.xml,
+       * we will eventually need additional coding here, to
+       * override any profile.xml assignment.
+       */
+      char tmp[strlen( hook )];
+      char *p = tmp;
+      do { *p++ = *hook;
+	 } while( *hook++ != '=' );
+      *p = '\0';
+      putenv( tmp );
+    }
+    else
+    { /* No other qualifier is supported; diagnose and ignore.
+       */
+      while( *hook++ != '=' ) /* advance pointer; no other action */;
+      fprintf( stderr,
+	  "%s: *** WARNING *** invalid argument '%s' to option %s ignored\n",
+	  progname, optarg, hook
+	);
+    }
+  }
+  else
+    /* No qualifying option argument specified; simply assign the
+     * hook variable value, as passed from the getopts() handler.
+     */
+    putenv( hook );
+}
+
 #define atmost( lim, val )		((lim) < (val)) ? (lim) : (val)
 
 int main( int argc, char **argv )
 {
-  /* Make a note of...
-   */
-  const char *progname = basename( *argv );	/* ...this program's name    */
-  wchar_t *approot;				/* and where it is installed */
-
   /* Provide storage for interpretation of any parsed command line options.
    * Note that we could also initialise them here, but then we would need to
    * give attention to the number of initialisers required; to save us that
    * concern we will defer to an initialisation loop, below.
    */
   struct pkgopts parsed_options;
+
+  /* Make a note of this program's name, and where it's installed.
+   */
+  wchar_t *approot;
+  progname = basename( *argv );
 
   if( argc > 1 )
   {
@@ -406,6 +490,9 @@ int main( int argc, char **argv )
       { "print-uris",     no_argument,         &optref,   OPTION_PRINT_URIS  },
 
       { "all-related",    no_argument,         &optref,   OPTION_ALL_RELATED },
+
+      { "desktop",        optional_argument,   NULL,      'D'                },
+      { "start-menu",     optional_argument,   NULL,      'M'                },
 
 #     if DEBUG_ENABLED( DEBUG_TRACE_DYNAMIC )
 	/* The "--trace" option is supported only when dynamic tracing
@@ -467,6 +554,20 @@ int main( int argc, char **argv )
 	   */
 	  if( (parsed_options.flags[OPTION_FLAGS].numeric & OPTION_VERBOSE) < 3 )
 	    ++parsed_options.flags[OPTION_FLAGS].numeric;
+	  break;
+
+	case 'D':
+	  /* This is a request to enable, or disable, the Lua scripting
+	   * hook for installation of desktop shortcuts.
+	   */
+	  set_script_hook( "MINGW_GET_DESKTOP_HOOK=--desktop", optarg );
+	  break;
+
+	case 'M':
+	  /* This is a request to enable, or disable, the Lua scripting
+	   * hook for installation of start menu shortcuts.
+	   */
+	  set_script_hook( "MINGW_GET_START_MENU_HOOK=--start-menu", optarg );
 	  break;
 
 	case OPTION_GENERIC:
