@@ -1,3 +1,10 @@
+2012-04-07  Keith Marshall  <keithmarshall@users.sourceforge.net>
+
+	Correct a srcdist package construction defect.
+
+	* Makefile.in (srcdist) [for SRCDIST_SUBDIRS]: Use...
+	(mkinstalldirs): ...this, to create package image directories.
+
 2012-04-06  Keith Marshall  <keithmarshall@users.sourceforge.net>
 
 	Add scripting hooks to support creation of MS-Windows shortcuts.
