@@ -1,7 +1,7 @@
 /*
  * pkgdeps.cpp
  *
- * $Id: pkgdeps.cpp,v 1.15 2012/04/01 19:43:32 keithmarshall Exp $
+ * $Id: pkgdeps.cpp,v 1.16 2012/04/10 03:47:30 cwilso11 Exp $
  *
  * Written by Keith Marshall <keithmarshall@users.sourceforge.net>
  * Copyright (C) 2009, 2010, 2011, 2012, MinGW Project
@@ -36,6 +36,7 @@
 #include "pkgbase.h"
 #include "pkgkeys.h"
 #include "pkgtask.h"
+#include "pkgopts.h"
 
 /* Define supplementary action codes, which may be used exclusively
  * by pkgXmlDocument::ResolveDependencies(), to ensure that recursive
