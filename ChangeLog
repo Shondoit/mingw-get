@@ -1,5 +1,14 @@
 2012-04-15  Keith Marshall  <keithmarshall@users.sourceforge.net>
 
+	Ensure that package removal requests are correctly scheduled.
+
+	* src/pkgdeps.cpp (pkgXmlDocument::Schedule) [ACTION_REMOVE]: Schedule
+	as a distinct case, when the installed version is not the most recent
+	available release; consideration of this distinct case was previously
+	erroneously overlooked.
+
+2012-04-15  Keith Marshall  <keithmarshall@users.sourceforge.net>
+
 	Correct scheduling of new prerequisites when upgrading.
 
 	* src/pkgdeps.cpp (pkgXmlDocument::ResolveDependencies):

@@ -1,7 +1,7 @@
 /*
  * pkgdeps.cpp
  *
- * $Id: pkgdeps.cpp,v 1.18 2012/04/15 19:52:26 keithmarshall Exp $
+ * $Id: pkgdeps.cpp,v 1.19 2012/04/15 20:22:36 keithmarshall Exp $
  *
  * Written by Keith Marshall <keithmarshall@users.sourceforge.net>
  * Copyright (C) 2009, 2010, 2011, 2012, MinGW Project
@@ -1028,9 +1028,19 @@ void pkgXmlDocument::Schedule( unsigned long action, const char* name )
 	    ResolveDependencies( upgrade,
 		Schedule( with_download( action ), latest )
 	      );
-	  else
+
+	  else if( (action & ACTION_MASK) == ACTION_REMOVE )
 	  {
-	    /* ...but, we decline to proceed with ACTION_INSTALL
+	    /* ...while for ACTION_REMOVE, we have little to do,
+	     * beyond scheduling the removal; (we don't extend the
+	     * scope of a remove request to prerequisite packages,
+	     * so there is no need to resolve dependencies)...
+	     */
+	    latest.SelectPackage( installed );
+	    Schedule( action, latest );
+	  }
+	  else
+	  { /* ...but, we decline to proceed with ACTION_INSTALL
 	     * unless the --reinstall option is enabled...
 	     */
 	    if( pkgOptions()->Test( OPTION_REINSTALL ) )
