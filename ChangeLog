@@ -1,8 +1,16 @@
+2012-04-15  Keith Marshall  <keithmarshall@users.sourceforge.net>
+
+	Don't require subsystem within user specified version bounds.
+
+	* src/pkgdeps.cpp (pkgActionItem::ApplyBounds): Automatically consider
+	"*" wild-card matches for subsystem, if user doesn't specify it.
+
 2012-04-09  Charles Wilson  <mingw@cwilson.fastmail.fm>
 
 	Fix missing include.
 
-	* src/pkgdeps.cpp: Include pkgopts.h.
+	* src/pkgdeps.cpp (pkgopts.h): Include unconditionally; do not rely...
+	(debug.h) [DEBUG_TRACE_DYNAMIC]: ...on this, for indirect inclusion.
 
 2012-04-07  Keith Marshall  <keithmarshall@users.sourceforge.net>
 
