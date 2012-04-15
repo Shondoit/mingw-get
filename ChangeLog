@@ -1,5 +1,14 @@
 2012-04-15  Keith Marshall  <keithmarshall@users.sourceforge.net>
 
+	Correct scheduling of new prerequisites when upgrading.
+
+	* src/pkgdeps.cpp (pkgXmlDocument::ResolveDependencies):
+	[ACTION_UPGRADE && ACTION_PRIMARY]: Don't exclude scheduling for this
+	case of a prerequisite with no previously installed version; it may be
+	a delegated primary requirement of a meta-package.
+
+2012-04-15  Keith Marshall  <keithmarshall@users.sourceforge.net>
+
 	Don't require subsystem within user specified version bounds.
 
 	* src/pkgdeps.cpp (pkgActionItem::ApplyBounds): Automatically consider
