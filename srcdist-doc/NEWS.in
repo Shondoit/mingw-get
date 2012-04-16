@@ -1,12 +1,116 @@
 Release Notes
 =============
 
-$Id: NEWS.in,v 1.9 2011/11/06 10:53:26 keithmarshall Exp $
+$Id: NEWS.in,v 1.10 2012/04/16 19:42:20 keithmarshall Exp $
 
 The information presented below describes the user visible changes
 introduced with each release of mingw-get.  The online version of this
 historical record is restricted to recent releases; the full history is
 recorded in the NEWS file, which is included in the source code package.
+
+
+mingw-get-0.5-mingw32-beta-20120416-1
+-------------------------------------
+
+Release date: 2012-04-16
+
+This milestone release marks the point at which the code base, for the
+CLI implementation, is deemed to have progressed from alpha to beta
+(or better) quality.  It corrects several packaging deficiencies within
+the source code distribution, in addition to fixing two reported bugs;
+it also adds several new features.
+
+The following bugs are fixed by this release:--
+
+- #3416013: --reinstall and dependent packages
+
+  Specifically, in the case of application of the --reinstall option to
+  meta-packages, previous releases would have no effect.  This is now
+  corrected, such that the --reinstall action is applied recursively to
+  each declared requirement of any meta-package, to the depth of the
+  first non-meta package in each requirement chain.
+
+- #3424406: install --reinstall performs an upgrade
+
+  When performing the "install" action, with the --reinstall option,
+  previous releases would consider the availability of upgrades for the
+  package in question, promoting the "install" action to "upgrade" when
+  possible.  This anomaly has now been corrected; when specified with
+  the "install" action, the --reinstall option will cause reinstallation
+  of the originally installed version, ignoring available upgrades; (the
+  former behaviour remains available, by specifying the --reinstall
+  option together with the "upgrade" action).
+
+The following new features have been implemented:--
+
+- Forced installation of a specified (non-current) release.
+
+  The package name specified as the predicate of any "install" or
+  "upgrade" action may now be qualified by a version specification,
+  allowing the user to select any known version, (not necessarily the
+  most recently released), for installation.  In the case of any package
+  which has not been previously installed, the format is any of:
+
+     mingw-get install "package-name=version-spec"
+     mingw-get install "package-name<version-spec"
+     mingw-get install "package-name<=version-spec"
+     mingw-get install "package-name>=version-spec"
+     mingw-get install "package-name>version-spec"
+
+  while for any package which has been previously installed, and is to
+  be "rolled back" to an earlier release, the same forms are supported,
+  using the "upgrade" action in place of "install".
+
+  In each of the above command forms, "package-name" represents the
+  unqualified package name, as it would be specified in any regular
+  invocation of mingw-get, and "version-spec" is the selector for the
+  desired version; (in the case of an "=" qualifier, this must be an
+  exact match for the desired version, unless it ends with the "*" wild
+  card).  For example, if GCC has already been installed at version
+  4.6.2-1, (the most recent release at this time of writing), it may be
+  rolled back to the last version 4.5 release by:
+
+     mingw-get upgrade "gcc=4.5.*"
+
+  or by using an inequality specifier, to exclude gcc-4.6 and later:
+
+     mingw-get upgrade "gcc<4.6"
+
+  Note that, particularly in the case of the inequality qualifiers, the
+  argument must be quoted, to avoid interpretation of the inequality
+  operator as the shell's redirection operator.
+  
+  Also note that any explicit *inclusive* version range, such as:
+
+     mingw-get upgrade "gcc>4.5<4.6"
+
+  is permitted; however no white space is permitted, anywhere within the
+  qualified package specification.
+
+- Support for package maintainer scripted installation hooks.
+
+  An embedded script interpreter, based on Lua version 5.2, has been
+  incorporated; this provides support for "pre-install", "post-install",
+  "pre-remove", and "post-remove" action hooks, which may be specified
+  by package maintainers, in the form of Lua scripts embedded within
+  "action" elements in any package's XML catalogue entry.
+
+  This capability is further supported by the provision of Lua modules,
+  providing a standardised mechanism for creation of MS-Windows shell
+  links, (a.k.a. shortcuts).
+
+- New option: "--desktop"
+
+  Grants permission, to package maintainer specified scripts, to create
+  shortcuts on the user's desktop; alternatively, it may be specified as
+  --desktop=all-users, to make such shortcuts available to all users.
+
+- New option: "--start-menu"
+
+  Grants permission, to package maintainer specified scripts, to create
+  shortcuts in the user's start menu; alternatively, it may be specified
+  as --start-menu=all-users, to make such shortcuts available in the
+  start menus of all users.
 
 
 mingw-get-0.4-mingw32-alpha-1
@@ -93,6 +197,15 @@ been implemented:--
   licence packages associated with all runtime dependencies identified
   for the packages named in the command.
 
+;--------8<-------------------- cut-line -------------------->8--------
+;
+; Any text added below the cut-line will be included in the README
+; file, which is to be included in the source distribution, but it
+; will be excluded from the readme.txt file, which is to be used to
+; add descriptive content on the SourceForge download page.
+;
+; Any lines, such as these, which begin with a semicolon in their
+; first column (not indented), will be excluded from both files.
 
 mingw-get-0.3-mingw32-alpha-2.1
 -------------------------------
@@ -182,15 +295,6 @@ Release date: 2011-05-30
   all future "alpha" and "beta" releases, but not for any officially
   distributed "pre", "rc" or "stable" release.
 
-;--------8<-------------------- cut-line -------------------->8--------
-;
-; Any text added below the cut-line will be included in the README
-; file, which is to be included in the source distribution, but it
-; will be excluded from the readme.txt file, which is to be used to
-; add descriptive content on the SourceForge download page.
-;
-; Any lines, such as these, which begin with a semicolon in their
-; first column (not indented), will be excluded from both files.
 
 mingw-get-0.2-mingw32-alpha-4
 -----------------------------

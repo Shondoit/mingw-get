@@ -1,5 +1,15 @@
 2012-04-16  Keith Marshall  <keithmarshall@users.sourceforge.net>
 
+	mingw-get-0.5-beta-20120416-1 released.
+
+	* configure.ac (AC_INIT): Version number updated.
+	(YEARS_OF_ISSUE): 2012 added.
+
+	* srcdist-doc/NEWS.in: Updated; release notes added.
+	* All files (r0-5-beta-20120416-1): Tag assigned.
+
+2012-04-16  Keith Marshall  <keithmarshall@users.sourceforge.net>
+
 	Assign icon to temporary GUI executable file.
 
 	* icons/pkgicon.ico: New file, shamelessly copied from synaptic.
