@@ -1,6 +1,6 @@
 # @configure_input@
 #
-# $Id: Makefile.in,v 1.35 2012/04/07 21:48:58 keithmarshall Exp $
+# $Id: Makefile.in,v 1.36 2012/04/16 19:13:48 keithmarshall Exp $
 
 PACKAGE_TARNAME = @PACKAGE_TARNAME@
 PACKAGE_VERSION = @PACKAGE_VERSION@
@@ -32,6 +32,7 @@ abs_top_srcdir = @abs_top_srcdir@
 
 DEBUGLEVEL = @DEBUGLEVEL@
 
+vpath %.ico @srcdir@/icons
 VPATH = @top_srcdir@/src:@top_srcdir@/src/pkginfo:@top_srcdir@/tinyxml
 
 CC = @CC@
@@ -47,6 +48,8 @@ LEX = @LEX@
 
 AR = @AR@
 ARFLAGS = @ARFLAGS@
+
+WINDRES = @WINDRES@
 
 OBJEXT = @OBJEXT@
 EXEEXT = @EXEEXT@
@@ -81,7 +84,17 @@ mingw-get$(EXEEXT): clistub.$(OBJEXT) version.$(OBJEXT) getopt.$(OBJEXT)
 
 GUI_LDFLAGS = -mwindows $(LDFLAGS)
 
-gui$(EXEEXT): guimain.$(OBJEXT)
+# FIXME: the following is a Q&D kludge, to assign my choice of icon
+# to the GUI mode executable stub.  Eventually, this will need to be
+# assigned within a resource definition file, but for the time being,
+# besides providing a notification that the GUI is not yet available,
+# the stub serves only to illustrate mingw-get's shortcut creation
+# capability; thus, this simple hack will suffice.
+#
+%.$(OBJEXT): %.ico
+	echo $* ICON $*.ico | $(WINDRES) -I ${srcdir}/icons -o $@
+#
+gui$(EXEEXT): guimain.$(OBJEXT) pkgicon.$(OBJEXT)
 	$(CXX) -o $@ $(CXXFLAGS) $(GUI_LDFLAGS) $+
 
 lastrites$(EXEEXT): rites.$(OBJEXT)
@@ -159,7 +172,7 @@ LICENCE_FILES = README COPYING
 SRCDIST_FILES = $(LICENCE_FILES) ChangeLog NEWS INSTALL \
   aclocal.m4 configure.ac configure Makefile.in version.c.in
 
-SRCDIST_SUBDIRS = build-aux m4 src src/pkginfo srcdist-doc \
+SRCDIST_SUBDIRS = build-aux icons m4 src src/pkginfo srcdist-doc \
   scripts/libexec tinyxml xml
 
 # The names of distributed pacakge archive files incorporate version

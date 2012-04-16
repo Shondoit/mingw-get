@@ -1,6 +1,6 @@
 # configure.ac -*- autoconf -*- vim: filetype=config
 #
-# $Id: configure.ac,v 1.22 2011/11/06 21:19:17 keithmarshall Exp $
+# $Id: configure.ac,v 1.23 2012/04/16 19:13:48 keithmarshall Exp $
 #
 # Written by Keith Marshall <keithmarshall@users.sourceforge.net>
 # Copyright (C) 2009, 2010, 2011, MinGW Project
@@ -51,8 +51,10 @@
   AC_PROG_CC
   AC_PROG_CXX
 
-# We also need a lexical analyser generator
+# We also need a Windows resource compiler,
+# and a lexical analyser generator
 #
+  AC_CHECK_TOOL([WINDRES],[windres],[windres])
   AC_PROG_LEX
 
 # Ensure that (at least the headers for) prerequisite libraries,

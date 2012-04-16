@@ -1,3 +1,15 @@
+2012-04-16  Keith Marshall  <keithmarshall@users.sourceforge.net>
+
+	Assign icon to temporary GUI executable file.
+
+	* icons/pkgicon.ico: New file, shamelessly copied from synaptic.
+
+	* configure.ac: Add identification for windres; propagate it to...
+	* Makefile.in: ...here; use it to compile object from icon files...
+	(srcdir/icons) [%.ico]: ...from this new vpath location.
+	(gui.exe): Link to compiled icon's object file.
+	(SRCDIST_SUBDIRS): Add icons directory.
+
 2012-04-15  Keith Marshall  <keithmarshall@users.sourceforge.net>
 
 	Ensure that package removal requests are correctly scheduled.
