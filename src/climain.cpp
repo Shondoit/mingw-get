@@ -1,7 +1,7 @@
 /*
  * climain.cpp
  *
- * $Id: climain.cpp,v 1.16 2012/03/12 22:13:58 keithmarshall Exp $
+ * $Id: climain.cpp,v 1.17 2012/04/23 20:12:03 keithmarshall Exp $
  *
  * Written by Keith Marshall <keithmarshall@users.sourceforge.net>
  * Copyright (C) 2009, 2010, 2011, 2012, MinGW Project
@@ -155,11 +155,22 @@ EXTERN_C int climain( int argc, char **argv )
      */
     int action = action_code( *argv );
     if( action < 0 )
-      /*
-       * The specified action keyword was invalid;
-       * force an abort through a DMH_FATAL notification...
+    {
+      /* No valid action keyword was found; force an abort
+       * through an appropriate DMH_FATAL notification...
        */
-      dmh_notify( DMH_FATAL, "%s: unknown action keyword\n", *argv );
+      if( *argv == NULL )
+	/*
+	 * ...viz. the user didn't specify any argument, which
+	 * could have been interpreted as an action keyword.
+	 */
+	dmh_notify( DMH_FATAL, "no action specified\n" );
+
+      else
+	/* ...or, the specified action keyword was invalid.
+	 */
+	dmh_notify( DMH_FATAL, "%s: unknown action keyword\n", *argv );
+    }
 
     /* If we get to here, then the specified action identifies a
      * valid operation; load the package database, according to the

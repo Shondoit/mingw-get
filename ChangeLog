@@ -1,3 +1,13 @@
+2012-04-23  Keith Marshall  <keithmarshall@users.sourceforge.net>
+
+	Fix MinGW-Bug #3520488
+
+	* src/pkgexec.cpp (action_code): Check for, and reject NULL pointer
+	passed as action request string; also reject ambiguous abbreviations.
+
+	* src/climain.cpp (climain): Discriminate between NULL pointer and
+	other forms of invalid action keyword matching failures.
+
 2012-04-16  Keith Marshall  <keithmarshall@users.sourceforge.net>
 
 	mingw-get-0.5-beta-20120416-1 released.
