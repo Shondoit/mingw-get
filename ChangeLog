@@ -1,3 +1,16 @@
+2012-04-25  Keith Marshall  <keithmarshall@users.sourceforge.net>
+
+	Interim work-around for MinGW-Bug #3520864.
+
+	* src/pkgdeps.cpp (pkgXmlDocument::ResolveDependencies):
+	[DEBUG_TRACE_DEPENDENCIES]: Add request flags to messages reporting
+	the scheduling of installation activities.
+
+	* src/pkgexec.cpp (pkgXmlDocument::Schedule): Add temporary diagnostic
+	hooks to confirm request flags; bracket them with #if 0 ... #endif.
+	[ACTION_PRIMARY && pre-scheduled request]: Don't trash request flags
+	when updating the pre-existing action item data.
+
 2012-04-23  Keith Marshall  <keithmarshall@users.sourceforge.net>
 
 	Fix MinGW-Bug #3520488

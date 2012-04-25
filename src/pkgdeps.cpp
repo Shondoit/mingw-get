@@ -1,7 +1,7 @@
 /*
  * pkgdeps.cpp
  *
- * $Id: pkgdeps.cpp,v 1.19 2012/04/15 20:22:36 keithmarshall Exp $
+ * $Id: pkgdeps.cpp,v 1.20 2012/04/25 22:55:00 keithmarshall Exp $
  *
  * Written by Keith Marshall <keithmarshall@users.sourceforge.net>
  * Copyright (C) 2009, 2010, 2011, 2012, MinGW Project
@@ -484,8 +484,9 @@ pkgXmlDocument::ResolveDependencies( pkgXmlNode* package, pkgActionItem* rank )
 	   * we are performing a removal).
 	   */
 	  DEBUG_INVOKE_IF( DEBUG_REQUEST( DEBUG_TRACE_DEPENDENCIES ),
-	      dmh_printf( "%*s%s: schedule installation\n", indent + 2, "",
-		  selected->GetPropVal( tarname_key, value_unknown )
+	      dmh_printf( "%*s%s: schedule installation (flags=0x%08x)\n",
+		  indent + 2, "", selected->GetPropVal( tarname_key, value_unknown ),
+		  promote( request, ACTION_INSTALL )
 		)
 	    );
 	  rank = Schedule( promote( request, ACTION_INSTALL ), wanted, rank );

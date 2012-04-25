@@ -1,7 +1,7 @@
 /*
  * pkgexec.cpp
  *
- * $Id: pkgexec.cpp,v 1.27 2012/04/23 20:12:03 keithmarshall Exp $
+ * $Id: pkgexec.cpp,v 1.28 2012/04/25 22:55:00 keithmarshall Exp $
  *
  * Written by Keith Marshall <keithmarshall@users.sourceforge.net>
  * Copyright (C) 2009, 2010, 2011, 2012, MinGW Project
@@ -376,7 +376,13 @@ pkgActionItem* pkgXmlDocument::Schedule
      * we update the already scheduled request to reflect this...
      */
     if( (action & ACTION_PRIMARY) == ACTION_PRIMARY )
-      prior->SetPrimary( rank = ref->Schedule( action & ACTION_MASK, item ) );
+      prior->SetPrimary( rank = ref->Schedule( action /* & ACTION_MASK */, item ) );
+#   if 0
+      dmh_printf( "Schedule(0x%08x):%s(prior)\n",
+	  prior->HasAttribute((unsigned long)(-1)),
+	  prior->Selection()->ArchiveName()
+	);
+#   endif
     return prior;
   }
   /* ...otherwise, when this request produces a valid package reference,
@@ -385,6 +391,12 @@ pkgActionItem* pkgXmlDocument::Schedule
   else if( ((ref = ref->Schedule( action, item )) != NULL)
   &&   ((ref->Selection() != NULL) || (ref->Selection( to_remove ) != NULL)) )
   {
+#   if 0
+      dmh_printf( "Schedule(0x%08x):%s(new)\n",
+	  ref->HasAttribute((unsigned long)(-1)),
+	  ref->Selection()->ArchiveName()
+	);
+#   endif
     /* ...and, when successfully raised, add it to the task list...
      */
     if( rank )
