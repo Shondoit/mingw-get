@@ -1,3 +1,11 @@
+2012-04-26  Keith Marshall  <keithmarshall@users.sourceforge.net>
+
+	mingw-get-0.5-beta-20120426-1 released.
+
+	* configure.ac (AC_INIT): Version number updated.
+	* srcdist-doc/NEWS.in: Updated; bug-fix notifications added.
+	* All files (r0-5-beta-20120426-1): Tag assigned.
+
 2012-04-25  Keith Marshall  <keithmarshall@users.sourceforge.net>
 
 	Interim work-around for MinGW-Bug #3520864.
