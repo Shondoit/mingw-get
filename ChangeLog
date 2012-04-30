@@ -1,3 +1,14 @@
+2012-04-30  Keith Marshall  <keithmarshall@users.sourceforge.net>
+
+	Correct sequence of installation/removal progress reporting.
+
+	* src/pkgunst.cpp (pkgRemove): Delay output of "removing package ..."
+	message, until after pre-remove hooks have run; this ensures that any
+	output from the pre-remove hook scripts appears in correct sequence.
+
+	* src/pkginst.cpp (pkgInstall): Likewise, for "installing package ..."
+	message, in relation to pre-install hooks.
+
 2012-04-26  Keith Marshall  <keithmarshall@users.sourceforge.net>
 
 	mingw-get-0.5-beta-20120426-1 released.

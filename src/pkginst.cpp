@@ -1,7 +1,7 @@
 /*
  * pkginst.cpp
  *
- * $Id: pkginst.cpp,v 1.5 2012/02/20 21:41:54 keithmarshall Exp $
+ * $Id: pkginst.cpp,v 1.6 2012/04/30 20:10:23 keithmarshall Exp $
  *
  * Written by Keith Marshall <keithmarshall@users.sourceforge.net>
  * Copyright (C) 2010, 2011, 2012, MinGW Project
@@ -388,14 +388,7 @@ EXTERN_C void pkgInstall( pkgActionItem *current )
     if( current->HasAttribute( ACTION_DOWNLOAD ) == 0 )
     {
       /* ...and the required package has been successfully downloaded.
-       *
-       * FIXME: the notification here is somewhat redundant, but it
-       * does maintain symmetry with the "remove" operation, and will
-       * make "upgrade" notifications more logical; in any event, it
-       * should ultimately be made conditional on a "verbose" mode
-       * option selection.
        */
-      dmh_printf( " installing %s\n", pkg->GetPropVal( tarname_key, value_unknown ));
       if( current->Selection( to_remove ) == NULL )
       {
 	/* The selected package has either not yet been installed,
@@ -410,7 +403,16 @@ EXTERN_C void pkgInstall( pkgActionItem *current )
 	pkg->InvokeScript( "pre-install" );
 
 	/* Now, we may proceed with package installation...
+	 *
+	 * FIXME: the notification here is somewhat redundant, but it
+	 * does maintain symmetry with the "remove" operation, and will
+	 * make "upgrade" notifications more logical; in any event, it
+	 * should ultimately be made conditional on a "verbose" mode
+	 * option selection.
 	 */
+	dmh_printf( " installing %s\n",
+	    pkg->GetPropVal( tarname_key, value_unknown )
+	  );
 	if(  match_if_explicit( pkgfile = pkg->ArchiveName(), value_none )
 	&& ((tarname = pkg->GetPropVal( tarname_key, NULL )) != NULL)       )
 	{
