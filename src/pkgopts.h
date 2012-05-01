@@ -2,7 +2,7 @@
 /*
  * pkgopts.h
  *
- * $Id: pkgopts.h,v 1.7 2012/03/12 22:13:58 keithmarshall Exp $
+ * $Id: pkgopts.h,v 1.8 2012/05/01 20:01:41 keithmarshall Exp $
  *
  * Written by Keith Marshall <keithmarshall@users.sourceforge.net>
  * Copyright (C) 2011, 2012, MinGW Project
@@ -38,6 +38,9 @@ enum
    */
   OPTION_FLAGS,
   OPTION_EXTRA_FLAGS,
+  OPTION_ASSIGNED_FLAGS,
+  OPTION_DESKTOP_ARGS,
+  OPTION_START_MENU_ARGS,
   OPTION_DEBUGLEVEL,
 
   /* This final entry specifies the size of the parameter array which
@@ -63,6 +66,13 @@ struct pkgopts
   flags[OPTION_TABLE_SIZE];
 };
 
+/* The following macro provides a mechanism for recording when
+ * any string or numeric value option is assigned, even in the
+ * event that the assignment reproduces the default value.
+ */
+#define mark_option_as_set( options, index )  \
+  (options).flags[OPTION_ASSIGNED_FLAGS].numeric |= OPTION_ASSIGNED(index)
+
 /* Bit-mapped control tags used by the CLI options parsing code...
  */
 #define OPTION_SHIFT_MASK	(0x0000000f << 24)
@@ -75,9 +85,12 @@ struct pkgopts
 #define OPTION_STORE_NUMBER	(0x00000002 << 28)
 #define OPTION_MERGE_NUMBER	(0x00000003 << 28)
 /*
- * ...with specific handling for individual options.
+ * ...with specific handling for individual options, when set (as
+ * indicated by evaluation of...
  */
-#define OPTION_TRACE  (OPTION_MERGE_NUMBER | OPTION_DEBUGLEVEL)
+#define OPTION_ASSIGNED(N)	(1 << (((N) & 0x1F) - OPTION_ASSIGNED_FLAGS -1))
+
+#define OPTION_TRACE		(OPTION_MERGE_NUMBER | OPTION_DEBUGLEVEL)
 
 /* Options controlled by bit-mapped flags within OPTION_FLAGS...
  */
@@ -92,6 +105,9 @@ struct pkgopts
 #define OPTION_RECURSIVE	(0x00000080)
 #define OPTION_ALL_DEPS 	(0x00000090)
 #define OPTION_ALL_RELATED	(0x00000100)
+
+#define OPTION_DESKTOP		(OPTION_STORE_STRING | OPTION_DESKTOP_ARGS)
+#define OPTION_START_MENU	(OPTION_STORE_STRING | OPTION_START_MENU_ARGS)
 
 #if __cplusplus
 /*
@@ -111,17 +127,23 @@ class pkgOpts : protected pkgopts
    * of utility methods with the pkgopts structure.
    */
   public:
+    inline unsigned IsSet( int index )
+    {
+      return this
+	? flags[OPTION_ASSIGNED_FLAGS].numeric & OPTION_ASSIGNED(index)
+	: 0;
+    }
     inline unsigned GetValue( int index )
     {
       /* Retrieve the value of a numeric data entry.
        */
-      return this ? (flags[index].numeric) : 0;
+      return this ? (flags[index & 0xFFF].numeric) : 0;
     }
     inline const char *GetString( int index )
     {
       /* Retrieve a pointer to a string data entry.
        */
-      return this ? (flags[index].string) : NULL;
+      return this ? (flags[index & 0xFFF].string) : NULL;
     }
     inline unsigned Test( unsigned mask, int index = OPTION_FLAGS )
     {

@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <profile project="MinGW" application="mingw-get">
   <!--
-    $Id: profile.xml,v 1.4 2010/08/24 20:02:10 keithmarshall Exp $
+    $Id: profile.xml,v 1.5 2012/05/01 20:01:41 keithmarshall Exp $
 
     Written by Keith Marshall  <keithmarshall@users.sourceforge.net>
-    Copyright (C) 2009, 2010, MinGW Project
+    Copyright (C) 2009, 2010, 2012, MinGW Project
 
 
     Master configuration profile for mingw-get.
@@ -30,6 +30,27 @@
     MinGW Project, accept liability for any damages, however caused,
     arising from the use of this software.
   -->
+
+  <preferences>
+    <!--
+      "preferences" specifications provide a mechanism for defining
+      user specified default attributes for command line options such
+      as the "desktop" and "start-menu" short-cut creation controls.
+
+      Each of these options is disabled by default.  By uncommenting
+      any one of the following declarations, for each option, you may
+      change that default.  Note that you may still override settings
+      you establish here, by also specifying the option on the command
+      line as before; you may also disable an option enabled here, by
+      assigning an attribute value of "none" on the command line.
+    -->
+
+    <!--option name="desktop" /-->
+    <!--option name="desktop" value="all-users" /-->
+
+    <!--option name="start-menu" /-->
+    <!--option name="start-menu" value="all-users" /-->
+  </preferences>
 
   <repository uri="http://prdownloads.sourceforge.net/mingw/%F.xml.lzma?download">
     <!--

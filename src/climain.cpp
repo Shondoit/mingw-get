@@ -1,7 +1,7 @@
 /*
  * climain.cpp
  *
- * $Id: climain.cpp,v 1.17 2012/04/23 20:12:03 keithmarshall Exp $
+ * $Id: climain.cpp,v 1.18 2012/05/01 20:01:41 keithmarshall Exp $
  *
  * Written by Keith Marshall <keithmarshall@users.sourceforge.net>
  * Copyright (C) 2009, 2010, 2011, 2012, MinGW Project
@@ -219,6 +219,11 @@ EXTERN_C int climain( int argc, char **argv )
 	/* ...otherwise, we need to load the system map...
 	 */
 	dbase.LoadSystemMap();
+
+	/* ...initialise any preferences which the user may
+	 * have specified within profile.xml...
+	 */
+	dbase.EstablishPreferences();
 
 	/* ...and invoke the appropriate action handler.
 	 */

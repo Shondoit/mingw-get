@@ -1,6 +1,6 @@
 # @configure_input@
 #
-# $Id: Makefile.in,v 1.36 2012/04/16 19:13:48 keithmarshall Exp $
+# $Id: Makefile.in,v 1.37 2012/05/01 20:01:41 keithmarshall Exp $
 
 PACKAGE_TARNAME = @PACKAGE_TARNAME@
 PACKAGE_VERSION = @PACKAGE_VERSION@
@@ -60,11 +60,11 @@ LIBS = -Wl,-Bstatic -llua -lz -lbz2 -llzma -Wl,-Bdynamic -lwininet
 CORE_DLL_OBJECTS  =  climain.$(OBJEXT) pkgshow.$(OBJEXT) dmh.$(OBJEXT) \
    pkgbind.$(OBJEXT) pkginet.$(OBJEXT) pkgstrm.$(OBJEXT) pkgname.$(OBJEXT) \
    pkgexec.$(OBJEXT) pkgfind.$(OBJEXT) pkginfo.$(OBJEXT) pkgspec.$(OBJEXT) \
-   sysroot.$(OBJEXT) pkghash.$(OBJEXT) pkgkeys.$(OBJEXT) pkgdeps.$(OBJEXT) \
-   mkpath.$(OBJEXT)  pkgreqs.$(OBJEXT) pkginst.$(OBJEXT) pkgunst.$(OBJEXT) \
+   pkgopts.$(OBJEXT) sysroot.$(OBJEXT) pkghash.$(OBJEXT) pkgkeys.$(OBJEXT) \
+   pkgdeps.$(OBJEXT) pkgreqs.$(OBJEXT) pkginst.$(OBJEXT) pkgunst.$(OBJEXT) \
    tarproc.$(OBJEXT) xmlfile.$(OBJEXT) keyword.$(OBJEXT) vercmp.$(OBJEXT) \
-   tinyxml.$(OBJEXT) tinyxmlparser.$(OBJEXT) \
-   tinystr.$(OBJEXT) tinyxmlerror.$(OBJEXT)
+   tinyxml.$(OBJEXT) tinystr.$(OBJEXT) tinyxmlparser.$(OBJEXT) \
+   mkpath.$(OBJEXT)  tinyxmlerror.$(OBJEXT)
 
 script_srcdir = ${srcdir}/scripts/libexec
 
