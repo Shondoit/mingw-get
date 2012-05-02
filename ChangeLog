@@ -1,3 +1,11 @@
+2012-05-02  Keith Marshall  <keithmarshall@users.sourceforge.net>
+
+	Update help text to document package version selection capability.
+
+	* src/clistub.c (help_text): Add description of command line syntax
+	which may be used to specify an alternative to the default package
+	version selection, for install and upgrade actions.
+
 2012-05-01  Keith Marshall  <keithmarshall@users.sourceforge.net>
 
 	Support options set by preferences assigned within profile.xml

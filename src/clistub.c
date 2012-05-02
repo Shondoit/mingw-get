@@ -1,7 +1,7 @@
 /*
  * clistub.c
  *
- * $Id: clistub.c,v 1.19 2012/05/01 20:01:41 keithmarshall Exp $
+ * $Id: clistub.c,v 1.20 2012/05/02 20:21:14 keithmarshall Exp $
  *
  * Written by Keith Marshall <keithmarshall@users.sourceforge.net>
  * Copyright (C) 2009, 2010, 2011, 2012, MinGW Project
@@ -164,7 +164,7 @@ static const char *help_text =
 "Manage MinGW and MSYS installations (command line user interface).\n\n"
 
 "Usage:\n"
-"  mingw-get [OPTIONS] ACTION [package-spec ...]\n\n"
+"  mingw-get [OPTIONS] ACTION [package-spec[version-bounds] ...]\n\n"
 
 "  mingw-get update\n"
 "  mingw-get [OPTIONS] {install | upgrade | remove} package-spec ...\n"
@@ -261,8 +261,19 @@ static const char *help_text =
 "  msys-bash-doc     The 'doc' component of the bash package for MSYS\n"
 "  mingw32-gdb       All components of the gdb package for MinGW\n\n"
 
-"Use 'mingw-get list' to identify possible package names\n"
-"and the components associated with each.\n\n";
+"Version Bounds (for install or upgrade actions):\n"
+"  {>|>=|=|<=|<}major[.minor[.rev]][-subsystem-major[.minor[.rev]]]:\n"
+"  \"gcc=4.5.*\"       Latest available release of GCC version 4.5.x\n"
+"  \"gcc<4.6\"         Alternative representation for GCC version 4.5.x\n\n"
+
+"Use 'mingw-get list' to identify possible package names, and the\n"
+"components associated with each.\n\n"
+
+"Quote package names with attached version bounds specifications, to\n"
+"avoid possible misinterpretation of shell operators.  Do NOT insert\n"
+"white space at any point within any \"package-spec[version-bounds]\"\n"
+"specification string.\n\n"
+;
 
 #define  IMPLEMENT_INITIATION_RITES	PHASE_ONE_RITES
 #include "rites.c"
