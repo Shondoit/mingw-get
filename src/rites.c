@@ -42,7 +42,6 @@
 #define MINGW_GET_EXE	L"bin/mingw-get.exe"
 #define MINGW_GET_LCK	L"var/lib/mingw-get/lock"
 #define MINGW_GET_DLL	L"libexec/mingw-get/mingw-get-0.dll"
-#define MINGW_GET_GUI	L"libexec/mingw-get/gui.exe"
 
 /* We wish to define a number of helper functions, which we will prefer
  * to always compile to inline code; this convenience macro may be used

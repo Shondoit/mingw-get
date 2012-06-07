@@ -649,21 +649,10 @@ int main( int argc, char **argv )
 
   else
   { /* No arguments were specified on the command line...
-     * we interpret this as a request to start up in GUI mode...
+     * we interpret this as a request to display help text...
      */ 
-    wchar_t *libexec_path = AppPathNameW( MINGW_GET_GUI );
-    char gui_program[1 + snprintf( NULL, 0, "%S", libexec_path )];
-    snprintf( gui_program, sizeof( gui_program ), "%S", libexec_path );
-    int status = execv( gui_program, (const char* const*)(argv) );
-
-    /* If we get to here, then the GUI could not be started...
-     * Issue a diagnostic message, before abnormal termination.
-     */
-    fprintf( stderr,
-	"%s: %S: unable to start GUI; helper program not installed\n",
-	progname, MINGW_GET_GUI
-      );
-    return EXIT_FATAL;
+    printf( help_text );
+    return EXIT_SUCCESS;
   }
 }
 
