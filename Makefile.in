@@ -72,21 +72,17 @@ BIN_PROGRAMS = pkginfo$(EXEEXT) mingw-get$(EXEEXT)
 LIBEXEC_PROGRAMS = lastrites$(EXEEXT)
 LIBEXEC_SCRIPTS = ${script_srcdir}/setup.lua ${script_srcdir}/wsh.lua \
    ${script_srcdir}/shlink.js ${script_srcdir}/unlink.js
-LIBEXEC_DATA = mingw-get-0.dll
 
-all: $(BIN_PROGRAMS) $(LIBEXEC_PROGRAMS) $(LIBEXEC_DATA)
+all: $(BIN_PROGRAMS) $(LIBEXEC_PROGRAMS)
 
 pkginfo$(EXEEXT):  driver.$(OBJEXT) pkginfo.$(OBJEXT)
 	$(CC) -o $@ $(CFLAGS) $(LDFLAGS) $+
 
-mingw-get$(EXEEXT): clistub.$(OBJEXT) version.$(OBJEXT) getopt.$(OBJEXT)
-	$(CXX) -o $@ $(CXXFLAGS) $(LDFLAGS) $+
+mingw-get$(EXEEXT): clistub.$(OBJEXT) version.$(OBJEXT) getopt.$(OBJEXT) $(CORE_DLL_OBJECTS)
+	$(CXX) -o $@ $(CXXFLAGS) $(LDFLAGS) $+ $(LIBS)
 
 lastrites$(EXEEXT): rites.$(OBJEXT)
 	$(CC) -o $@ $(CFLAGS) $(LDFLAGS) $+
-
-mingw-get-0.dll: $(CORE_DLL_OBJECTS)
-	$(CXX) -shared -o $@ $(CXXFLAGS) $(LDFLAGS) $+ $(LIBS)
 
 # Compilation and dependency tracking...
 #
@@ -135,7 +131,7 @@ install: installdirs install-profile
 	for image in $(LIBEXEC_PROGRAMS); do \
 	  $(INSTALL_PROGRAM) $$image ${libexecdir}/${PACKAGE_TARNAME}; \
 	  done
-	for image in $(LIBEXEC_DATA) $(LIBEXEC_SCRIPTS); do \
+	for image in $(LIBEXEC_SCRIPTS); do \
 	  $(INSTALL_DATA) $$image ${libexecdir}/${PACKAGE_TARNAME}; \
 	  done
 
@@ -147,7 +143,7 @@ install-strip: install
 	for image in $(BIN_PROGRAMS); do \
 	  $(STRIP) ${bindir}/$$image; \
 	  done
-	for image in $(LIBEXEC_PROGRAMS) $(LIBEXEC_DATA); do \
+	for image in $(LIBEXEC_PROGRAMS); do \
 	  $(STRIP) ${libexecdir}/${PACKAGE_TARNAME}/$$image; \
 	  done
 

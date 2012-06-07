@@ -279,22 +279,12 @@ static const char *help_text =
 #include "rites.c"
 
 static __inline__ __attribute__((__always_inline__))
-char **cli_setargv( HMODULE my_dll, struct pkgopts *opts, char **argv )
+char **cli_setargv( struct pkgopts *opts, char **argv )
 {
   /* A local wrapper function to facilitate passing pre-parsed
    * command line options while performing the "climain()" call
-   * into mingw-get-0.dll
-   *
-   * Note that this requires a version of mingw-get-0.dll which
-   * provides the "cli_setopts()" hook...
    */
-  typedef void (*dll_hook)(struct pkgopts *);
-  dll_hook cli_setopts = (dll_hook)(GetProcAddress( my_dll, "cli_setopts" ));
-  if( cli_setopts != NULL )
-    /*
-     * ...which allows us to pass the pre-parsed options.
-     */
-    cli_setopts( opts );
+  cli_setopts( opts );
 
   /* In any case, we always return the argument vector which is
    * to be passed in the "climain()" call itself.
@@ -595,18 +585,6 @@ int main( int argc, char **argv )
      */
     int lock;
     char *argv_base = *argv;
-    typedef int (*dll_entry)( int, char ** );
-    HMODULE my_dll = LoadLibraryW( AppPathNameW( MINGW_GET_DLL ) );
-    dll_entry climain = (dll_entry)(GetProcAddress( my_dll, "climain" ));
-    if( climain == NULL )
-    {
-      /* ...bailing out, on failure to load the DLL.
-       */
-      fprintf( stderr, "%s: %S: shared library load failed\n", 
-	  progname, MINGW_GET_DLL
-	);
-      return EXIT_FATAL;
-    }
 
     /* Adjust argc and argv to discount parsed options...
      */
@@ -626,13 +604,8 @@ int main( int argc, char **argv )
       /* ...and proceed, only if successful.
        *  A non-zero return value indicates that a fatal error occurred.
        */
-      int rc = climain( argc, cli_setargv( my_dll, &parsed_options, argv ) );
+      int rc = climain( argc, cli_setargv( &parsed_options, argv ) );
 
-      /* We must release the mingw-get DLL code, BEFORE we invoke
-       * last rites processing, (otherwise the last rites clean-up
-       * handler exhibits abnormal behaviour when it is exec'd).
-       */
-      FreeLibrary( my_dll );
       if (rc == 0)
         return pkgLastRites( lock, progname );
       else
