@@ -351,13 +351,7 @@ RITES_INLINE int pkgLastRites( int lock, const char *progname )
    * be successfully performed in this pre-emptive fashion.
    */
   snprintf( rites, sizeof( rites ), "%s%s", approot, lastrites );
-  invoke_rites(); execl( rites, "lastrites", NULL );
-
-  /* We should never get to here; if we do...
-   * Diagnose a problem, and bail out.
-   */
-  fprintf( stderr, "%s: execl: ", progname ); perror( rites );
-  return EXIT_FATAL;
+  invoke_rites();
 }
 
 #endif
