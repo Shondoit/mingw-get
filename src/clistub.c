@@ -110,27 +110,10 @@ wchar_t *AppPathNameW( const wchar_t *relpath )
 	 }
        } while( (prev = *scan++) != L'\0' );
 
-    /* When we get to here, "mark" should point to the executable file name,
-     * at the end of the path name string, while "tail" should point to the
-     * last directory in the installation path; we now check, without regard
-     * to case, if this final directory name is "bin" or "sbin"...
-     */
-    if( (*(scan = tail) == L's') || (*scan == L'S') )
-      /*
-       * Might be "sbin"; skip the initial "s", and check for "bin"...
-       */
-      ++scan;
-
-    while( *bindir_p && ((*scan++ | L'\x20') == *bindir_p++) )
-      /*
-       * ...could still match "bin"...
-       */ ;
-    if( *bindir_p || (*scan != L'\\') )
-      /*
-       * No, it didn't match; adjust "tail", so we leave the final
-       * directory name as part of "prefix".
-       */
-      tail = mark;
+    /* We want the executable directory to be the root.
+     * Continue scanning untill the end. */
+    while( *scan++ );
+    tail = mark;
   }
 
   if( relpath == NULL )

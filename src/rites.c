@@ -39,7 +39,7 @@
 #include <stdlib.h>
 #include <errno.h>
 
-#define MINGW_GET_EXE	L"bin/mingw-get.exe"
+#define MINGW_GET_EXE	L"mingw-get.exe"
 #define MINGW_GET_LCK	L"var/lib/mingw-get/lock"
 
 /* We wish to define a number of helper functions, which we will prefer
