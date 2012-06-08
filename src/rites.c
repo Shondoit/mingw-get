@@ -319,7 +319,7 @@ RITES_INLINE int pkgLastRites( int lock, const char *progname )
    * when it is invoked in second phase of initiation rites.
    */
   const char *approot = approot_path();
-  const char *lastrites = "libexec/mingw-get/lastrites.exe";
+  const char *lastrites = "lastrites.exe";
   char rites[1 + snprintf( NULL, 0, "%s%s", approot, lastrites )];
 
   /* Clear the lock; note that we must both close AND unlink the

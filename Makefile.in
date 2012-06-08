@@ -68,12 +68,11 @@ CORE_DLL_OBJECTS  =  climain.$(OBJEXT) pkgshow.$(OBJEXT) dmh.$(OBJEXT) \
 
 script_srcdir = ${srcdir}/scripts/libexec
 
-BIN_PROGRAMS = pkginfo$(EXEEXT) mingw-get$(EXEEXT)
-LIBEXEC_PROGRAMS = lastrites$(EXEEXT)
+BIN_PROGRAMS = pkginfo$(EXEEXT) mingw-get$(EXEEXT) lastrites$(EXEEXT)
 LIBEXEC_SCRIPTS = ${script_srcdir}/setup.lua ${script_srcdir}/wsh.lua \
    ${script_srcdir}/shlink.js ${script_srcdir}/unlink.js
 
-all: $(BIN_PROGRAMS) $(LIBEXEC_PROGRAMS)
+all: $(BIN_PROGRAMS)
 
 pkginfo$(EXEEXT):  driver.$(OBJEXT) pkginfo.$(OBJEXT)
 	$(CC) -o $@ $(CFLAGS) $(LDFLAGS) $+
@@ -128,9 +127,6 @@ install: installdirs install-profile
 	for image in $(BIN_PROGRAMS); do \
 	  $(INSTALL_PROGRAM) $$image ${bindir}; \
 	  done
-	for image in $(LIBEXEC_PROGRAMS); do \
-	  $(INSTALL_PROGRAM) $$image ${libexecdir}/${PACKAGE_TARNAME}; \
-	  done
 	for image in $(LIBEXEC_SCRIPTS); do \
 	  $(INSTALL_DATA) $$image ${libexecdir}/${PACKAGE_TARNAME}; \
 	  done
@@ -142,9 +138,6 @@ install-profile:
 install-strip: install
 	for image in $(BIN_PROGRAMS); do \
 	  $(STRIP) ${bindir}/$$image; \
-	  done
-	for image in $(LIBEXEC_PROGRAMS); do \
-	  $(STRIP) ${libexecdir}/${PACKAGE_TARNAME}/$$image; \
 	  done
 
 # Packaging and distribution...
@@ -286,7 +279,7 @@ readme.txt.in: README.in NEWS.in INSTALL.in
 # Workspace clean-up...
 #
 clean:
-	rm -f *.$(OBJEXT) *.d *.dll $(BIN_PROGRAMS) $(LIBEXEC_PROGRAMS)
+	rm -f *.$(OBJEXT) *.d *.dll $(BIN_PROGRAMS)
 
 distclean: clean
 	rm -f config.* version.c
