@@ -33,7 +33,7 @@ abs_top_srcdir = @abs_top_srcdir@
 DEBUGLEVEL = @DEBUGLEVEL@
 
 vpath %.ico @srcdir@/icons
-VPATH = @top_srcdir@/src:@top_srcdir@/src/pkginfo:@top_srcdir@/tinyxml
+VPATH = @top_srcdir@/src:@top_srcdir@/src/pkginfo:@top_srcdir@/tinyxml:@top_srcdir@/res
 
 CC = @CC@
 CFLAGS = @CFLAGS@
@@ -78,7 +78,7 @@ pkginfo$(EXEEXT):  driver.$(OBJEXT) pkginfo.$(OBJEXT)
 	$(CC) -o $@ $(CFLAGS) $(LDFLAGS) $+
 
 mingw-get$(EXEEXT): clistub.$(OBJEXT) version.$(OBJEXT) getopt.$(OBJEXT) \
-  $(CORE_DLL_OBJECTS) rites.$(OBJEXT)
+  $(CORE_DLL_OBJECTS) rites.$(OBJEXT) resource.rc.$(OBJEXT)
 	$(CXX) -o $@ $(CXXFLAGS) $(LDFLAGS) $+ $(LIBS)
 
 # Compilation and dependency tracking...
@@ -93,6 +93,9 @@ sinclude *.d
 %.$(OBJEXT): %.cpp
 	$(CXX) $(DEPFLAGS) $(CPPFLAGS) $(CXXFLAGS) $<
 	$(CXX) -c $(CPPFLAGS) $(CXXFLAGS) -o $@ $<
+
+%.rc.$(OBJEXT): %.rc
+	windres.exe $^ $@
 
 # Installation tools and directory paths...
 #
