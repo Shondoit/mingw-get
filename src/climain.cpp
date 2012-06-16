@@ -172,6 +172,13 @@ EXTERN_C int climain( int argc, char **argv )
 	dmh_notify( DMH_FATAL, "%s: unknown action keyword\n", *argv );
     }
 
+	/* Create the necessary folders so that we can write files if needed.
+	 */
+	mkdir("var");
+	mkdir("var/lib");
+	mkdir("var/lib/mingw-get");
+	mkdir("var/lib/mingw-get/data");
+
     /* If we get to here, then the specified action identifies a
      * valid operation; load the package database, according to the
      * local `profile' configuration, and invoke the operation.
