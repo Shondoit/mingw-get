@@ -40,7 +40,7 @@
 #include <errno.h>
 
 #define MINGW_GET_EXE	L"mingw-get.exe"
-#define MINGW_GET_LCK	L"lock"
+#define MINGW_GET_LCK	L"var/lib/mingw-get/lock"
 
 /* We wish to define a number of helper functions, which we will prefer
  * to always compile to inline code; this convenience macro may be used
