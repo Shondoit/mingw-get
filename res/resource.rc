@@ -8,6 +8,8 @@
 
 CREATEPROCESS_MANIFEST_RESOURCE_ID RT_MANIFEST "mingw-get.exe.manifest"
 
+profile.xml RCDATA "../xml/profile.xml"
+
 201 ICON "../icons/mingw-get.ico"
 LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
 VS_VERSION_INFO VERSIONINFO

@@ -34,6 +34,8 @@
 #include "dmh.h"
 #include "mkpath.h"
 
+#include "winres.h"
+
 #include "pkgbase.h"
 #include "pkgkeys.h"
 #include "pkgopts.h"
@@ -196,6 +198,23 @@ EXTERN_C int climain( int argc, char **argv )
       free( (void *)(dfile) );
       dmh_notify( DMH_INFO, "%s: trying system default configuration\n",
 	  dfile = xmlfile_root( defaults_key ) );
+      if( access( dfile, R_OK ) != 0 )
+      {
+        const char *resfile = "profile.xml";
+        int buffersize = LoadResData( resfile, NULL, 0 );
+        if ( buffersize )
+        {
+          void *buffer = (void *)(malloc(buffersize));
+          if( LoadResData( resfile, buffer, buffersize ) )
+          {
+            FILE *fpprofile;
+            fpprofile = fopen( dfile, "wb" );
+            fwrite( buffer, buffersize, 1, fpprofile );
+            fclose( fpprofile );
+          }
+          free( buffer );
+        }
+      }
     }
 
     pkgXmlDocument dbase( dfile );

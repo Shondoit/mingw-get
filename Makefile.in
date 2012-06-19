@@ -64,7 +64,7 @@ CORE_DLL_OBJECTS  =  climain.$(OBJEXT) pkgshow.$(OBJEXT) dmh.$(OBJEXT) \
    pkgdeps.$(OBJEXT) pkgreqs.$(OBJEXT) pkginst.$(OBJEXT) pkgunst.$(OBJEXT) \
    tarproc.$(OBJEXT) xmlfile.$(OBJEXT) keyword.$(OBJEXT) vercmp.$(OBJEXT) \
    tinyxml.$(OBJEXT) tinystr.$(OBJEXT) tinyxmlparser.$(OBJEXT) \
-   mkpath.$(OBJEXT)  tinyxmlerror.$(OBJEXT)
+   mkpath.$(OBJEXT)  winres.$(OBJEXT)  tinyxmlerror.$(OBJEXT)
 
 script_srcdir = ${srcdir}/scripts/libexec
 
