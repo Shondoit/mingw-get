@@ -449,7 +449,6 @@ class pkgXmlDocument : public TiXmlDocument
 };
 
 EXTERN_C const char *xmlfile( const char*, const char* = NULL );
-EXTERN_C const char *xmlfile_root( const char*, const char* = NULL );
 EXTERN_C int has_keyword( const char*, const char* );
 
 typedef int (*strcmp_function)( const char *, const char * );

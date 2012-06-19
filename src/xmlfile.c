@@ -29,7 +29,7 @@
 
 #include "mkpath.h"
 
-const char *_xmlfile( const char *name, const char *datapath, const char *modifier )
+const char *xmlfile( const char *name, const char *modifier )
 {
   /* Construct a full path name for the file specified by "name",
    * adding the mandatory ".xml" extension; the path is always based
@@ -37,20 +37,11 @@ const char *_xmlfile( const char *name, const char *datapath, const char *modifi
    * of the standard path, (typically used as a temporary location for
    * internet downloads while in transit).
    */
+  const char *datapath = "%R" "var/lib/mingw-get/data" "%/M/%F.xml";
   char *datafile = (char *)(malloc( mkpath( NULL, datapath, name, modifier ) ));
 
   mkpath( datafile, datapath, name, modifier );
   return (const char *)(datafile);
-}
-
-const char *xmlfile( const char *name, const char *modifier )
-{
-  return _xmlfile( name, "%R" "var/lib/mingw-get/data" "%/M/%F.xml", modifier );
-}
-
-const char *xmlfile_root( const char *name, const char *modifier )
-{
-  return _xmlfile( name, "%R" "" "%/M/%F.xml", modifier );
 }
 
 /* $RCSfile: xmlfile.c,v $: end of file */

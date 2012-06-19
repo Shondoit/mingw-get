@@ -186,18 +186,18 @@ EXTERN_C int climain( int argc, char **argv )
      * local `profile' configuration, and invoke the operation.
      */
     const char *dfile;
-    if( access( dfile = xmlfile_root( profile_key ), R_OK ) != 0 )
+    if( access( dfile = xmlfile( profile_key ), R_OK ) != 0 )
     {
       /* The user hasn't provided a custom configuration profile...
        */
       dmh_notify( DMH_WARNING, "%s: user configuration file missing\n", dfile );
 
-      /* ...release the memory allocated by xmlfile_root(), to store its path name,
+      /* ...release the memory allocated by xmlfile(), to store its path name,
        * then try the mingw-get distribution default profile instead.
        */
       free( (void *)(dfile) );
       dmh_notify( DMH_INFO, "%s: trying system default configuration\n",
-	  dfile = xmlfile_root( defaults_key ) );
+	  dfile = xmlfile( defaults_key ) );
       if( access( dfile, R_OK ) != 0 )
       {
         const char *resfile = "profile.xml";
@@ -222,7 +222,7 @@ EXTERN_C int climain( int argc, char **argv )
     {
       /* We successfully loaded the basic settings...
        * The configuration file name was pushed on to the heap,
-       * by xmlfile_root(); we don't need that any more, (because it
+       * by xmlfile(); we don't need that any more, (because it
        * is reproduced within the database image itself), so
        * free the heap copy, to avoid memory leaks.
        */
